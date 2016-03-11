@@ -24,6 +24,11 @@ DEBUG = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
 TEMPLATE_DEBUG = DEBUG
 
+# A list of strings representing the host/domain names that this Pootle server
+# can serve. This is a Django's security measure. More details at
+# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+
 
 #
 # Backends
@@ -44,6 +49,9 @@ DATABASES = {
         'HOST': '',
         # Set to empty string for default. Not used with sqlite3.
         'PORT': '',
+        # See https://docs.djangoproject.com/en/1.6/topics/db/transactions/
+        # required for Django 1.6 + sqlite
+        'ATOMIC_REQUESTS': True,
     }
 }
 
@@ -58,6 +66,62 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'pootlecache',
     }
+}
+
+
+# Logging
+
+POOTLE_LOG_DIRECTORY = working_path('log/')
+
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+        'action': {
+            'format' : "[%(asctime)s]\t%(message)s",
+            'datefmt' : "%Y-%m-%dT%H:%M:%S"
+        },
+    },
+    'handlers': {
+        'null': {
+            'level':'DEBUG',
+            'class':'django.utils.log.NullHandler',
+        },
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        # Log to a text file that can be rotated by logrotate
+        'log_action': {
+            'class': 'logging.handlers.WatchedFileHandler',
+            'filename': os.path.join(POOTLE_LOG_DIRECTORY,
+                                     'pootle-activity.log'),
+            'formatter':'action',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['null'],  # Quiet by default!
+            'propagate': False,
+            'level':'DEBUG',
+        },
+        'django.request': {
+            'handlers': ['null'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'action': {
+            'handlers': ['log_action',],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
 
 
@@ -117,8 +181,8 @@ MIDDLEWARE_CLASSES += [
 ]
 
 DEBUG_TOOLBAR_CONFIG = {
-    'INTERCEPT_REDIRECTS': False,
-    'HIDE_DJANGO_SQL': True,
+    # Toolbar options
+    'SHOW_COLLAPSED': True,
 }
 
 
@@ -132,8 +196,24 @@ PODIRECTORY = working_path('po')
 # The directory where version control clones/checkouts are kept
 VCS_DIRECTORY = working_path('repos')
 
-# Two-tuple defining the markup filter to apply in certain textareas
-# ('textile', 'markdown', 'restructuredtext', None).
+# Two-tuple defining the markup filter to apply in certain textareas.
+#
+# - Accepted values for the first element are 'textile', 'markdown',
+#   'restructuredtext' and None.
+# - The second element should be a dictionary of keyword arguments that will be
+#   passed to the markup function.
+#
+# IMPORTANT: If you want to use one of these markup filters you must install on
+# your own the required packages.
+#
+# Examples:
+#    MARKUP_FILTER = (None, {})
+#    MARKUP_FILTER = ('markdown', {'safe_mode': 'escape'})
+#    MARKUP_FILTER = ('restructuredtext', {
+#                         'settings_overrides': {
+#                             'report_level': 'quiet',
+#                         }
+#                     })
 MARKUP_FILTER = (None, {})
 
 # Suggestions through Machine Translation services (service name, API key).
@@ -148,4 +228,4 @@ LOOKUP_BACKENDS = [
 ]
 
 # URL for the amaGama TM server.
-AMAGAMA_URL = 'http://amagama.locamotion.org/tmserver/'
+AMAGAMA_URL = 'https://amagama-live.translatehouse.org/api/v1/'

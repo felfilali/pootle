@@ -73,6 +73,23 @@ Backend and caching settings.
   Time in seconds the Pootle's statistics cache will last.
 
 
+.. setting:: POOTLE_TOP_STATS_CACHE_TIMEOUT
+
+``POOTLE_TOP_STATS_CACHE_TIMEOUT``
+  Default: ``86400``
+
+  Time in seconds the Pootle's top statistics cache will last.
+
+
+.. setting:: POOTLE_LOG_DIRECTORY
+
+``POOTLE_LOG_DIRECTORY``
+  Default: ``/var/log/pootle/``
+
+  The directory where Pootle writes event logs to. These are high-level
+  logs of events on store/unit changes and manage.py commands executed
+
+
 30-site.conf
 ^^^^^^^^^^^^
 
@@ -106,10 +123,30 @@ Site-specific settings.
   have effect if :setting:`CAN_CONTACT` is set to ``True``.
 
 
+.. setting:: POOTLE_REPORT_STRING_ERRORS_EMAIL
+
+``POOTLE_REPORT_STRING_ERRORS_EMAIL``
+  Default: ``string_errors_manager@YOUR_DOMAIN.com``
+
+  .. versionadded:: 2.6
+
+  Email address to report errors on strings.
+
+
 40-apps.conf
 ^^^^^^^^^^^^
 
 Configuration settings for applications used by Pootle.
+
+
+.. setting:: API_LIMIT_PER_PAGE
+
+``API_LIMIT_PER_PAGE``
+  Default: ``0``
+
+  .. versionadded:: 2.5.1
+
+  Number of records Pootle API will show in a list view. ``0`` means no limit.
 
 
 .. setting:: CUSTOM_TEMPLATE_CONTEXT
@@ -121,22 +158,6 @@ Configuration settings for applications used by Pootle.
 
   Custom template context dictionary. The values will be available in the
   templates as ``{{ custom.<key> }}``.
-
-
-.. setting:: EMAIL_SEND_HTML
-
-``EMAIL_SEND_HTML``
-  Default: ``False``
-
-  By default Pootle sends only text emails. If your organization would prefer
-  to send mixed HTML/TEXT emails, set this to ``True``, and update
-  *activation_email.txt* and *activation_email.html* in the
-  *templates/registration/* directory.
-
-  .. note::
-
-    Password reset emails will still be sent in plain text. This is a limitation
-    of the underlying system.
 
 
 .. setting:: FUZZY_MATCH_MAX_LENGTH
@@ -161,6 +182,20 @@ Configuration settings for applications used by Pootle.
   Minimum similarity to consider when doing fuzzy matching. Please note this
   affects all fuzzy matching operations, so bear in mind this might affect
   performance.
+
+
+.. setting:: LEGALPAGE_NOCHECK_PREFIXES
+
+``LEGALPAGE_NOCHECK_PREFIXES``
+  Default: ``('/accounts', '/admin', '/api', '/contact', '/django_admin',
+  '/jsi18n', '/pages', )``
+
+  .. versionadded:: 2.5.1
+
+  List of path prefixes where the ``LegalAgreementMiddleware`` will check
+  if the current logged-in user has agreed all the legal documents defined
+  for the Pootle instance. Don't change this unless you know what you're
+  doing.
 
 
 .. setting:: MIN_AUTOTERMS
@@ -208,6 +243,29 @@ Configuration settings for applications used by Pootle.
   automatically extracted.
 
 
+.. setting:: POOTLE_ENABLE_API
+
+``POOTLE_ENABLE_API``
+  Default: ``False``
+
+  .. versionadded:: 2.5.1
+
+  Enable Pootle API.
+
+
+.. setting:: TASTYPIE_DEFAULT_FORMATS
+
+``TASTYPIE_DEFAULT_FORMATS``
+  Default: ``['json']``
+
+  .. versionadded:: 2.5.1
+
+  List defining the allowed serialization formats for Pootle API. Check
+  :ref:`Tastypie docs <tastypie:settings.TASTYPIE_DEFAULT_FORMATS>` for all the
+  available formats and :ref:`its dependencies <tastypie:ref-tutorial>` (see in
+  Installation section).
+
+
 .. setting:: TOPSTAT_SIZE
 
 ``TOPSTAT_SIZE``
@@ -230,8 +288,8 @@ Configuration settings for applications used by Pootle.
 ^^^^^^^^^^^^
 
 Optional LDAP configuration settings. To enable the LDAP authentication
-backend, you'll need to append ``'pootle.auth.ldap_backend.LdapBackend'`` to
-the list of ``AUTHENTICATION_BACKENDS``.
+backend, you'll need to append ``'pootle.core.auth.ldap_backend.LdapBackend'``
+to the list of ``AUTHENTICATION_BACKENDS``.
 
 
 .. setting:: AUTH_LDAP_ANON_DN
@@ -294,7 +352,7 @@ Translation environment configuration settings.
 .. setting:: AMAGAMA_URL
 
 ``AMAGAMA_URL``
-  Default: ``http://amagama.locamotion.org/tmserver/``
+  Default: ``https://amagama-live.translatehouse.org/api/v1/``
 
   URL to an amaGama Translation Memory server. The default service should work
   fine, but if you have a custom server set it here.
@@ -302,23 +360,7 @@ Translation environment configuration settings.
   This URL must point to the public API URL which returns JSON. Don't forget
   the trailing slash.
 
-
-.. setting:: AUTOSYNC
-
-``AUTOSYNC``
-  Default: ``False``
-
-  Set this to ``True`` if you want translation files to be updated
-  immediatly.
-
-  .. note::
-
-    This negatively affects performance and should be avoided unless another
-    application needs direct access to the files.
-
-  .. warning::
-
-    This feature is not maintained anymore, use it at your own risk.
+  Setting it to blank string disables retrieving translation memory results.
 
 
 .. setting:: EXPORTED_DIRECTORY_MODE
@@ -339,17 +381,6 @@ Translation environment configuration settings.
   On POSIX systems, exported files will be assigned this permission. Use
   ``0644`` for publically-readable files or ``0600`` if you want only the
   Pootle user to be able to read them.
-
-
-.. setting:: LIVE_TRANSLATION
-
-``LIVE_TRANSLATION``
-  Default: ``False``
-
-  Live translation means that the project called *Pootle* is used to provide
-  the localized versions of Pootle. Set this to ``True`` to enable live
-  translation of Pootle's UI. This is a good way to learn how to use Pootle,
-  but it has high impact on performance.
 
 
 .. setting:: LOOKUP_BACKENDS
@@ -381,7 +412,7 @@ Translation environment configuration settings.
   ``GOOGLE_TRANSLATE``: Google Translate service.
     For this service you need to set the API key. Note that Google Translate
     API is a paid service. See more at
-    https://developers.google.com/translate/v2/pricing 
+    https://developers.google.com/translate/v2/pricing
 
 
 .. setting:: PARSE_POOL_CULL_FREQUENCY
@@ -431,7 +462,7 @@ Deprecated Settings
 .. setting:: ENABLE_ALT_SRC
 
 ``ENABLE_ALT_SRC``
-  Defaut: ``True``
+  Default: ``True``
 
   .. deprecated:: 2.5
      Alternate source languages are now on by default. This ensures

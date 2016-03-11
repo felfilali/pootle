@@ -3,81 +3,8 @@
 Changelog
 =========
 
-These are the critical changes that have happened in Pootle and may affect
-your server. Also be aware of the :ref:`important changes in the
-Translate Toolkit <toolkit:changelog>` as many of these also affect Pootle.
-
-If you are upgrading Pootle, you might want to see some tips to ensure your
-:ref:`upgrade goes smoothly <upgrading>`
-
-
-Version 2.5.0
--------------
-
-Major release, released on May 18th 2013.
-
-- The minimum required Django version is 1.3.
-
-- Static files are now handled by the ``django.contrib.staticfiles`` module.
-  This means you will need to run the ``pootle collectstatic`` command on
-  production and serve the *pootle/assets/* directory from your webserver at
-  */assets/*. If you are upgrading from a previous version, you will need to
-  replace the occurrences of *static* with *assets* within your web server
-  configuration.
-
-- Static files are bundled into assets by using `django-assets
-  <http://elsdoerfer.name/docs/webassets/django/index.html>`_.
-
-- Several features from translation projects have been merged into the
-  *Overview* tab, including quality check failures and directory- and
-  file-level actions. As a consequence the *Review* tab has been dropped and
-  the *Translate* tab serves solely to display the actual translation
-  editor.
-
-- Settings have been migrated from *localsettings.py* into *settings/\*.conf*
-  files. Your customizations now go in a :ref:`separate configuration file
-  <settings#customizing>` (or in *settings/90-local.conf* if running from a
-  repository clone).
-
-- A new setting, :setting:`VCS_DIRECTORY` has been added, and VCS repositories
-  are located in that directory, separate from the translation files used for
-  editing and upload/download. The files in the VCS directory should never have
-  any uncommitted changes in them, except during commit operations themselves.
-
-- The ``PootleServer`` script has been phased out in favor of a ``pootle``
-  runner script.
-
-- If you will be using Pootle with Django 1.3, you *have* to keep the timezone
-  on ``UTC``, unless you are using PostgreSQL. Users of PostgreSQL or Django
-  1.4 or later are free to set the time zone as they prefer.
-  Also make sure to use the minimum required South version when performing
-  database upgrades.
-
-- The ``update_from_templates`` management command has been renamed to
-  :ref:`commands#update_against_templates`.
-
-Version 2.1.6
--------------
-
-Bugfix release, released on April 13th 2011.
-
-- This is the first version that is compatible with Django 1.2.5 and
-  Django 1.3.
-
-- You also need Translate Toolkit 1.9.0 to be able to use these newer
-  versions of Django.
-
-
-Version 2.1.1
--------------
-
-Bugfix release, released on September 3rd 2010.
-
-- The default cache backend is now a database backend. Memcached is
-  still the preferred cache backend, but consider using the database cache
-  if you are using the local memory backend and can't use memcached.
-
-- You can perform a database migration away from SQLite.
+.. note:: For newer Pootle versions changes please check the
+   :doc:`Release notes <releases/index>`.
 
 
 Version 2.1
@@ -104,7 +31,7 @@ Released on August 17th 2010.
 - Pending files are not used for suggestions any more, and will also be
   migrated to the database during upgrade.
 
-- New settings are available in `localsettings.py` - compare your
+- New settings are available in `localsettings.py` -- compare your
   existing one to the new one.
 
 - Pootle 1 installations can easily migrate everything excluding project
@@ -256,7 +183,7 @@ Terminology
 
 Translation Memory
   Pootle can now aid translators by means of a translation memory. The
-  suggestions are not generated realtime - it is done on the server by
+  suggestions are not generated realtime -- it is done on the server by
   means of a commandline program (`updatetm`). Files with an appended `.tm`
   will be generated and read by Pootle to supply the suggestions. For more
   information see `updatetm`.

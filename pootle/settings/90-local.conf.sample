@@ -23,12 +23,12 @@ need to change the extension of this file from ``.conf.sample`` to ``.conf``.
 TIME_ZONE = 'UTC'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '%(default_key)s'
+SECRET_KEY = '${default_key}'
 
 # A list of strings representing the host/domain names that this Pootle server
 # can serve. This is a Django's security measure. More details at
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 #
@@ -50,29 +50,55 @@ DATABASES = {
         'HOST': '',
         # Set to empty string for default. Not used with sqlite3.
         'PORT': '',
+        # See https://docs.djangoproject.com/en/1.6/topics/db/transactions/
+        # required for Django 1.6 + sqlite
+        'ATOMIC_REQUESTS': True,
     }
 }
 
 
 # Cache Backend settings
 
-# By default we use Django's database cache which is only suitable
+# By default we use Django's local-memory cache which is only suitable
 # for small deployments.
+#
 # If you are going to deploy a real server memcached is preferred. For more
 # information, check
 # http://docs.djangoproject.com/en/dev/topics/cache/#setting-up-the-cache
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'pootlecache',
-        'TIMEOUT': 60,
-        'OPTIONS': {
-            'MAX_ENTRIES': 65536,
-            'CULL_FREQUENCY': 16,
-        }
-    }
-}
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#        'LOCATION': '127.0.0.1:11211',
+#    }
+#}
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'action': {
+            'format' : "[%(asctime)s]\t%(message)s",
+            'datefmt' : "%Y-%m-%dT%H:%M:%S"
+        },
+    },
+    'handlers': {
+        # Log to a text file that can be rotated by logrotate
+        'log_action': {
+            'class': 'logging.handlers.WatchedFileHandler',
+            'filename': os.path.join(POOTLE_LOG_DIRECTORY,
+                                     'pootle-activity.log'),
+            'formatter':'action',
+        },
+    },
+    'loggers': {
+        'action': {
+            'handlers': ['log_action',],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 #
 # Site
@@ -96,6 +122,10 @@ DEFAULT_FROM_EMAIL = 'info@YOUR_DOMAIN.com'
 CONTACT_EMAIL = 'info@YOUR_DOMAIN.com'
 CAN_CONTACT = True
 
+# Email address to report string errors to, unless a report email was set for
+# the project for which the string error is being reported.
+POOTLE_REPORT_STRING_ERRORS_EMAIL = 'string_errors_manager@YOUR_DOMAIN.com'
+
 # Mail server settings
 
 # By default Pootle uses the SMTP server on localhost. If the server is not
@@ -118,18 +148,23 @@ CAN_CONTACT = True
 PODIRECTORY = working_path('po')
 
 # Two-tuple defining the markup filter to apply in certain textareas.
+#
 # - Accepted values for the first element are 'textile', 'markdown',
-#   'restructuredtext' and None
-# - The second element should be a dictionary of keyword arguments that
-#   will be passed to the markup function
+#   'restructuredtext' and None.
+# - The second element should be a dictionary of keyword arguments that will be
+#   passed to the markup function.
+#
+# IMPORTANT: If you want to use one of these markup filters you must install on
+# your own the required packages.
 #
 # Examples:
-#   MARKUP_FILTER = (None, {})
-#   MARKUP_FILTER = ('markdown', {'safe_mode': 'escape'})
-#   MARKUP_FILTER = ('restructuredtext', {'settings_overrides': {
-#                                            'report_level': 'quiet',
-#                                            }
-#                                        })
+#    MARKUP_FILTER = (None, {})
+#    MARKUP_FILTER = ('markdown', {'safe_mode': 'escape'})
+#    MARKUP_FILTER = ('restructuredtext', {
+#                         'settings_overrides': {
+#                             'report_level': 'quiet',
+#                         }
+#                     })
 MARKUP_FILTER = (None, {})
 
 # Set the backends you want to use to enable translation suggestions through

@@ -5,10 +5,12 @@ Management commands
 
 The management commands are administration commands provided by Django, Pootle
 or any external Django app being used with Pootle. You will usually run these
-commands by issueing ``pootle <command> [options]``.
+commands by issuing ``pootle <command> [options]``.
 
 For example, to get information about all available management commands, you
-will run::
+will run:
+
+.. code-block:: bash
 
     $ pootle help
 
@@ -23,8 +25,8 @@ will run::
 Running WSGI servers
 --------------------
 
-There are multiple ways to run Pootle, and some of they rely on running WSGI
-servers that can be reverse proxyed to a proper HTTP web server such as nginx
+There are multiple ways to run Pootle, and some of them rely on running WSGI
+servers that can be reverse proxied to a proper HTTP web server such as nginx
 or lighttpd.
 
 The Translate Toolkit offers a bundled CherryPy server but there are many more
@@ -85,7 +87,7 @@ tasks. The tasks are all available through the web interface but on a project
 by project or file by file basis.
 
 All commands in this category accept a ``--directory`` command line option that
-expects a path relative to the *po/* directory to limit it's action to.
+limits its action to a path relative to the *po/* directory.
 
 .. versionchanged:: 2.1.2
 
@@ -98,12 +100,16 @@ If you need to limit the commands to certain files or subdirectories you can
 use the ``--path-prefix`` option, path should be relative to project/language
 pair.
 
-For example, to *refresh_stats* for the tutorial project only, run::
+For example, to *refresh_stats* for the tutorial project only, run:
+
+.. code-block:: bash
 
     $ pootle refresh_stats --project=tutorial
 
 To only refresh a the Zulu and Basque language files within the tutorial
-project, run::
+project, run:
+
+.. code-block:: bash
 
     $ pootle refresh_stats --project=tutorial --language=zu --language=eu
 
@@ -115,17 +121,15 @@ refresh_stats
 
 This command will go through all existing projects making sure calculated data
 is up to date. Running ``refresh_stats`` immediately after an install, upgrade
-or after adding a large number of files will make Pootle feel faster as it will
-require less on-demand calculation of expensive statistics.
+or after adding a large number of files will ensure statistics, such as word
+and suggestion counts, are up to date. On large installations, refresh_stats
+can take several tens of minutes to fully run through all projects.
 
-``refresh_stats`` will do the following tasks:
+``refresh_stats`` will flush existing caches and update the statistics cache.
 
-- Update the statistics cache (this only useful if you are using memcached).
-
-- Calculate quality checks so that they appear on the expanded overview page
-  without a delay.
-
-- Update :doc:`full text search index <indexing>` (Lucene or Xapian).
+When the ``--calculate-checks`` option is set, quality checks will be
+recalculated for all existing units in the database. This is a very expensive
+operation.
 
 
 .. _commands#sync_stores:
@@ -155,12 +159,13 @@ ignored, and no new files will be created.
 .. versionadded:: 2.5
 
 With the ``--modified-since`` option it is possible to give a change identifier
-(from the output of ``latest_change_id``) to specifically indicate which changes
-need to be synced to disk. This will override Pootle on what has/hasn't been
-synced to disk, and specifically those changes will be synced. Note that bulk
-changes (from uploads and version control actions) don't yet record fine-grained
-changes, and these will therefore not be synced to disk. However, these should
-already be on disk, since those actions always sync to disk anyway.
+(from the output of :ref:`commands#latest_change_id`) to specifically indicate
+which changes need to be synced to disk. This will override Pootle on what
+has/hasn't been synced to disk, and specifically those changes will be synced.
+Note that bulk changes (from uploads and version control actions) don't yet
+record fine-grained changes, and these will therefore not be synced to disk.
+However, these should already be on disk, since those actions always sync to
+disk anyway.
 
 
 .. _commands#update_stores:
@@ -178,20 +183,26 @@ within the projects.
 You must run this command after running scripts that modify translation files
 directly on the file system.
 
-``update_stores`` has an extra command line option ``--keep`` that will prevent
-it from overwriting any existing translation in the database, thus only
-updating new translations and discovering new files and strings.
+``update_stores`` has an extra command line option ``--keep`` that will
+prevent it from overwriting any existing translation in the database, thus
+only updating new translations, removing obsolete strings and discovering
+new files and strings.
+
+.. versionchanged:: 2.5.1
+
+Note that ``--keep`` doesn't keep obsolete units around anymore, they are
+either deleted in case the string is untranslated or marked as obsolete in
+case the string was translated.
 
 .. versionchanged:: 2.5
 
-Along with ``--keep`` the ``--modified-since`` option can be used to keep
-translations that have a change ID **greater than** the given value. This way
-some translated strings can be updated from in-disk files while at preserving
-in-DB translations for other strings that meet the given criterion.
+Along with ``--keep``, the ``--modified-since`` option can be used to
+control the set of translations that will be updated: translations with a
+change ID **greater than** the given value will be kept.
 
-To illustrate the results of these later options, have a look at the following
-table that emulates the behavior of ``pootle update_stores --modified-since=5
---keep``:
+To illustrate the results of these two options, the following table
+emulates the behavior of a ``pootle update_stores --modified-since=5
+--keep`` run:
 
 ========================================== ============= =================
  File on disk                               DB before     DB after
@@ -345,6 +356,180 @@ server. This is mostly useful in combination with other commands that operate
 with these IDs.
 
 
+.. _commands#assign-permissions:
+
+assign_permissions
+^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 2.6.0
+
+This command allows to assign permissions for a given user in a project,
+language or translation project.
+
+This command has two mandatory options: :option:`--permissions` and
+:option:`--user`. It is also mandatory to either provide :option:`--language`
+or :option:`--project`.
+
+It is possible to provide both :option:`--language` and :option:`--project` at
+the same time to indicate that the permissions should be applied only for a
+given project inside a given language (i.e. for a given translation project).
+
++---------------------------+-------------------------------+
+| Option                    | Accepted value                |
++===========================+===============================+
+| :option:`--user`          | Valid username                |
++---------------------------+-------------------------------+
+| :option:`--language`      | Valid language code           |
++---------------------------+-------------------------------+
+| :option:`--project`       | Valid project code            |
++---------------------------+-------------------------------+
+| :option:`--permissions`   | Comma separated list of valid |
+|                           | permission codenames          |
++---------------------------+-------------------------------+
+
+Check the list of :ref:`available permissions
+<permissions#available_permissions>` to know which permissions you can use.
+
+.. note:: All of the options, including :option:`--language`, can only be
+   provided once, and all of them accept only one value.
+
+
+The following example assigns the ``review``, ``view``, ``translate`` and
+``suggest`` permissions to the ``sauron`` user in the ``task-123`` project for
+the language ``de_AT``.
+
+.. code-block:: bash
+
+    $ pootle assign_permissions --user=sauron --language=de_AT --project=task-123 --permissions=review,view,translate,suggest
+
+
+The following example assigns the ``translate`` permission to the ``sauron``
+user in the ``task-123`` project.
+
+.. code-block:: bash
+
+    $ pootle assign_permissions --user=sauron --project=task-123 --permissions=translate
+
+
+.. _commands#local-tm:
+
+Local TM
+--------
+
+These commands allow you to perform tasks with the local Translation Memory
+from the command line.
+
+
+.. _commands#create-local-tm:
+
+create_local_tm
+^^^^^^^^^^^^^^^
+
+.. versionadded:: 2.6.0
+
+This command allows to create a local Translation Memory for Pootle usage by
+using already existing translated units in Pootle database. To run it just
+type:
+
+.. code-block:: bash
+
+    $ pootle create_local_tm
+
+
+Also you can run it providing the :option:`--project` and :option:`--language`
+optional options:
+
+.. code-block:: bash
+
+    $ pootle create_local_tm --project=firefox --language=af --language=gl
+
+
+Despite these two options are optional, it is highly recommended to run this
+command using one :option:`--project` when dealing with a Pootle instance with
+projects that together have a lot of units. Also in the specific case where the
+given project has too many units it is recommended to provide one or several
+:option:`--language` options.
+
+This command also has one optional option :option:`--drop-local-tm` which is
+used to tell whether the local TM (if it exists) should be dropped before
+recreating it:
+
+.. code-block:: bash
+
+    $ pootle create_local_tm --drop-local-tm --project=firefox --language=af --language=gl
+
+
+.. _commands#goals:
+
+Goals
+-----
+
+These commands allow you to perform tasks with goals from the command line.
+
+
+.. _commands#add-project-goals:
+
+add_project_goals
+^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 2.6.0
+
+This command allows you to create **project goals** for a given project reading
+them from a phaselist file.
+
+Such file comprises two sections.
+
+The first section has several lines where each line consists on three fields
+separated by a tab. The first field includes a mandatory name for the goal, the
+second an optional numeric priority for the goal (being 1 the highest
+priority), and a third optional field with the goal description that can span
+several lines. The tabs separating the fields must always be present, even if
+they are not specified.
+
+The second section has several lines where each line consists on two fields
+separated by a tab. The first field specifies a goal name and the second one is
+the path of a file:
+
+.. code-block:: ini
+
+    [goals]
+    user1	1	Most visible strings for the user.
+    user2	2
+    user3	7	
+    other		
+    developer	9	Strings for developer \
+    tools. As you can see this description spans \
+    several lines.
+    install	5	Installation related strings.
+    [files]
+    user1	./browser/branding/official/brand.dtd.pot
+    other	./browser/chrome/browser/aboutCertError.dtd.pot
+    user1	browser/chrome/browser/aboutDialog.dtd.pot
+    user2	browser/chrome/browser/aboutSessionRestore.dtd.pot
+    developer	./browser/chrome/browser/devtools/appcacheutils.properties.pot
+    developer	browser/chrome/browser/devtools/debugger.dtd.pot
+    user2	browser/chrome/browser/downloads/downloads.dtd.pot
+    user3	browser/chrome/browser/engineManager.dtd.pot
+    install	browser/chrome/browser/migration/migration.dtd.pot
+    install	./browser/chrome/browser/migration/migration.properties.pot
+
+The goals are created if necessary. If the goal exists and has any relationship
+to any store, that relationships are deleted to make sure that the goals
+specified on the phaselist file are only applied to the specified stores.
+
+After all goals are created then they are tied to the files on template
+translation project for the project as they are specified on the phaselist
+file. If any specified file does not exist for the template translation project
+on the given project then it is skipped.
+
+This command has two mandatory options: :option:`--project` and
+:option:`--filename`.
+
+.. code-block:: bash
+
+    $ pootle add_project_goals --project=tutorial --filename=phaselist.txt
+
+
 .. _commands#manually_installing_pootle:
 
 Manually Installing Pootle
@@ -354,21 +539,59 @@ These commands expose the database installation and upgrade process from the
 command line.
 
 
+.. _commands#setup:
+
+setup
+^^^^^
+
+.. versionadded:: 2.5.1
+
+This command either initializes a new DB or upgrades an existing DB, as
+required.
+
+
 .. _commands#syncdb:
 
 syncdb
 ^^^^^^
 
-Strictly speaking ``syncdb`` is a generic Django management command that creates
+Originally, ``syncdb`` was a generic Django management command that creates
 empty database tables. It has been customized for Pootle to create everything
-required for a bare bones install. This includes database tables, default
-permissions, some default objects used internally by Pootle (like the
-*"default"* and *"nobody"* user profiles) and the special Terminology and
-:ref:`Templates languages <templates#the_templates_language>`.
+required for a bare bones install for releases up to 2.5.0. This includes
+database tables, default permissions, some default objects used internally by
+Pootle (like the *"default"* and *"nobody"* user profiles) and the special
+:ref:`Terminology <terminology>` project and
+:ref:`Templates language <templates#the_templates_language>`.
 
-If you just run ``syncdb`` you will have a usable Pootle install but you will
-need to create all languages manually, and you will not have a tutorial project
-to play with.
+For releases up to 2.5.0, if you just run ``syncdb`` you will have a usable
+Pootle install but you will need to create all languages manually, and you will
+not have a tutorial project to play with.  For releases after 2.5.0, ``syncdb``
+is not sufficient to create the database schema; it will remain incomplete and
+unusable until you apply all migrations to the database schema by running the
+:ref:`commands#migrate` command.
+
+
+.. _commands#migrate:
+
+migrate
+^^^^^^^
+
+.. versionadded:: 2.5.1
+
+
+.. note::
+
+  Since the addition of the :ref:`setup <commands#setup>` management command it
+  is not necessary to directly run this command. Please refer to the
+  :ref:`Upgrading <upgrading>` or :ref:`Installation <installation>`
+  instructions to see how to run the ``setup`` management command in those
+  scenarios.
+
+
+This is South's :ref:`migrate command <south:commands>`, which applies
+migrations to bring the database up to the latest schema revision. It is
+required for releases after 2.5.0, even for a fresh install where you are not
+upgrading from a previous release.
 
 
 .. _commands#initdb:
@@ -376,28 +599,81 @@ to play with.
 initdb
 ^^^^^^
 
-This is Pootle's install process, it creates the default *admin* user, populates
-the language table with several languages with their correct fields, initializes
-several terminology projects, and creates the tutorial project.
+This is Pootle's install process, it creates the default *admin* user,
+populates the language table with several languages with their correct fields,
+initializes several terminology projects, and creates the tutorial project.
 
-``initdb`` can only be run after :ref:`commands#syncdb`.
+``initdb`` can only be run after :ref:`commands#syncdb` and
+:ref:`commands#migrate`.
 
 .. note:: ``initdb`` will not import translations into the database, so the
   first visit to Pootle after ``initdb`` will be very slow. **It is
-  best to run refresh_stats immediately after initdb**.
-
+  best to run** :ref:`commands#refresh_stats` **immediately after initdb**.
 
 .. _commands#updatedb:
+
 
 updatedb
 ^^^^^^^^
 
-This is a command line interface to Pootle's database scheme upgrade process.
-A database upgrade is usually triggered automatically on the first visit to a
-:doc:`new version of Pootle <upgrading>`, but for very large installs database
-upgrades can be too slow for the browser and it is best to run ``updatedb``
-from the command line.
+.. versionchanged:: 2.5.1
 
+This is a command line interface to Pootle's database schema upgrade
+process.
+
+This will only perform schema upgrades to version 2.5 from Pootle versions
+older than 2.5. To upgrade to version 2.5.1 and later South's
+:ref:`migrate command <south:commands>` must be used, after upgrading
+to version 2.5.
+
+For detailed instructions on upgrading, read the :ref:`upgrading` section
+of the documentation.
+
+
+.. _commands#upgrade:
+
+upgrade
+^^^^^^^^
+
+.. versionadded:: 2.5.1
+
+Performs post schema upgrade actions that are necessary to leave all the
+bits in place. It also serves as a trigger for any changes needed by
+Translate Toolkit version upgrades.
+
+Optionally, the command accepts the :option:`--calculate-stats` flag, which
+will calculate full translation statistics after doing the upgrade.
+
+Also, the :option:`--flush-checks` flag forces flushing the existing quality
+checks. This is useful when new quality checks have been added or existing
+ones have been updated, but take into account that **this operation is
+very expensive**.
+
+For detailed instructions on upgrading, read the :ref:`upgrading` section
+of the documentation.
+
+
+.. _commands#collectstatic:
+
+collectstatic
+^^^^^^^^^^^^^
+
+Running the Django admin :djadmin:`django:collectstatic` command finds
+and extracts static content such as images, CSS and JavaScript files used by
+the Pootle server, so that they can be served separately from a static
+webserver.  Typically, this is run with the :option:`--clear`
+:option:`--noinput` options, to flush any existing static data and use default
+answers for the content finders.
+
+.. _commands#assets:
+
+assets
+^^^^^^
+
+Pootle uses the Django app `django-assets`_ interface of `webassets` to minify
+and bundle CSS and JavaScript; this app has a management command that is used
+to make these preparations using the command ``assets build``. This command is
+usually executed after the :ref:`collectstatic <commands#collectstatic>` one.
 
 .. _commands#useful_django_commands:
 
@@ -410,7 +686,7 @@ Useful Django commands
 changepassword
 ^^^^^^^^^^^^^^
 
-::
+.. code-block:: bash
 
     $ pootle changepassword <username>
 
@@ -475,3 +751,7 @@ If you are running Pootle from a virtualenv, or if you set any custom
 bash script that creates the correct environment for your command to run from.
 Call this script then from cron. It shouldn't be necessary to specify the
 settings file for Pootle — it should automatically be detected.
+
+.. _django-assets: http://elsdoerfer.name/docs/django-assets/
+
+.. _webassets: http://elsdoerfer.name/docs/webassets/

@@ -1,0 +1,20 @@
+{% load i18n %}
+<div id="search">
+  <form action="{{ search_action }}" method="get" id="search-form">
+    <div class="search-wrapper">
+      <label class="js-input-hint hide" for="id_search">{% trans "Search" %}</label>
+      {{ search_form.search }}
+      <button class="btn-search">
+        <i class="icon-search"></i>
+      </button>
+    </div>
+    <div class="search-container js-search-container hide">
+      <div class="search-fields js-search-fields">
+        {{ search_form.sfields }}
+      </div>
+      <div class="search-options js-search-options">
+        {{ search_form.soptions }}
+      </div>
+    </div>
+  </form>
+</div>

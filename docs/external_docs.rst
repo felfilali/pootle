@@ -6,6 +6,8 @@ External documentation
 These are external sources of documentation, often relevant to a specific
 Pootle server for one of the many projects that use Pootle.
 
+- https://taoeffect.s3.amazonaws.com/other/Pootle_Tutorial.pdf
+
 - http://colivre.coop.br/Tech/TraducaoPootle
 
 - http://wiki.creativecommons.org/Translating_with_Pootle
@@ -29,3 +31,5 @@ Pootle server for one of the many projects that use Pootle.
 - http://wiki.list.org/display/DEV/Pootle+primer (mailman project)
 
 - http://wiki.squid-cache.org/Translations/Basics (Squid project)
+
+- http://pe.sugarlabs.org/ir/Manual%20de%20Traducci%C3%B3n%20de%20Sugar (Spanish, Español)

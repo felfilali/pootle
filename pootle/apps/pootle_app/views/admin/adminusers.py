@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of translate.
 #
@@ -19,18 +20,26 @@
 # along with translate; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.utils.translation import ugettext as _
-from pootle_app.views.admin import util
-from django.contrib.auth.models import User
-
 from django import forms
+from django.contrib.auth import get_user_model
 from django.forms.models import BaseModelFormSet
+from django.utils.translation import ugettext as _
 
-@util.user_is_admin
+from pootle.core.decorators import admin_required
+from pootle_app.views.admin import util
+
+
+User = get_user_model()
+
+
+@admin_required
 def view(request):
-    return util.edit(request, 'admin/admin_general_users.html', User,
-               fields=('username', 'first_name', 'last_name', 'email', 'is_active', 'is_superuser'),
-               formset=BaseUserFormSet, queryset=User.objects.hide_defaults().order_by('username'), can_delete=True)
+    fields = ("username", "full_name", "email", "is_active", "is_superuser")
+    queryset = User.objects.hide_defaults().order_by('username')
+    return util.edit(request, 'admin/users.html', User, fields=fields,
+                     formset=BaseUserFormSet, queryset=queryset,
+                     can_delete=True)
+
 
 class BaseUserFormSet(BaseModelFormSet):
     """This formset deals with user admininistration. We have to add a
@@ -59,11 +68,6 @@ class BaseUserFormSet(BaseModelFormSet):
         # set encrypted password
         if password != '':
             instance.set_password(password)
-            changed = True
-        # no point in seperating admin rights from access to
-        # django_admin, make sure the two bits are in synch
-        if instance.is_staff != instance.is_superuser:
-            instance.is_staff = instance.is_superuser
             changed = True
 
         if commit and changed:

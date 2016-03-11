@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008-2013 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of translate.
 #
@@ -19,22 +20,47 @@
 # along with translate; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
+
 
 urlpatterns = patterns('pootle_project.views',
-    # Listing of all projects
-    (r'^$',
-        'projects_index'),
+    # All projects
+    url(r'^$',
+        'projects_overview',
+        name='pootle-projects-overview'),
 
-    # Specific project
-    url(r'^(?P<project_code>[^/]*)/?$',
-        'project_language_index', name='project.overview'),
+    url(r'^translate/$',
+        'projects_translate',
+        name='pootle-projects-translate'),
+
+    url(r'^export-view/$',
+        'projects_export_view',
+        name='pootle-projects-export-view'),
 
     # Admin
-    (r'^(?P<project_code>[^/]*)/edit_settings.html?$',
-        'project_settings_edit'),
-    (r'^(?P<project_code>[^/]*)/admin.html$',
-        'project_admin'),
-    (r'^(?P<project_code>[^/]*)/permissions.html$',
-        'project_admin_permissions'),
+    url(r'^(?P<project_code>[^/]*)/admin/settings/$',
+        'project_settings_edit',
+        name='pootle-project-admin-settings'),
+    url(r'^(?P<project_code>[^/]*)/admin/languages/$',
+        'project_admin',
+        name='pootle-project-admin-languages'),
+    url(r'^(?P<project_code>[^/]*)/admin/permissions/$',
+        'project_admin_permissions',
+        name='pootle-project-admin-permissions'),
+
+    # Specific project
+    url(r'^(?P<project_code>[^/]*)/translate/'
+        r'(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        'translate',
+        name='pootle-project-translate'),
+
+    url(r'^(?P<project_code>[^/]*)/export-view/'
+        r'(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        'export_view',
+        name='pootle-project-export-view'),
+
+    url(r'^(?P<project_code>[^/]*)/'
+        r'(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        'overview',
+        name='pootle-project-overview'),
 )

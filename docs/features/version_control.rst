@@ -5,8 +5,7 @@ Integration with Version Control Systems
 
 Pootle has the ability to integrate with version control systems (also called
 revision control systems). Read more on Wikipedia for a general overview of
-what a `Version Control System
-<https://en.wikipedia.org/wiki/Revision_control>`_ is.
+what a :wp:`Version Control System <Revision_control>` is.
 
 
 .. _version_control#supported_systems:
@@ -14,23 +13,16 @@ what a `Version Control System
 Supported systems
 -----------------
 
-================================  =============================
- System                            Status                        
-================================  =============================
- `CVS`_                            Supported
- `Subversion`_                     Supported
- `Darcs`_                          Supported
- `Git`_                            Supported
- `Bazaar`_                         Supported
- `Mercurial`_                      Supported
-================================  =============================
-
-.. _CVS: https://en.wikipedia.org/wiki/Concurrent_Versions_System
-.. _Subversion: https://en.wikipedia.org/wiki/Apache_Subversion
-.. _Darcs: https://en.wikipedia.org/wiki/Darcs
-.. _git: https://en.wikipedia.org/wiki/Git_(software)
-.. _Bazaar: https://en.wikipedia.org/wiki/Bazaar_(software)
-.. _Mercurial: https://en.wikipedia.org/wiki/Mercurial
+========================================  ===========
+ System                                    Status
+========================================  ===========
+ :wp:`CVS <Concurrent_Versions_System>`    Supported
+ :wp:`Subversion <Apache_Subversion>`      Supported
+ :wp:`Darcs`                               Supported
+ :wp:`Git <Git_(software)>`                Supported
+ :wp:`Bazaar <Bazaar_(software)>`          Supported
+ :wp:`Mercurial`                           Supported
+========================================  ===========
 
 It should be possible to add other systems fairly easily. Interested
 programmers can look at the `versioncontrol
@@ -50,13 +42,13 @@ Preparation
       from version control. Separation allows Pootle to work reliably on
       Distributed Version Control Systems (Git, Mercurial, etc).
 
-.. note:: The setup of version control has to be done outside of Pootle admin
-   interface.
+.. note:: The setup of version control has to be done outside of the Pootle
+   admin interface.
 
 To have any sort of integration with version control from within Pootle, it is
 necessary to construct the correct file system structure in the
-:setting:`VCS_DIRECTORY` as defined in the settings. The projects integrating
-with a version control system has to follow a layout that corresponds to the
+:setting:`VCS_DIRECTORY` as defined in the settings. Any projects integrating
+with a version control system have to follow a layout that corresponds to the
 :setting:`PODIRECTORY`. The :setting:`VCS_DIRECTORY` is *pootle/repos* by
 default and should contain one directory for each project on the server that is
 either a clone/checkout for the corresponding Pootle project, or a symlink (or
@@ -147,6 +139,9 @@ or *CVS/*) do not necessarily have to be below your :setting:`VCS_DIRECTORY`
 under :setting:`VCS_DIRECTORY` for this project must be outside of the
 clone/checkout for the project.
 
+You can use an :ref:`hooks#initialize` hook script to automate the creation of
+these symlinks whenever languages are added to your project.
+
 If you use symlinks, ensure that the resulting structure under
 :setting:`VCS_DIRECTORY` corresponds to the structure under
 :setting:`PODIRECTORY`.
@@ -205,8 +200,8 @@ from Pootle will look something like this::
 
 So it is still possible to see who submitted what and when, and actually
 provides some useful statistics in the commit message.  A user must be assigned
-'commit' privileges by the project administrator.  If the user has the correct
-privileges, they will see a "submit" link next to each file.
+'commit' privileges by the project administrator, and must have his email defined.  
+If the user has the correct privileges, they will see a "submit" link next to each file.
 
 
 .. _version_control#authentication:
@@ -232,10 +227,12 @@ Subversion (HTTP)
   necessary (e.g. read `subversion authorization
   <http://svnbook.red-bean.com/nightly/en/svn.serverconfig.httpd.html#svn.serverconfig.httpd.authz>`_)
 
-- Make sure, that the *pootle* user has write access for `~/.subversion/` to
-  store authentication tokens
+- Make sure, that the *pootle user* has write access for `~/.subversion/` to
+  store authentication tokens.  The *pootle user* is whichever user is running
+  the Pootle application.  When running behind a webserver this might be the
+  webserver user. Thus on some systems using Apache that user is *www-data*.
 
-- Do a real ``svn commit`` with the uid *pootle* in order to
+- Do a real ``svn commit`` with the uid of the *pootle user* in order to:
 
   - Import (possibly) an SSL certificate
 
@@ -248,8 +245,8 @@ Subversion (HTTP)
   authentication information, for example.
 
 
-From now on, *pootle* should use these stored access credentials when uploading
-commits for this repository.
+From now on, the *pootle user* should use these stored access credentials when
+uploading commits for this repository.
 
 
 .. _version_control#adding:
@@ -262,7 +259,7 @@ Adding
 When a language is initialized from templates, Pootle will check if it is
 inside a version control checkout/clone. If it is, it will add the new files as
 initialized from the templates, and commit these initial versions. The same is
-done when updating against templates at a later stage - if this introduced any new
+done when updating against templates at a later stage -- if this introduced any new
 files, these will be added to the configured version control system.
 
 A typical commit message when adding from Pootle will look something like

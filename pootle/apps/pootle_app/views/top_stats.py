@@ -1,30 +1,39 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009 Zuza Software Foundation
+# Copyright 2009, 2013 Zuza Software Foundation
 #
 # This file is part of Pootle.
 #
-# Pootle is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# Pootle is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# Pootle is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Pootle; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License along with
+# Pootle; if not, see <http://www.gnu.org/licenses/>.
 
-from django.contrib.auth.models import User
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.db.models import Count
 from django.utils.encoding import iri_to_uri
 
 from pootle_misc.aggregate import group_by_sort
+
+
+User = get_user_model()
+
+
+def group_by_sort(queryset, column, fields):
+    queryset = queryset.annotate(count=Count(column)).order_by('-count')
+    queryset = queryset.values('count', *fields)
+    return queryset
+
 
 def gentopstats_root():
     """
@@ -34,15 +43,16 @@ def gentopstats_root():
     key = "/:gentopstats"
     result = cache.get(key)
     if result is None:
-        top_sugg   = group_by_sort(User.objects.exclude(pootleprofile__suggester=None),
-                                   'pootleprofile__suggester', ['username'])[:settings.TOPSTAT_SIZE]
-        top_review = group_by_sort(User.objects.exclude(pootleprofile__reviewer=None),
-                                   'pootleprofile__reviewer', ['username'])[:settings.TOPSTAT_SIZE]
-        top_sub    = group_by_sort(User.objects.exclude(pootleprofile__submission=None),
-                                   'pootleprofile__submission', ['username'])[:settings.TOPSTAT_SIZE]
+        top_sugg   = group_by_sort(User.objects.exclude(suggestions=None),
+                                   "suggestions", ["username"])[:settings.TOPSTAT_SIZE]
+        top_review = group_by_sort(User.objects.exclude(reviewer=None),
+                                   "reviewer", ["username"])[:settings.TOPSTAT_SIZE]
+        top_sub    = group_by_sort(User.objects.exclude(submission=None),
+                                   "submission", ["username"])[:settings.TOPSTAT_SIZE]
         result = map(None, top_sugg, top_review, top_sub)
-        cache.set(key, result, settings.CACHE_MIDDLEWARE_SECONDS * 3)
+        cache.set(key, result, settings.POOTLE_TOP_STATS_CACHE_TIMEOUT)
     return result
+
 
 def gentopstats_language(language):
     """Generate the top contributor stats to be displayed
@@ -58,16 +68,17 @@ def gentopstats_language(language):
     key = iri_to_uri("%s:gentopstats" % language.pootle_path)
     result = cache.get(key)
     if result is None:
-        top_sugg   = group_by_sort(User.objects.filter(pootleprofile__suggester__translation_project__language=language),
-                                   'pootleprofile__suggester', ['username'])[:settings.TOPSTAT_SIZE]
-        top_review = group_by_sort(User.objects.filter(pootleprofile__reviewer__translation_project__language=language),
-                                   'pootleprofile__reviewer', ['username'])[:settings.TOPSTAT_SIZE]
-        top_sub    = group_by_sort(User.objects.filter(pootleprofile__submission__translation_project__language=language),
-                                   'pootleprofile__submission', ['username'])[:settings.TOPSTAT_SIZE]
+        top_sugg   = group_by_sort(User.objects.filter(suggestions__translation_project__language=language),
+                                   'suggestions', ['username'])[:settings.TOPSTAT_SIZE]
+        top_review = group_by_sort(User.objects.filter(reviewer__translation_project__language=language),
+                                   'reviewer', ['username'])[:settings.TOPSTAT_SIZE]
+        top_sub    = group_by_sort(User.objects.filter(submission__translation_project__language=language),
+                                   'submission', ['username'])[:settings.TOPSTAT_SIZE]
 
         result = map(None, top_sugg, top_review, top_sub)
-        cache.set(key, result, settings.CACHE_MIDDLEWARE_SECONDS * 2)
+        cache.set(key, result, settings.POOTLE_TOP_STATS_CACHE_TIMEOUT)
     return result
+
 
 def gentopstats_project(project):
     """Generate the top contributor stats to be displayed
@@ -83,16 +94,17 @@ def gentopstats_project(project):
     key = iri_to_uri("%s:gentopstats" % project.pootle_path)
     result = cache.get(key)
     if result is None:
-        top_sugg   = group_by_sort(User.objects.filter(pootleprofile__suggester__translation_project__project=project),
-                                   'pootleprofile__suggester', ['username'])[:settings.TOPSTAT_SIZE]
-        top_review = group_by_sort(User.objects.filter(pootleprofile__reviewer__translation_project__project=project),
-                                   'pootleprofile__reviewer', ['username'])[:settings.TOPSTAT_SIZE]
-        top_sub    = group_by_sort(User.objects.filter(pootleprofile__submission__translation_project__project=project),
-                                   'pootleprofile__submission', ['username'])[:settings.TOPSTAT_SIZE]
+        top_sugg   = group_by_sort(User.objects.filter(suggestions__translation_project__project=project),
+                                   "suggestions", ["username"])[:settings.TOPSTAT_SIZE]
+        top_review = group_by_sort(User.objects.filter(reviewer__translation_project__project=project),
+                                   "reviewer", ["username"])[:settings.TOPSTAT_SIZE]
+        top_sub    = group_by_sort(User.objects.filter(submission__translation_project__project=project),
+                                   "submission", ["username"])[:settings.TOPSTAT_SIZE]
 
         result = map(None, top_sugg, top_review, top_sub)
-        cache.set(key, result, settings.CACHE_MIDDLEWARE_SECONDS * 2)
+        cache.set(key, result, settings.POOTLE_TOP_STATS_CACHE_TIMEOUT)
     return result
+
 
 def gentopstats_translation_project(translation_project):
     """Generate the top contributor stats to be displayed
@@ -108,12 +120,12 @@ def gentopstats_translation_project(translation_project):
     key = iri_to_uri("%s:gentopstats" % translation_project.pootle_path)
     result = cache.get(key)
     if result is None:
-        top_sugg   = group_by_sort(User.objects.filter(pootleprofile__suggester__translation_project=translation_project),
-                                   'pootleprofile__suggester', ['username'])[:settings.TOPSTAT_SIZE]
-        top_review = group_by_sort(User.objects.filter(pootleprofile__reviewer__translation_project=translation_project),
-                                   'pootleprofile__reviewer', ['username'])[:settings.TOPSTAT_SIZE]
-        top_sub    = group_by_sort(User.objects.filter(pootleprofile__submission__translation_project=translation_project),
-                                   'pootleprofile__submission', ['username'])[:settings.TOPSTAT_SIZE]
+        top_sugg   = group_by_sort(User.objects.filter(suggestions__translation_project=translation_project),
+                                   "suggestions", ["username"])[:settings.TOPSTAT_SIZE]
+        top_review = group_by_sort(User.objects.filter(reviewer__translation_project=translation_project),
+                                   "reviewer", ["username"])[:settings.TOPSTAT_SIZE]
+        top_sub    = group_by_sort(User.objects.filter(submission__translation_project=translation_project),
+                                   "submission", ["username"])[:settings.TOPSTAT_SIZE]
 
         result = map(None, top_sugg, top_review, top_sub)
         cache.set(key, result, settings.CACHE_MIDDLEWARE_SECONDS)

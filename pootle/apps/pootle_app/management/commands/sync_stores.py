@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009 Zuza Software Foundation
+# Copyright 2009, 2013 Zuza Software Foundation
 #
 # This file is part of Pootle.
 #
@@ -20,10 +20,13 @@
 
 import logging
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
 from optparse import make_option
 
+# This must be run before importing Django.
+os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
+
 from pootle_app.management.commands import PootleCommand, ModifiedSinceMixin
+
 
 class Command(ModifiedSinceMixin, PootleCommand):
     option_list = PootleCommand.option_list + (
@@ -62,15 +65,14 @@ class Command(ModifiedSinceMixin, PootleCommand):
         if change_id:
             from pootle_statistics.models import Submission
 
-            pootle_path = store.pootle_path
             has_changes = Submission.objects.filter(
                     id__gte=change_id,
-                    unit__store__pootle_path=pootle_path,
+                    unit__store=store,
             ).exists()
 
             if not has_changes:
                 logging.debug(u"File didn't change since %d, skipping %s",
-                              change_id, pootle_path)
+                              change_id, store.pootle_path)
                 return
 
         store.sync(update_translation=True, conservative=not overwrite,

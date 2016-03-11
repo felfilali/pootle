@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of translate.
 #
@@ -19,53 +20,56 @@
 # along with translate; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.conf.urls.defaults import patterns
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('pootle_store.views',
-    # Translation
-    (r'^(?P<pootle_path>.*)/translate/?$',
-        'translate'),
-
     # Download and export
-    (r'^download/(?P<pootle_path>.*)/?$',
-        'download'),
-    (r'^export-file/xlf/(?P<pootle_path>.*)/?$',
-        'export_as_xliff'),
-    (r'^export-file/(?P<filetype>.*)/(?P<pootle_path>.*)/?$',
-        'export_as_type'),
+    url(r'^download/(?P<pootle_path>.*)/?$',
+        'download',
+        name='pootle-store-download'),
+    url(r'^export-file/xlf/(?P<pootle_path>.*)/?$',
+        'export_as_xliff',
+        name='pootle-store-export-xliff'),
 
     # XHR
-    (r'^checks/(?P<pootle_path>.*)/?$',
-        'get_failing_checks_store'),
+    url(r'^xhr/stats/checks/?$',
+        'get_qualitycheck_stats',
+        name='pootle-xhr-stats-checks'),
+    url(r'^xhr/stats/overview/?$',
+        'get_overview_stats',
+        name='pootle-xhr-stats-overview'),
 
-    (r'^view/(?P<pootle_path>.*)/?$',
-        'get_view_units_store'),
-    (r'^view/(?P<limit>[0-9]+)/(?P<pootle_path>.*)/?$',
-        'get_view_units_store'),
+    url(r'^xhr/units/?$',
+        'get_units',
+        name='pootle-xhr-units'),
 
-    (r'^unit/context/(?P<uid>[0-9]+)/?$',
-        'get_more_context'),
-    (r'^unit/edit/(?P<uid>[0-9]+)/?$',
-        'get_edit_unit'),
-    (r'^unit/submit/(?P<uid>[0-9]+)/?$',
-        'submit'),
-    (r'^unit/suggest/(?P<uid>[0-9]+)/?$',
-        'suggest'),
-    (r'^unit/timeline/(?P<uid>[0-9]+)/?$',
-        'timeline'),
-    (r'^unit/comment/(?P<uid>[0-9]+)/?$',
-        'comment'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/?$',
+        'submit',
+        name='pootle-xhr-units-submit'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/comment/?$',
+        'comment',
+        name='pootle-xhr-units-comment'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/context/?$',
+        'get_more_context',
+        name='pootle-xhr-units-context'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/edit/?$',
+        'get_edit_unit',
+        name='pootle-xhr-units-edit'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/timeline/?$',
+        'timeline',
+        name='pootle-xhr-units-timeline'),
 
-    (r'^suggestion/reject/(?P<uid>[0-9]+)/(?P<suggid>[0-9]+)/?$',
-        'reject_suggestion'),
-    (r'^suggestion/accept/(?P<uid>[0-9]+)/(?P<suggid>[0-9]+)/?$',
-        'accept_suggestion'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/suggestions/?$',
+        'suggest',
+        name='pootle-xhr-units-suggest'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/suggestions/(?P<suggid>[0-9]+)/accept/?$',
+        'accept_suggestion',
+        name='pootle-xhr-units-suggestion-accept'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/suggestions/(?P<suggid>[0-9]+)/reject/?$',
+        'reject_suggestion',
+        name='pootle-xhr-units-suggestion-reject'),
 
-    (r'^vote/clear/(?P<voteid>[0-9]+)/?$',
-        'clear_vote'),
-    (r'^vote/up/(?P<uid>[0-9]+)/(?P<suggid>[0-9]+)/?$',
-        'vote_up'),
-
-    (r'^qualitycheck/reject/(?P<uid>[0-9]+)/(?P<checkid>[0-9]+)/?$',
-        'reject_qualitycheck'),
+    url(r'^xhr/units/(?P<uid>[0-9]+)/checks/(?P<check_id>[0-9]+)/toggle/?$',
+        'toggle_qualitycheck',
+        name='pootle-xhr-units-checks-toggle'),
 )

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Zuza Software Foundation
+# Copyright 2013-2014 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -20,21 +21,24 @@
 
 from django import template
 
+
 register = template.Library()
 
 
-@register.inclusion_tag('common/table.html', takes_context=True)
+@register.inclusion_tag('browser/_table.html', takes_context=True)
 def display_table(context, table):
     return {
         'table': table,
-        'stats': context.get('stats', None)
+        'user': context.get('user', None),
+        'request': context.get('request', None),
     }
 
 
-@register.inclusion_tag('common/select.html', takes_context=True)
-def display_select(context, id, options, active_code):
-    return {
-        'id': id,
-        'options': options,
-        'active_code': active_code,
-    }
+@register.filter
+def endswith(value, arg):
+    return value.endswith(arg)
+
+
+@register.filter
+def count(value, arg):
+    return value.count(arg)

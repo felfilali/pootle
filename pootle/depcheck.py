@@ -2,37 +2,46 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Zuza Software Foundation
+# Copyright 2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# Pootle is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation; either version 2 of the License, or (at your option) any later
+# version.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# Pootle; if not, see <http://www.gnu.org/licenses/>.
 
+import os
 import subprocess
 import sys
-import os
 
 from django.conf import settings
 
 
+# Minimum Translate Toolkit version required for Pootle to run.
+TTK_MINIMUM_REQUIRED_VERSION = (1, 12, 0)
+
+# Minimum Django version required for Pootle to run.
+DJANGO_MINIMUM_REQUIRED_VERSION = (1, 6, 5)
+
+# Minimum lxml version required for Pootle to run.
+LXML_MINIMUM_REQUIRED_VERSION = (2, 3, 6, 0)
+
+
 ##########################
-# test core dependencies #
+# Test core dependencies #
 ##########################
-translate_required_ver = (1, 10, 0)
 def test_translate():
     try:
         from translate.__version__ import ver, sver
-        if ver >= translate_required_ver:
+        if ver >= TTK_MINIMUM_REQUIRED_VERSION:
             return True, sver
         else:
             return False, sver
@@ -40,32 +49,18 @@ def test_translate():
         return None, None
 
 
-def test_sqlite():
-    try:
-        #TODO: work out if we need certain versions
-        try:
-            from sqlite3 import dbapi2
-        except ImportError:
-            from pysqlite2 import dbapi2
-        return True
-    except ImportError:
-        return False
-
-
-django_required_ver = (1, 3, 0)
 def test_django():
     from django import VERSION, get_version
-    if VERSION >= django_required_ver:
+    if VERSION >= DJANGO_MINIMUM_REQUIRED_VERSION:
         return True, get_version()
     else:
         return False, get_version()
 
 
-lxml_required_ver = (2, 1, 4, 0)
 def test_lxml():
     try:
         from lxml.etree import LXML_VERSION, __version__
-        if LXML_VERSION >= lxml_required_ver:
+        if LXML_VERSION >= LXML_MINIMUM_REQUIRED_VERSION:
             return True, __version__
         else:
             return False, __version__
@@ -74,12 +69,11 @@ def test_lxml():
 
 
 ##############################
-# test optional dependencies #
+# Test optional dependencies #
 ##############################
 
-
 def test_unzip():
-    """test for unzip command"""
+    """Test for unzip command."""
     try:
         subprocess.call('unzip', stdout=file(os.devnull),
                         stderr=file(os.devnull))
@@ -121,13 +115,13 @@ def test_gaupol():
             import gaupol
             return True
         except ImportError:
-            pass
-        return False
+            return False
 
 
 ######################
-# test optimal setup #
+# Test optimal setup #
 ######################
+
 def test_mysqldb():
     try:
         import MySQLdb
@@ -137,7 +131,7 @@ def test_mysqldb():
 
 
 def test_db():
-    """test that we are not using sqlite3 as the django database"""
+    """Test that we are not using sqlite3 as the django database."""
     if getattr(settings, "DATABASES", None):
         return "sqlite" not in settings.DATABASES['default']['ENGINE']
     else:
@@ -145,7 +139,7 @@ def test_db():
 
 
 def test_cache():
-    """test if cache backend is memcached"""
+    """Test if cache backend is memcached."""
     #FIXME: maybe we shouldn't complain if cache is set to db or file?
     if getattr(settings, "CACHES", None):
         return "memcache" in settings.CACHES['default']['BACKEND']
@@ -158,25 +152,21 @@ def test_memcache():
         import memcache
         return True
     except ImportError:
-        # Since Django 1.3.0 there is support for pylibmc as well
-        import django
-        if django.VERSION >= (1, 3, 0, '', 0):
-            try:
-                import pylibmc
-                return True
-            except ImportError:
-                return False
-        return False
+        try:
+            import pylibmc
+            return True
+        except ImportError:
+            return False
 
 
 def test_memcached():
-    """test if we can connect to memcache server"""
+    """Test if we can connect to memcache server."""
     from django.core.cache import cache
     return cache._cache.servers[0].connect()
 
 
 def test_session():
-    """test that session backend is set to memcahce"""
+    """Test that session backend is set to memcache."""
     return settings.SESSION_ENGINE.split('.')[-1] in ('cache', 'cached_db')
 
 
@@ -185,14 +175,10 @@ def test_debug():
 
 
 def test_webserver():
-    """test that webserver is apache"""
+    """Test that webserver is apache."""
     return ('apache' in sys.modules or
             '_apache' in sys.modules or
             'mod_wsgi' in sys.modules)
-
-
-def test_livetranslation():
-    return not settings.LIVE_TRANSLATION
 
 
 def test_from_email():

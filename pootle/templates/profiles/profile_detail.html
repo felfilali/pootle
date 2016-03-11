@@ -1,46 +1,82 @@
-{% extends "user_profile_base.html"  %}
-{% load i18n baseurl profile_tags %}
+{% extends "profiles/base.html"  %}
+{% load i18n profile_tags %}
 
 {% block title %}
-    {% if user == profile.user %}
-        {{ block.super }}
-    {% else %}
-        {{ profile.user }} | {% trans "Users" %} | {{ settings.TITLE }}
-    {% endif %}
+{{ profile }} | {% trans "Users" %} | {{ settings.TITLE }}
 {% endblock %}
 
 {% block body_id %}dashboard{% endblock %}
 
 {% block breadcrumbs %}
-    {% if user == profile.user %}
-        {{ block.super }}
-    {% else %}
-        <li>{% trans "Users" %}</li><li>{{ profile.user }}</li>
-    {% endif %}
+<li>{% trans "Users" %}</li><li>{{ profile }}</li>
 {% endblock %}
 
 {% block header_tabs_block %}
-{% if user == profile.user %}
+{% if user == profile %}
   {{ block.super }}
 {% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="module user-statistics" lang="{{ LANGUAGE_CODE }}">
+<div id="user-profile" class="module" lang="{{ LANGUAGE_CODE }}">
   <div class="hd">
-    <h2>{% trans "User Statistics" %}</h2>
+    <h2>{% trans "Contributions" %}</h2>
   </div>
   <div class="bd">
-    <div class="avatar">
-        <img src="{{ profile|gravatar:100 }}" width="100" height="100"{% if user == profile.user %} title="{% trans "You can set or change your avatar image at www.gravatar.com" %}"{% endif %} />
+    <div id="user-meta-wrapper">
+      <div id="user-meta">
+        <img src="{{ profile|gravatar:150 }}" width="150" height="150"{% if user == profile %} title="{% trans 'You can set or change your avatar image at www.gravatar.com' %}"{% endif %} />
+        <div class="user-name">{{ profile.username }}</div>
+        {% if user.is_superuser or request.permissions.administrate %}
+        <div>
+          {% if profile.email %}
+          <a href="mailto:{{ profile.email }}">{{ profiler.email }}</a>
+          {% else %}
+          {% trans 'No email address.' %}
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <table>
-      {% for stat in profile.getuserstatistics %}
-      <tr>
-        <th scope="row">{{ stat.text }}</th><td class="stats-number">{{ stat.count }}</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div id="user-contributions-wrapper">
+      <div id="user-contributions">
+        {% with contributions=profile.contributions %}
+        {% if contributions %}
+        {% for language, tp_user_stats in contributions %}
+        <h3><a href="{{ language.get_absolute_url }}">{{ language.fullname }}</a></h3>
+        <table id="user-contributions-{{ language.code }}" class="stats">
+            <thead>
+              <tr>
+                <th>{% trans "Project" %}</th>
+                <th class="number">{% trans "Suggestions Pending" %}</th>
+                <th class="number">{% trans "Accepted" %}</th>
+                <th class="number">{% trans "Rejected" %}</th>
+                <th class="number">{% trans "Submissions" %}</th>
+                <th class="number">{% trans "Overwritten" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for tp, stats in tp_user_stats %}
+              <tr class="item">
+                <td><a href="{{ tp.get_absolute_url }}">{{ tp.project }}</a></td>
+                {% for stat_item in stats %}
+                {% if stat_item.count != 0 %}
+                <td class="number"><a href="{{ stat_item.url }}">{{ stat_item.count }}</a></td>
+                {% else %}
+                <td></td>
+                {% endif %}
+                {% endfor %}
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        {% endfor %}
+        {% else %}
+        <h3>{% trans "This user doesn't have any contributions yet." %}</h3>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

@@ -1,0 +1,237 @@
+{% load i18n assets baseurl staticpages locale profile_tags staticfiles %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% locale_dir %}" id="{% block html_id %}{% endblock %}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>{% block title %}{{ settings.TITLE }}{% endblock title %}</title>
+    {% block meta %}
+    <meta name="description" content="{{ settings.DESCRIPTION|striptags }}" />
+    <meta name="keywords" content="{{ keywords|join:", " }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="application-name" content="{{ settings.TITLE }}" />
+    <link rel="icon" href="{% static 'images/app-32x32.png' %}" sizes="32x32" />
+    <link rel="icon" href="{% static 'images/app-64x64.png' %}" sizes="64x64" />
+    {% endblock meta %}
+    {% block css %}
+    {% assets "css_common" %}
+    <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+    {% endassets %}
+    {% endblock css %}
+    {% block favicon %}
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+    {% endblock favicon %}
+    {% block js %}
+    {% assets "js_common" %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+    <script type="text/javascript">
+      Spinner.defaults = {
+        lines: 11,
+        length: 2,
+        width: 5,
+        radius: 11,
+        rotate: 0,
+        corners: 1,
+        color: '#000',
+        direction: 1,
+        speed: 1,
+        trail: 50,
+        opacity: 1/4,
+        fps: 20,
+        zIndex: 2e9,
+        className: 'spinner',
+        top: 'auto',
+        left: 'auto',
+        position: 'relative'
+      };
+
+    function l(path) {
+      var basepath = "{{ settings.SCRIPT_NAME  }}";
+      if (path[0] == '/') {
+        return basepath + path;
+      }
+      return path;
+    }
+    function s(path) {
+      return "{{ STATIC_URL }}" + path;
+    }
+    {% if display_agreement %}
+    PTL.common.displayAgreementPopup = function () {
+      $.magnificPopup.open({
+        items: {
+          src: "{% url 'pootle-staticpages-legal-agreement' %}",
+          type: 'ajax'
+        },
+        callbacks: {
+          parseAjax: function (mfpResponse) {
+            mfpResponse.data = mfpResponse.data.form;
+          }
+        },
+        modal: true
+      });
+    };
+
+    $(document).on('click', '.js-agreement-popup', function (e) {
+      e.preventDefault();
+      $.magnificPopup.close();
+      $.magnificPopup.open({
+        items: {
+          src: this.href,
+          type: 'ajax'
+        },
+        callbacks: {
+          afterClose: PTL.common.displayAgreementPopup
+        },
+        mainClass: 'popup-ajax'
+      });
+    });
+    $(document).on('submit', '.js-agreement-form', function (e) {
+      e.preventDefault();
+      PTL.common.submitAgreementForm();
+    });
+    {% endif %}
+
+    PTL.contact.init({url: "{% url 'pootle-contact' %}"});
+
+    $(function() {
+      $(document).tipsy({
+        gravity: $.fn.tipsy.autoBounds2(150, 'n'),
+        html: true,
+        fade: true,
+        delayIn: 750,
+        opacity: 1,
+        live: '[title], [original-title]'
+      });
+      $.ajaxSetup({ traditional: true });
+      $.ajaxPrefilter(function (options, originalOptions) {
+        if (options.type === 'post' || options.type === 'POST') {
+          options.data = $.param(
+            $.extend(originalOptions.data,
+                     { csrfmiddlewaretoken: '{{ csrf_token }}' }) );
+        }
+      });
+
+      {% if display_agreement %}
+      PTL.common.displayAgreementPopup();
+      {% endif %}
+    });
+    </script>
+    {% endblock js %}
+    {% block extra_head %}{% endblock %}
+  </head>
+
+  <body id="{% block body_id %}{% endblock %}" class="{% block body_class %}{% endblock %}">
+    {% block body %}
+    <div id="wrapper">
+      <noscript>
+        <div id="noscript" class="alert alert-danger affix">
+          <h1>{% trans "Pootle requires JavaScript" %}</h1>
+          <p>{% trans "Please enable JavaScript in your browser preferences and reload the page." %}</p>
+        </div>
+      </noscript>
+      {% if messages %}
+      <div id="alerts" class="affix">
+        {% for message in messages %}
+        <div class="alert alert-block alert-{{ message.tags }} fade in" lang="{{ LANGUAGE_CODE }}">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ message|safe }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <nav id="navbar">
+        <div id="navbar-inner">
+          {% block navbar %}
+          <div id="nav-access">
+            <a href="#nav-main">{% trans 'skip to navigation' %}</a>
+          </div>
+          <h1 class="brand">
+            <a href="{% url 'pootle-home' %}"><i class="logo"></i>{{ settings.TITLE }}</a>
+          </h1>
+          <a href="#nav-main" id="menu-toggle" class="js-toggle">&nbsp;</a>
+          <ul id="nav-main">
+            {% if settings.CAN_CONTACT %}
+            <li><a class="js-popup-ajax" href="{% url 'pootle-contact' %}">{% trans "Contact Us" %}</a></li>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <li id="user">
+              <a href="{{ user.get_absolute_url }}">
+              <img src="{{ user|gravatar:20 }}" />{{ user.username }}</a>
+            </li>
+            {% endif %}
+            {% if user.is_superuser %}
+            <li><a class="admin" href="{% url 'pootle-admin' %}">{% trans "ADMIN" %}</a></li>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'account_logout' %}">{% trans "Log Out" %}</a></li>
+            {% else %}
+            {% if settings.CAN_REGISTER %}
+            <li><a href="{% url 'account_signup' %}">{% trans "Register" %}</a></li>
+            {% endif %}
+            <li><a id="js-login" href="{% url 'account_login' %}{{ request|get_next }}">{% trans "Log In" %}</a></li>
+            {% endif %}
+            <li class="menu-divider">&nbsp;</li>
+            <li>
+              <select id="js-language-picker" default="{{ LANGUAGE_CODE }}"></select>
+            </li>
+          </ul>
+          {% block navbar_extra %}{% endblock %}
+          {% endblock %}
+        </div>
+      </nav>
+
+    {% block header_block %}
+      {% block header_meta_block %}
+      <div id="header-meta" class="header">
+        {% block header_meta %}{% endblock %}
+
+        {% block breadcrumbs_block %}
+        <ul class="breadcrumb js-breadcrumb">
+          {% block breadcrumbs %}{% endblock %}
+        </ul>
+        {% endblock %}
+      </div>
+      {% endblock %}
+
+      {% block header_content_block %}{% endblock %}
+      {% block actions_block %}{% endblock %}
+
+      {% block header_tabs_block %}
+      <div id="header-tabs" class="header">
+        {% block tabs %}{% endblock %}
+      </div>
+      {% endblock %}
+    {% endblock %}
+
+    <div id="body">
+      {% block pre_content %}{% endblock %}
+      <div id="content">
+        {% block content %}{% endblock %}
+      </div>
+      {% block post_content %}{% endblock %}
+    </div>
+
+    </div>
+    {% block footer %}
+    <div id="footer">
+      <ul class="nav">
+        <li><a href="http://docs.translatehouse.org/projects/pootle/">{% trans "Help" %}</a></li>
+        <li><a href="{% url 'pootle-about' %}">{% trans "About this Pootle Server" %}</a></li>
+        <li><a href="{% url 'pootle-about-contributors' %}">{% trans "Contributors" %}</a></li>
+        {% get_legalpages as legalpages %}
+        {% for lp in legalpages %}
+        <li><a href="{{ lp.get_absolute_url }}">{{ lp.localized_title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endblock footer %}
+    {% block scripts %}
+    {% block scripts_extra %}{% endblock %}
+    <script type="text/javascript" src="{% url 'django.views.i18n.javascript_catalog' %}"></script>
+    {% endblock scripts %}
+    {% endblock body %}
+  </body>
+</html>

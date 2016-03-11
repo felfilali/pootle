@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010-2012 Zuza Software Foundation
+# Copyright 2010-2013 Zuza Software Foundation
+# Copyright 2013-2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -18,121 +19,69 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-import os
 import logging
+import os
+from itertools import groupby
+
+from translate.filters.decorators import Category
+from translate.lang import data
+from translate.search.lshtein import LevenshteinComparer
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.http import HttpResponse, Http404, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, render_to_response
+from django.core.urlresolvers import reverse
+from django.db.models import Q
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader, RequestContext
 from django.utils.translation import to_locale, ugettext as _
 from django.utils.translation.trans_real import parse_accept_lang_header
-from django.utils import simplejson
+from django.utils import timezone
 from django.utils.encoding import iri_to_uri
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
 
-from translate.lang import data
-from translate.misc.decorators import decorate
-
-from pootle_app.models import Suggestion as SuggestionStat
-from pootle_app.models.permissions import (get_matching_permissions,
-                                           check_permission,
-                                           check_profile_permission)
-from pootle_misc.baseurl import redirect
-from pootle_misc.checks import get_quality_check_failures
+from pootle.core.decorators import (get_path_obj, get_resource,
+                                    permission_required)
+from pootle.core.exceptions import Http400
+from pootle.core.url_helpers import split_pootle_path
+from pootle_app.models.permissions import (check_permission,
+                                           check_user_permission)
+from pootle_language.models import Language
+from pootle_misc.checks import check_names
 from pootle_misc.forms import make_search_form
-from pootle_misc.stats import get_raw_stats
-from pootle_misc.url_manip import ensure_uri, previous_view_url
-from pootle_misc.util import paginate, ajax_required, jsonify, timezone
-from pootle_profile.models import get_profile
+from pootle_misc.util import ajax_required, jsonify, to_int
+from pootle_project.models import Project
 from pootle_statistics.models import (Submission, SubmissionFields,
                                       SubmissionTypes)
-from pootle_store.models import Store, Unit
-from pootle_store.forms import (unit_comment_form_factory, unit_form_factory,
-                                highlight_whitespace)
-from pootle_store.signals import translation_submitted
-from pootle_store.templatetags.store_tags import (highlight_diffs,
-                                                  pluralize_source,
-                                                  pluralize_target)
-from pootle_store.util import (UNTRANSLATED, FUZZY, TRANSLATED, STATES_MAP,
-                               absolute_real_path, find_altsrcs, get_sugg_list)
+from pootle_translationproject.models import TranslationProject
+
+from .decorators import get_store_context, get_unit_context
+from .fields import to_python
+from .forms import (unit_comment_form_factory, unit_form_factory,
+                    highlight_whitespace)
+from .models import Store, Suggestion, SuggestionStates, Unit
+from .signals import translation_submitted
+from .templatetags.store_tags import (highlight_diffs, pluralize_source,
+                                      pluralize_target)
+from .util import (UNTRANSLATED, FUZZY, TRANSLATED, STATES_MAP,
+                   absolute_real_path, find_altsrcs, get_sugg_list)
 
 
-def _common_context(request, translation_project, permission_codes):
-    """Adds common context to request object and checks permissions."""
-    request.translation_project = translation_project
-    request.profile = get_profile(request.user)
-    request.permissions = get_matching_permissions(request.profile,
-                                                   translation_project.directory)
-    if not permission_codes:
-        # skip checking permissions
-        return
-
-    if isinstance(permission_codes, basestring):
-        permission_codes = [permission_codes]
-    for permission_code in permission_codes:
-        if not check_permission(permission_code, request):
-            raise PermissionDenied(_("Insufficient rights to this translation project."))
-
-
-def get_store_context(permission_codes):
-
-    @decorate
-    def wrap_f(f):
-
-        def decorated_f(request, pootle_path, *args, **kwargs):
-            if pootle_path[0] != '/':
-                pootle_path = '/' + pootle_path
-            try:
-                store = Store.objects.select_related('translation_project',
-                                                     'parent') \
-                                     .get(pootle_path=pootle_path)
-            except Store.DoesNotExist:
-                raise Http404
-
-            _common_context(request, store.translation_project, permission_codes)
-            request.store = store
-            request.directory = store.parent
-
-            return f(request, store, *args, **kwargs)
-
-        return decorated_f
-
-    return wrap_f
-
-
-def get_unit_context(permission_codes):
-    @decorate
-    def wrap_f(f):
-
-        def decorated_f(request, uid, *args, **kwargs):
-            unit = get_object_or_404(
-                    Unit.objects.select_related("store__translation_project",
-                                                "store__parent"),
-                    id=uid,
-            )
-            _common_context(request, unit.store.translation_project,
-                            permission_codes)
-            request.unit = unit
-            request.store = unit.store
-            request.directory = unit.store.parent
-
-            return f(request, unit, *args, **kwargs)
-
-        return decorated_f
-
-    return wrap_f
+User = get_user_model()
 
 
 @get_store_context('view')
 def export_as_xliff(request, store):
     """Export given file to xliff for offline translation."""
     path = store.real_path
+
     if not path:
         # bug 2106
         project = request.translation_project.project
+
         if project.get_treestyle() == "gnu":
             path = "/".join(store.pootle_path.split(os.path.sep)[2:])
         else:
@@ -145,12 +94,14 @@ def export_as_xliff(request, store):
 
     key = iri_to_uri("%s:export_as_xliff" % store.pootle_path)
     last_export = cache.get(key)
+
     if (not (last_export and last_export == store.get_mtime() and
         os.path.isfile(abs_export_path))):
         from pootle_app.project_tree import ensure_target_dir_exists
         from translate.storage.poxliff import PoXliffFile
         from pootle_misc import ptempfile as tempfile
         import shutil
+
         ensure_target_dir_exists(abs_export_path)
         outputstore = store.convert(PoXliffFile)
         outputstore.switchfile(store.name, createifmissing=True)
@@ -159,58 +110,32 @@ def export_as_xliff(request, store):
         outputstore.savefile(tempstore)
         shutil.move(tempstore, abs_export_path)
         cache.set(key, store.get_mtime(), settings.OBJECT_CACHE_TIMEOUT)
-    return redirect('/export/' + export_path)
 
+    return redirect(reverse('pootle-export', args=[export_path]))
 
-@get_store_context('view')
-def export_as_type(request, store, filetype):
-    """Export given file to xliff for offline translation."""
-    from pootle_store.filetypes import factory_classes, is_monolingual
-    klass = factory_classes.get(filetype, None)
-    if (not klass or is_monolingual(klass) or
-        store.pootle_path.endswith(filetype)):
-        raise ValueError
-
-    path, ext = os.path.splitext(store.real_path)
-    export_path = os.path.join('POOTLE_EXPORT',
-                               path + os.path.extsep + filetype)
-    abs_export_path = absolute_real_path(export_path)
-
-    key = iri_to_uri("%s:export_as_%s" % (store.pootle_path, filetype))
-    last_export = cache.get(key)
-    if (not (last_export and last_export == store.get_mtime() and
-        os.path.isfile(abs_export_path))):
-        from pootle_app.project_tree import ensure_target_dir_exists
-        from pootle_misc import ptempfile as tempfile
-        import shutil
-        ensure_target_dir_exists(abs_export_path)
-        outputstore = store.convert(klass)
-        fd, tempstore = tempfile.mkstemp(prefix=store.name,
-                                         suffix=os.path.extsep + filetype)
-        os.close(fd)
-        outputstore.savefile(tempstore)
-        shutil.move(tempstore, abs_export_path)
-        cache.set(key, store.get_mtime(), settings.OBJECT_CACHE_TIMEOUT)
-    return redirect('/export/' + export_path)
 
 @get_store_context('view')
 def download(request, store):
     store.sync(update_translation=True)
-    return redirect('/export/' + store.real_path)
+
+    return redirect(reverse('pootle-export', args=[store.real_path]))
+
 
 ####################### Translate Page ##############################
 
-def get_alt_src_langs(request, profile, translation_project):
+def get_alt_src_langs(request, user, translation_project):
+    if not user.is_authenticated():
+        return Language.objects.none()
+
     language = translation_project.language
     project = translation_project.project
     source_language = project.source_language
 
-    langs = profile.alt_src_langs.exclude(
+    langs = user.alt_src_langs.exclude(
             id__in=(language.id, source_language.id)
         ).filter(translationproject__project=project)
 
-    if not profile.alt_src_langs.count():
-        from pootle_language.models import Language
+    if not user.alt_src_langs.count():
         accept = request.META.get('HTTP_ACCEPT_LANGUAGE', '')
 
         for accept_lang, unused in parse_accept_lang_header(accept):
@@ -271,170 +196,209 @@ def get_non_indexed_search_step_query(form, units_queryset):
 
     return result
 
+def get_non_indexed_search_exact_query(form, units_queryset):
+    phrase = form.cleaned_data['search']
+    result = units_queryset.none()
 
-def get_search_step_query(translation_project, form, units_queryset):
+    if 'source' in form.cleaned_data['sfields']:
+        subresult = units_queryset.filter(source_f__contains=phrase)
+        result = result | subresult
+
+    if 'target' in form.cleaned_data['sfields']:
+        subresult = units_queryset.filter(target_f__contains=phrase)
+        result = result | subresult
+
+    if 'notes' in form.cleaned_data['sfields']:
+        translator_subresult = units_queryset
+        developer_subresult = units_queryset
+        translator_subresult = translator_subresult.filter(
+            translator_comment__contains=phrase,
+        )
+        developer_subresult = developer_subresult.filter(
+            developer_comment__contains=phrase,
+        )
+        result = result | translator_subresult | developer_subresult
+
+    if 'locations' in form.cleaned_data['sfields']:
+        subresult = units_queryset.filter(locations__contains=phrase)
+        result = result | subresult
+
+    return result
+
+
+def get_search_step_query(request, form, units_queryset):
     """Narrows down units query to units matching search string."""
+    if 'exact' in form.cleaned_data['soptions']:
+        logging.debug(u"Using exact database search")
+        return get_non_indexed_search_exact_query(form, units_queryset)
 
-    if translation_project.indexer is None:
-        logging.debug(u"No indexer for %s, using database search",
-                      translation_project)
-        return get_non_indexed_search_step_query(form, units_queryset)
+    path = request.GET.get('path', None)
+    if path is not None:
+        lang, proj, dir_path, filename = split_pootle_path(path)
 
-    logging.debug(u"Found %s indexer for %s, using indexed search",
-                  translation_project.indexer.INDEX_DIRECTORY_NAME,
-                  translation_project)
+        translation_projects = []
+        # /<language_code>/<project_code>/
+        if lang is not None and proj is not None:
+            project = get_object_or_404(Project, code=proj)
+            language = get_object_or_404(Language, code=lang)
+            translation_projects = \
+                    TranslationProject.objects.filter(project=project,
+                                                      language=language)
+        # /projects/<project_code>/
+        elif lang is None and proj is not None:
+            project = get_object_or_404(Project, code=proj)
+            translation_projects = \
+                    TranslationProject.objects.filter(project=project)
+        # /<language_code>/
+        elif lang is not None and proj is None:
+            language = get_object_or_404(Language, code=lang)
+            translation_projects = \
+                    TranslationProject.objects.filter(language=language)
+        # /
+        elif lang is None and proj is None:
+            translation_projects = TranslationProject.objects.all()
 
-    word_querylist = []
-    words = form.cleaned_data['search'].split()
-    fields = form.cleaned_data['sfields']
-    paths = units_queryset.order_by() \
-                          .values_list('store__pootle_path', flat=True) \
-                          .distinct()
-    path_querylist = [('pofilename', pootle_path)
-                      for pootle_path in paths.iterator()]
-    cache_key = "search:%s" % str(hash((repr(path_querylist),
-                                        translation_project.get_mtime(),
-                                        repr(words),
-                                        repr(fields))))
+        has_indexer = True
+        for translation_project in translation_projects:
+            if translation_project.indexer is None:
+                has_indexer = False
 
-    dbids = cache.get(cache_key)
-    if dbids is None:
-        searchparts = []
-        # Split the search expression into single words. Otherwise Xapian and
-        # Lucene would interpret the whole string as an "OR" combination of
-        # words instead of the desired "AND".
-        for word in words:
-            # Generate a list for the query based on the selected fields
-            word_querylist = [(field, word) for field in fields]
-            textquery = translation_project.indexer.make_query(word_querylist,
-                                                               False)
-            searchparts.append(textquery)
+        if not has_indexer:
+            logging.debug(u"No indexer for one or more translation project,"
+                          u" using database search")
+            return get_non_indexed_search_step_query(form, units_queryset)
+        else:
+            alldbids = []
+            for translation_project in translation_projects:
+                logging.debug(u"Found %s indexer for %s, using indexed search",
+                              translation_project.indexer.INDEX_DIRECTORY_NAME,
+                              translation_project)
 
-        pathquery = translation_project.indexer.make_query(path_querylist,
-                                                           False)
-        searchparts.append(pathquery)
-        limitedquery = translation_project.indexer.make_query(searchparts, True)
+                word_querylist = []
+                words = form.cleaned_data['search']
+                fields = form.cleaned_data['sfields']
+                paths = units_queryset.order_by() \
+                                      .values_list('store__pootle_path',
+                                                   flat=True) \
+                                      .distinct()
+                path_querylist = [('pofilename', pootle_path)
+                                  for pootle_path in paths.iterator()]
+                cache_key = "search:%s" % str(hash((repr(path_querylist),
+                                                    translation_project.get_mtime(),
+                                                    repr(words),
+                                                    repr(fields))))
 
-        result = translation_project.indexer.search(limitedquery, ['dbid'])
-        dbids = [int(item['dbid'][0]) for item in result[:999]]
-        cache.set(cache_key, dbids, settings.OBJECT_CACHE_TIMEOUT)
+                dbids = cache.get(cache_key)
+                if dbids is None:
+                    searchparts = []
+                    word_querylist = [(field, words) for field in fields]
+                    textquery = \
+                            translation_project.indexer.make_query(word_querylist,
+                                                                   False)
+                    searchparts.append(textquery)
 
-    return units_queryset.filter(id__in=dbids)
+                    pathquery = \
+                            translation_project.indexer.make_query(path_querylist,
+                                                                   False)
+                    searchparts.append(pathquery)
+                    limitedquery = \
+                            translation_project.indexer.make_query(searchparts,
+                                                                   True)
+
+                    result = translation_project.indexer.search(limitedquery,
+                                                                ['dbid'])
+                    dbids = [int(item['dbid'][0]) for item in result[:999]]
+                    cache.set(cache_key, dbids, settings.OBJECT_CACHE_TIMEOUT)
+
+                alldbids.extend(dbids)
+
+            return units_queryset.filter(id__in=alldbids)
 
 
 def get_step_query(request, units_queryset):
-    """Narrows down unit query to units matching conditions in GET and POST."""
-    if 'unitstates' in request.GET:
-        unitstates = request.GET['unitstates'].split(',')
+    """Narrows down unit query to units matching conditions in GET."""
+    if 'filter' in request.GET:
+        unit_filter = request.GET['filter']
 
-        if unitstates:
-            state_queryset = units_queryset.none()
+        user = request.user
+        if request.GET.get("user"):
+            try:
+                user = User.objects.get(username=request.GET["user"])
+            except User.DoesNotExist:
+                pass
 
-            for unitstate in unitstates:
-                if unitstate == 'untranslated':
-                    state_queryset = state_queryset | \
-                                     units_queryset.filter(state=UNTRANSLATED)
-                elif unitstate == 'translated':
-                    state_queryset = state_queryset | \
-                                     units_queryset.filter(state=TRANSLATED)
-                elif unitstate == 'fuzzy':
-                    state_queryset = state_queryset | \
-                                     units_queryset.filter(state=FUZZY)
-
-            units_queryset = state_queryset
-
-    if 'checks' in request.GET:
-        checks = request.GET['checks'].split(',')
-
-        if checks:
-            checks_queryset = units_queryset.filter(
-                qualitycheck__false_positive=False,
-                qualitycheck__name__in=checks
-            )
-
-            units_queryset = checks_queryset
-
-    if 'matchnames' in request.GET:
-        matchnames = request.GET['matchnames'].split(',')
-
-        if matchnames:
+        if unit_filter:
             match_queryset = units_queryset.none()
 
-            if 'hassuggestion' in matchnames:
-                #FIXME: is None the most efficient query
-                match_queryset = units_queryset.exclude(suggestion=None)
-                matchnames.remove('hassuggestion')
-            elif 'ownsuggestion' in matchnames:
+            if unit_filter == 'all':
+                match_queryset = units_queryset
+            elif unit_filter == 'translated':
+                match_queryset = units_queryset.filter(state=TRANSLATED)
+            elif unit_filter == 'untranslated':
+                match_queryset = units_queryset.filter(state=UNTRANSLATED)
+            elif unit_filter == 'fuzzy':
+                match_queryset = units_queryset.filter(state=FUZZY)
+            elif unit_filter == 'incomplete':
                 match_queryset = units_queryset.filter(
-                        suggestion__user=request.profile
+                    Q(state=UNTRANSLATED) | Q(state=FUZZY),
+                )
+            elif unit_filter == 'suggestions':
+                match_queryset = units_queryset.filter(
+                        suggestion__state=SuggestionStates.PENDING
                     ).distinct()
-                matchnames.remove('ownsuggestion')
-            elif 'ownsubmission' in matchnames:
+            elif unit_filter in ('my-suggestions', 'user-suggestions'):
                 match_queryset = units_queryset.filter(
-                        submission__submitter=request.profile
+                        suggestion__state=SuggestionStates.PENDING,
+                        suggestion__user=user,
                     ).distinct()
-                matchnames.remove('ownsubmission')
-            elif 'hassubmissionafterme' in matchnames:
+            elif unit_filter == 'user-suggestions-accepted':
                 match_queryset = units_queryset.filter(
-                        submission__submitter=request.profile
-                    ).exclude(submitted_by=request.profile).distinct()
-                matchnames.remove('hassubmissionafterme')
+                        suggestion__state=SuggestionStates.ACCEPTED,
+                        suggestion__user=user,
+                    ).distinct()
+            elif unit_filter == 'user-suggestions-rejected':
+                match_queryset = units_queryset.filter(
+                        suggestion__state=SuggestionStates.REJECTED,
+                        suggestion__user=user,
+                    ).distinct()
+            elif unit_filter in ('my-submissions', 'user-submissions'):
+                match_queryset = units_queryset.filter(
+                        submission__submitter=user,
+                        submission__type=SubmissionTypes.NORMAL,
+                    ).distinct()
+            elif (unit_filter in ('my-submissions-overwritten',
+                                  'user-submissions-overwritten')):
+                match_queryset = units_queryset.filter(
+                        submission__submitter=user,
+                    ).exclude(submitted_by=user).distinct()
+            elif unit_filter == 'checks' and 'checks' in request.GET:
+                checks = request.GET['checks'].split(',')
+
+                if checks:
+                    match_queryset = units_queryset.filter(
+                        qualitycheck__false_positive=False,
+                        qualitycheck__name__in=checks,
+                    ).distinct()
+
 
             units_queryset = match_queryset
 
     if 'search' in request.GET and 'sfields' in request.GET:
+        # Accept `sfields` to be a comma-separated string of fields (#46)
+        GET = request.GET.copy()
+        sfields = GET['sfields']
+        if isinstance(sfields, unicode) and u',' in sfields:
+            GET.setlist('sfields', sfields.split(u','))
+
         # use the search form for validation only
-        search_form = make_search_form(request.GET)
+        search_form = make_search_form(GET)
 
         if search_form.is_valid():
-            units_queryset = get_search_step_query(request.translation_project,
-                                                   search_form, units_queryset)
+            units_queryset = get_search_step_query(request, search_form,
+                                                   units_queryset)
 
     return units_queryset
 
-
-def translate_page(request):
-    cantranslate = check_permission("translate", request)
-    cansuggest = check_permission("suggest", request)
-    canreview = check_permission("review", request)
-
-    translation_project = request.translation_project
-    language = translation_project.language
-    project = translation_project.project
-    profile = request.profile
-
-    store = getattr(request, "store", None)
-    is_terminology = project.is_terminology or store and store.is_terminology
-    search_form = make_search_form(request=request, terminology=is_terminology)
-
-    previous_overview_url = previous_view_url(request, ['overview'])
-
-    context = {
-        'cantranslate': cantranslate,
-        'cansuggest': cansuggest,
-        'canreview': canreview,
-        'search_form': search_form,
-        'store': store,
-        'store_id': store and store.id,
-        'language': language,
-        'project': project,
-        'translation_project': translation_project,
-        'profile': profile,
-        'source_language': translation_project.project.source_language,
-        'directory': getattr(request, "directory", None),
-        'previous_overview_url': previous_overview_url,
-        'MT_BACKENDS': settings.MT_BACKENDS,
-        'LOOKUP_BACKENDS': settings.LOOKUP_BACKENDS,
-        'AMAGAMA_URL': settings.AMAGAMA_URL,
-        }
-
-    return render_to_response('store/translate.html', context,
-                              context_instance=RequestContext(request))
-
-
-@get_store_context('view')
-def translate(request, store):
-    return translate_page(request)
 
 #
 # Views used with XMLHttpRequest requests.
@@ -458,6 +422,50 @@ def _filter_ctx_units(units_qs, unit, how_many, gap=0):
 
     return result
 
+
+def _prepare_unit(unit):
+    """Constructs a dictionary with relevant `unit` data."""
+    return {
+        'id': unit.id,
+        'url': unit.get_translate_url(),
+        'isfuzzy': unit.isfuzzy(),
+        'source': [source[1] for source in pluralize_source(unit)],
+        'target': [target[1] for target in pluralize_target(unit)],
+    }
+
+
+def _path_units_with_meta(path, units):
+    """Constructs a dictionary which contains a list of `units`
+    corresponding to `path` as well as its metadata.
+    """
+    meta = None
+    units_list = []
+
+    for unit in iter(units):
+        if meta is None:
+            # XXX: Watch out for the query count
+            store = unit.store
+            tp = store.translation_project
+            project = tp.project
+            meta = {
+                'source_lang': project.source_language.code,
+                'source_dir': project.source_language.direction,
+                'target_lang': tp.language.code,
+                'target_dir': tp.language.direction,
+                'project_code': project.code,
+                'project_style': project.checkstyle,
+            }
+
+        units_list.append(_prepare_unit(unit))
+
+    return {
+        path: {
+            'meta': meta,
+            'units': units_list,
+        },
+    }
+
+
 def _build_units_list(units, reverse=False):
     """Given a list/queryset of units, builds a list with the unit data
     contained in a dictionary ready to be returned as JSON.
@@ -466,145 +474,83 @@ def _build_units_list(units, reverse=False):
              having plural forms, a title for the plural form is also provided.
     """
     return_units = []
+
     for unit in iter(units):
-        source_unit = []
-        target_unit = []
-        for i, source, title in pluralize_source(unit):
-            unit_dict = {'text': source}
-            if title:
-                unit_dict["title"] = title
-            source_unit.append(unit_dict)
-        for i, target, title in pluralize_target(unit):
-            unit_dict = {'text': target}
-            if title:
-                unit_dict["title"] = title
-            target_unit.append(unit_dict)
-        prev = None
-        next = None
-        if return_units:
-            if reverse:
-                return_units[-1]['prev'] = unit.id
-                next = return_units[-1]['id']
-            else:
-                return_units[-1]['next'] = unit.id
-                prev = return_units[-1]['id']
-        return_units.append({'id': unit.id,
-                             'isfuzzy': unit.isfuzzy(),
-                             'prev': prev,
-                             'next': next,
-                             'source': source_unit,
-                             'target': target_unit})
+        return_units.append(_prepare_unit(unit))
+
     return return_units
 
 
-def _build_pager_dict(pager):
-    """Given a pager object ``pager``, retrieves all the information needed
-    to build a pager.
-
-    :return: A dictionary containing necessary pager information to build
-             a pager.
-    """
-    return {"number": pager.number,
-            "num_pages": pager.paginator.num_pages,
-            "per_page": pager.paginator.per_page
-           }
-
-
-def _get_index_in_qs(qs, unit, store=False):
-    """Given a queryset ``qs``, returns the position (index) of the unit
-    ``unit`` within that queryset. ``store`` specifies if the queryset is
-    limited to a single store.
-
-    :return: Value representing the position of the unit ``unit``.
-    :rtype: int
-    """
-    if store:
-        return qs.filter(index__lt=unit.index).count()
-    else:
-        store = unit.store
-        return (qs.filter(store=store, index__lt=unit.index) | \
-                qs.filter(store__pootle_path__lt=store.pootle_path)).count()
-
-
-def get_view_units(request, units_queryset, store, limit=0):
-    """Gets source and target texts excluding the editing unit.
-
-    :return: An object in JSON notation that contains the source and target
-             texts for units that will be displayed before and after editing
-             unit.
-
-             If asked by using the ``meta`` and ``pager`` parameters,
-             metadata and pager information will be calculated and returned
-             too.
-    """
-    current_unit = None
-    json = {}
-
-    try:
-        limit = int(limit)
-    except ValueError:
-        limit = None
-
-    if not limit:
-        limit = request.profile.get_unit_rows()
-
-    step_queryset = get_step_query(request, units_queryset)
-
-    # Return metadata it has been explicitely requested
-    if request.GET.get('meta', False):
-        tp = request.translation_project
-        json["meta"] = {"source_lang": tp.project.source_language.code,
-                        "source_dir": tp.project.source_language.get_direction(),
-                        "target_lang": tp.language.code,
-                        "target_dir": tp.language.get_direction(),
-                        "project_style": tp.project.checkstyle}
-
-    # Maybe we are trying to load directly a specific unit, so we have
-    # to calculate its page number
-    uid = request.GET.get('uid', None)
-    if uid:
-        current_unit = units_queryset.get(id=uid)
-        preceding = _get_index_in_qs(step_queryset, current_unit, store)
-        page = preceding / limit + 1
-    else:
-        page = None
-
-    pager = paginate(request, step_queryset, items=limit, page=page)
-
-    json["units"] = _build_units_list(pager.object_list)
-
-    # Return paging information if requested to do so
-    if request.GET.get('pager', False):
-        json["pager"] = _build_pager_dict(pager)
-        if not current_unit:
-            try:
-                json["uid"] = json["units"][0]["id"]
-            except IndexError:
-                pass
-        else:
-            json["uid"] = current_unit.id
-
-    response = jsonify(json)
-    return HttpResponse(response, mimetype="application/json")
-
-
 @ajax_required
-@get_store_context('view')
-def get_view_units_store(request, store, limit=0):
-    """Gets source and target texts excluding the editing widget (store-level).
+def get_units(request):
+    """Gets source and target texts and its metadata.
 
-    :return: An object in JSON notation that contains the source and target
-             texts for units that will be displayed before and after
-             unit ``uid``.
+    :return: A JSON-encoded string containing the source and target texts
+        grouped by the store they belong to.
+
+        The optional `count` GET parameter defines the chunk size to
+        consider. The user's preference will be used by default.
+
+        When the `initial` GET parameter is present, a sorted list of
+        the result set ids will be returned too.
     """
-    return get_view_units(request, store.units, store=True, limit=limit)
+    pootle_path = request.GET.get('path', None)
+    if pootle_path is None:
+        raise Http400(_('Arguments missing.'))
+
+    units_qs = Unit.objects.get_for_path(pootle_path, request.user)
+    step_queryset = get_step_query(request, units_qs)
+
+    user = request.user
+    if not user.is_authenticated():
+        user = User.objects.get_nobody_user()
+
+    is_initial_request = request.GET.get('initial', False)
+    chunk_size = request.GET.get("count", user.unit_rows)
+    uids_param = filter(None, request.GET.get('uids', '').split(u','))
+    uids = filter(None, map(to_int, uids_param))
+
+    units = None
+    unit_groups = []
+    uid_list = []
+
+    if is_initial_request:
+        uid_list = list(step_queryset.values_list('id', flat=True))
+
+        if len(uids) == 1:
+            try:
+                uid = uids[0]
+                index = uid_list.index(uid)
+                begin = max(index - chunk_size, 0)
+                end = min(index + chunk_size + 1, len(uid_list))
+                uids = uid_list[begin:end]
+            except ValueError:
+                raise Http404  # `uid` not found in `uid_list`
+        else:
+            count = 2 * chunk_size
+            units = step_queryset[:count]
+
+    if units is None and uids:
+        units = step_queryset.filter(id__in=uids)
+
+    units_by_path = groupby(units, lambda x: x.store.pootle_path)
+    for pootle_path, units in units_by_path:
+        unit_groups.append(_path_units_with_meta(pootle_path, units))
+
+    response = {
+        'unitGroups': unit_groups,
+    }
+    if uid_list:
+        response['uIds'] = uid_list
+
+    return HttpResponse(jsonify(response), content_type="application/json")
 
 
 def _is_filtered(request):
     """Checks if unit list is filtered."""
-    return ('unitstates' in request.GET or 'matchnames' in request.GET or
-            'checks' in request.GET or ('search' in request.GET and
-            'sfields' in request.GET))
+    return ('filter' in request.GET or 'checks' in request.GET or
+            'user' in request.GET or
+            ('search' in request.GET and 'sfields' in request.GET))
 
 
 @ajax_required
@@ -623,7 +569,7 @@ def get_more_context(request, unit):
     json["ctx"] = _filter_ctx_units(store.units, unit, qty, gap)
     rcode = 200
     response = jsonify(json)
-    return HttpResponse(response, status=rcode, mimetype="application/json")
+    return HttpResponse(response, status=rcode, content_type="application/json")
 
 
 @never_cache
@@ -634,22 +580,24 @@ def timeline(request, unit):
     """
     timeline = Submission.objects.filter(unit=unit, field__in=[
         SubmissionFields.TARGET, SubmissionFields.STATE,
-        SubmissionFields.COMMENT
+        SubmissionFields.COMMENT, SubmissionFields.NONE
     ])
     timeline = timeline.select_related("submitter__user",
                                        "translation_project__language")
 
-    context = {}
     entries_group = []
+    context = {
+        "system": User.objects.get_system_user()
+    }
 
-    import locale
-    from itertools import groupby
-    from pootle_store.fields import to_python
+    if unit.creation_time:
+        context['created'] = {
+            'datetime': unit.creation_time,
+        }
 
     for key, values in groupby(timeline, key=lambda x: x.creation_time):
         entry_group = {
             'datetime': key,
-            'datetime_str': key.strftime(locale.nl_langinfo(locale.D_T_FMT)),
             'entries': [],
         }
 
@@ -667,6 +615,18 @@ def timeline(request, unit):
             if item.field == SubmissionFields.STATE:
                 entry['old_value'] = STATES_MAP[int(to_python(item.old_value))]
                 entry['new_value'] = STATES_MAP[int(to_python(item.new_value))]
+            elif item.quality_check:
+                check_name = item.quality_check.name
+                entry.update({
+                    'check_name': check_name,
+                    'check_display_name': check_names[check_name],
+                    'checks_url': reverse('pootle-staticpages-display',
+                                          args=['help/quality-checks']),
+                    'action': {
+                                SubmissionTypes.MUTE_CHECK: 'Muted',
+                                SubmissionTypes.UNMUTE_CHECK: 'Unmuted'
+                              }.get(item.type, '')
+                })
             else:
                 entry['new_value'] = to_python(item.new_value)
 
@@ -677,11 +637,6 @@ def timeline(request, unit):
     # Let's reverse the chronological order
     entries_group.reverse()
 
-    # Remove first timeline item if it's solely a change to the target
-    if (entries_group and len(entries_group[0]['entries']) == 1 and
-        entries_group[0]['entries'][0]['field'] == SubmissionFields.TARGET):
-        del entries_group[0]
-
     context['entries_group'] = entries_group
 
     if request.is_ajax():
@@ -689,17 +644,17 @@ def timeline(request, unit):
         # the unit on screen at the time of receiving this, so we add the uid.
         json = {'uid': unit.id}
 
-        t = loader.get_template('unit/xhr-timeline.html')
+        t = loader.get_template('editor/units/xhr_timeline.html')
         c = RequestContext(request, context)
         json['timeline'] = t.render(c).replace('\n', '')
 
-        response = simplejson.dumps(json)
-        return HttpResponse(response, mimetype="application/json")
+        response = jsonify(json)
+        return HttpResponse(response, content_type="application/json")
     else:
-        return render_to_response('unit/timeline.html', context,
-                                  context_instance=RequestContext(request))
+        return render(request, "editor/units/timeline.html", context)
 
 
+@require_POST
 @ajax_required
 @get_unit_context('translate')
 def comment(request, unit):
@@ -709,7 +664,7 @@ def comment(request, unit):
              An error message is returned otherwise.
     """
     # Update current unit instance's attributes
-    unit.commented_by = request.profile
+    unit.commented_by = request.user
     unit.commented_on = timezone.now()
 
     language = request.translation_project.language
@@ -723,7 +678,7 @@ def comment(request, unit):
             'unit': unit,
             'language': language,
         }
-        t = loader.get_template('unit/comment.html')
+        t = loader.get_template('editor/units/xhr_comment.html')
         c = RequestContext(request, context)
 
         json = {'comment': t.render(c)}
@@ -732,9 +687,9 @@ def comment(request, unit):
         json = {'msg': _("Comment submission failed.")}
         rcode = 400
 
-    response = simplejson.dumps(json)
+    response = jsonify(json)
 
-    return HttpResponse(response, status=rcode, mimetype="application/json")
+    return HttpResponse(response, status=rcode, content_type="application/json")
 
 
 @never_cache
@@ -759,16 +714,15 @@ def get_edit_unit(request, unit):
         snplurals = None
 
     form_class = unit_form_factory(language, snplurals, request)
-    form = form_class(instance=unit)
+    form = form_class(instance=unit, request=request)
     comment_form_class = unit_comment_form_factory(language)
     comment_form = comment_form_class({}, instance=unit)
 
     store = unit.store
     directory = store.parent
-    profile = request.profile
-    alt_src_langs = get_alt_src_langs(request, profile, translation_project)
+    user = request.user
+    alt_src_langs = get_alt_src_langs(request, user, translation_project)
     project = translation_project.project
-    report_target = ensure_uri(project.report_target)
 
     suggestions = get_sugg_list(unit)
     template_vars = {
@@ -777,37 +731,35 @@ def get_edit_unit(request, unit):
         'comment_form': comment_form,
         'store': store,
         'directory': directory,
-        'profile': profile,
-        'user': request.user,
+        'project': project,
         'language': language,
         'source_language': translation_project.project.source_language,
-        'cantranslate': check_profile_permission(profile, "translate",
-                                                 directory),
-        'cansuggest': check_profile_permission(profile, "suggest", directory),
-        'canreview': check_profile_permission(profile, "review", directory),
+        'cantranslate': check_user_permission(user, "translate", directory),
+        'cansuggest': check_user_permission(user, "suggest", directory),
+        'canreview': check_user_permission(user, "review", directory),
+        'is_admin': check_user_permission(user, 'administrate', directory),
         'altsrcs': find_altsrcs(unit, alt_src_langs, store=store,
                                 project=project),
-        'report_target': report_target,
         'suggestions': suggestions,
     }
 
     if translation_project.project.is_terminology or store.is_terminology:
-        t = loader.get_template('unit/term_edit.html')
+        t = loader.get_template('editor/units/term_edit.html')
     else:
-        t = loader.get_template('unit/edit.html')
+        t = loader.get_template('editor/units/edit.html')
     c = RequestContext(request, template_vars)
     json['editor'] = t.render(c)
 
     rcode = 200
 
     # Return context rows if filtering is applied but
-    # don't return any if the user has asked not to have it
+    # don't return any if the user has asked not to have it.
     current_filter = request.GET.get('filter', 'all')
     show_ctx = request.COOKIES.get('ctxShow', 'true')
 
     if ((_is_filtered(request) or current_filter not in ('all',)) and
         show_ctx == 'true'):
-        # TODO: review if this first 'if' branch makes sense
+        # TODO: review if this first 'if' branch makes sense.
         if translation_project.project.is_terminology or store.is_terminology:
             json['ctx'] = _filter_ctx_units(store.units, unit, 0)
         else:
@@ -815,31 +767,42 @@ def get_edit_unit(request, unit):
             json['ctx'] = _filter_ctx_units(store.units, unit, ctx_qty)
 
     response = jsonify(json)
-    return HttpResponse(response, status=rcode, mimetype="application/json")
+    return HttpResponse(response, status=rcode, content_type="application/json")
 
 
-def get_failing_checks(request, pathobj):
-    """Gets a list of failing checks for the current object.
-
-    :return: JSON string with a list of failing check categories which
-             include the actual checks that are failing.
-    """
-    stats = get_raw_stats(pathobj)
-    failures = get_quality_check_failures(pathobj, stats, include_url=False)
-
-    response = jsonify(failures)
-
-    return HttpResponse(response, mimetype="application/json")
+def _get_project_icon(project):
+    path = "/".join(["", project.code, ".pootle", "icon.png"])
+    if os.path.isfile(settings.PODIRECTORY + path):
+        # XXX: we are abusing the export URL, need a better way to serve
+        # static files
+        return "/export" + path
+    else:
+        return ""
 
 
 @ajax_required
-@get_store_context('view')
-def get_failing_checks_store(request, store):
-    return get_failing_checks(request, store)
+@get_path_obj
+@permission_required('view')
+@get_resource
+def get_qualitycheck_stats(request, *args, **kwargs):
+    failing_checks = request.resource_obj.get_checks()['checks']
+    response = jsonify(failing_checks)
+    return HttpResponse(response, content_type="application/json")
 
 
 @ajax_required
-@get_unit_context('')
+@get_path_obj
+@permission_required('view')
+@get_resource
+def get_overview_stats(request, *args, **kwargs):
+    stats = request.resource_obj.get_stats()
+    response = jsonify(stats)
+    return HttpResponse(response, content_type="application/json")
+
+
+@require_POST
+@ajax_required
+@get_unit_context('translate')
 def submit(request, unit):
     """Processes translation submissions and stores them in the database.
 
@@ -848,21 +811,9 @@ def submit(request, unit):
     """
     json = {}
 
-    cantranslate = check_permission("translate", request)
-    if not cantranslate:
-        raise PermissionDenied(_("You do not have rights to access "
-                                 "translation mode."))
-
-    # (jgonzale|2014-12-04|INTL-1824): check for corrupted translation requests
-    if unit.id != int(request.POST['id']):
-        logging.warning(
-            u'submission aborted (request info -\
-            REQUEST_URI {0},\
-            POST unit id {1})'.format(request.META['REQUEST_URI'], request.POST['id']))
-        return HttpResponseBadRequest('There seems to be something wrong with this request. Please try again later.')
-
     translation_project = request.translation_project
     language = translation_project.language
+    user = request.user
 
     if unit.hasplural():
         snplurals = len(unit.source.strings)
@@ -873,11 +824,11 @@ def submit(request, unit):
     current_time = timezone.now()
 
     # Update current unit instance's attributes
-    unit.submitted_by = request.profile
+    unit.submitted_by = request.user
     unit.submitted_on = current_time
 
     form_class = unit_form_factory(language, snplurals, request)
-    form = form_class(request.POST, instance=unit)
+    form = form_class(request.POST, instance=unit, request=request)
 
     if form.is_valid():
         if form.updated_fields:
@@ -885,7 +836,7 @@ def submit(request, unit):
                 sub = Submission(
                         creation_time=current_time,
                         translation_project=translation_project,
-                        submitter=request.profile,
+                        submitter=request.user,
                         unit=unit,
                         field=field,
                         type=SubmissionTypes.NORMAL,
@@ -894,12 +845,29 @@ def submit(request, unit):
                 )
                 sub.save()
 
+            form.instance._log_user = request.user
+
             form.save()
             translation_submitted.send(
                     sender=translation_project,
                     unit=form.instance,
-                    profile=request.profile,
+                    user=request.user,
             )
+
+            has_critical_checks = unit.qualitycheck_set.filter(
+                category=Category.CRITICAL
+            ).exists()
+
+            if has_critical_checks:
+                can_review = check_user_permission(user, 'review',
+                                                   unit.store.parent)
+                ctx = {
+                    'canreview': can_review,
+                    'unit': unit
+                }
+                template = loader.get_template('editor/units/xhr_checks.html')
+                context = RequestContext(request, ctx)
+                json['checks'] = template.render(context)
 
         rcode = 200
     else:
@@ -907,12 +875,14 @@ def submit(request, unit):
         #FIXME: we should display validation errors here
         rcode = 400
         json["msg"] = _("Failed to process submission.")
+
     response = jsonify(json)
-    return HttpResponse(response, status=rcode, mimetype="application/json")
+    return HttpResponse(response, status=rcode, content_type="application/json")
 
 
+@require_POST
 @ajax_required
-@get_unit_context('')
+@get_unit_context('suggest')
 def suggest(request, unit):
     """Processes translation suggestions and stores them in the database.
 
@@ -920,11 +890,6 @@ def suggest(request, unit):
              units for the unit next to unit ``uid``.
     """
     json = {}
-
-    cansuggest = check_permission("suggest", request)
-    if not cansuggest:
-        raise PermissionDenied(_("You do not have rights to access "
-                                 "translation mode."))
 
     translation_project = request.translation_project
     language = translation_project.language
@@ -935,7 +900,7 @@ def suggest(request, unit):
         snplurals = None
 
     form_class = unit_form_factory(language, snplurals, request)
-    form = form_class(request.POST, instance=unit)
+    form = form_class(request.POST, instance=unit, request=request)
 
     if form.is_valid():
         if form.instance._target_updated:
@@ -943,59 +908,38 @@ def suggest(request, unit):
             #HACKISH: django 1.2 stupidly modifies instance on
             # model form validation, reload unit from db
             unit = Unit.objects.get(id=unit.id)
-            sugg = unit.add_suggestion(form.cleaned_data['target_f'],
-                                       request.profile)
-            if sugg:
-                SuggestionStat.objects.get_or_create(
-                    translation_project=translation_project,
-                    suggester=request.profile, state='pending', unit=unit.id
-                )
+            unit.add_suggestion(form.cleaned_data['target_f'],
+                                user=request.user)
+
         rcode = 200
     else:
         # Form failed
         #FIXME: we should display validation errors here
         rcode = 400
         json["msg"] = _("Failed to process suggestion.")
+
     response = jsonify(json)
-    return HttpResponse(response, status=rcode, mimetype="application/json")
+    return HttpResponse(response, status=rcode, content_type="application/json")
 
 
 @ajax_required
-@get_unit_context('')
+@get_unit_context('review')
 def reject_suggestion(request, unit, suggid):
-    json = {}
-    translation_project = request.translation_project
-
-    json["udbid"] = unit.id
-    json["sugid"] = suggid
     if request.POST.get('reject'):
         try:
             sugg = unit.suggestion_set.get(id=suggid)
         except ObjectDoesNotExist:
             raise Http404
 
-        if (not check_permission('review', request) and
-            (not request.user.is_authenticated() or sugg and
-                 sugg.user != request.profile)):
-            raise PermissionDenied(_("You do not have rights to access "
-                                     "review mode."))
+        unit.reject_suggestion(sugg, request.translation_project,
+                               request.user)
 
-        success = unit.reject_suggestion(suggid)
-        if sugg is not None and success:
-            # FIXME: we need a totally different model for tracking stats, this
-            # is just lame
-            suggstat, created = SuggestionStat.objects.get_or_create(
-                    translation_project=translation_project,
-                    suggester=sugg.user,
-                    state='pending',
-                    unit=unit.id,
-            )
-            suggstat.reviewer = request.profile
-            suggstat.state = 'rejected'
-            suggstat.save()
-
+    json = {
+        'udbid': unit.id,
+        'sugid': suggid,
+    }
     response = jsonify(json)
-    return HttpResponse(response, mimetype="application/json")
+    return HttpResponse(response, content_type="application/json")
 
 
 @ajax_required
@@ -1005,16 +949,14 @@ def accept_suggestion(request, unit, suggid):
         'udbid': unit.id,
         'sugid': suggid,
     }
-    translation_project = request.translation_project
-
     if request.POST.get('accept'):
         try:
             suggestion = unit.suggestion_set.get(id=suggid)
         except ObjectDoesNotExist:
             raise Http404
 
-        old_target = unit.target
-        success = unit.accept_suggestion(suggid)
+        unit.accept_suggestion(suggestion, request.translation_project,
+                               request.user)
 
         json['newtargets'] = [highlight_whitespace(target)
                               for target in unit.target.strings]
@@ -1024,94 +966,22 @@ def accept_suggestion(request, unit, suggid):
                     [highlight_diffs(unit.target.strings[i], target)
                      for i, target in enumerate(sugg.target.strings)]
 
-        if suggestion is not None and success:
-            if suggestion.user:
-                translation_submitted.send(sender=translation_project,
-                                           unit=unit, profile=suggestion.user)
-
-            # FIXME: we need a totally different model for tracking stats, this
-            # is just lame
-            suggstat, created = SuggestionStat.objects.get_or_create(
-                    translation_project=translation_project,
-                    suggester=suggestion.user,
-                    state='pending',
-                    unit=unit.id,
-            )
-            suggstat.reviewer = request.profile
-            suggstat.state = 'accepted'
-            suggstat.save()
-
-            # For now assume the target changed
-            # TODO: check all fields for changes
-            creation_time = timezone.now()
-            sub = Submission(
-                    creation_time=creation_time,
-                    translation_project=translation_project,
-                    submitter=suggestion.user,
-                    from_suggestion=suggstat,
-                    unit=unit,
-                    field=SubmissionFields.TARGET,
-                    type=SubmissionTypes.SUGG_ACCEPT,
-                    old_value=old_target,
-                    new_value=unit.target,
-            )
-            sub.save()
-
     response = jsonify(json)
-    return HttpResponse(response, mimetype="application/json")
-
-@ajax_required
-def clear_vote(request, voteid):
-    json = {}
-    json["voteid"] = voteid
-    if request.POST.get('clear'):
-        try:
-            from voting.models import Vote
-            vote = Vote.objects.get(pk=voteid)
-            if vote.user != request.user:
-                # No i18n, will not go to UI
-                raise PermissionDenied("Users can only remove their own votes")
-            vote.delete()
-        except ObjectDoesNotExist:
-            raise Http404
-    response = jsonify(json)
-    return HttpResponse(response, mimetype="application/json")
-
-
-@ajax_required
-@get_unit_context('')
-def vote_up(request, unit, suggid):
-    json = {}
-    json["suggid"] = suggid
-    if request.POST.get('up'):
-        try:
-            suggestion = unit.suggestion_set.get(id=suggid)
-            from voting.models import Vote
-            # Why can't it just return the vote object?
-            Vote.objects.record_vote(suggestion, request.user, +1)
-            json["voteid"] = Vote.objects.get_for_user(suggestion,
-                                                       request.user).id
-        except ObjectDoesNotExist:
-            raise Http404(_("The suggestion or vote is not valid any more."))
-    response = jsonify(json)
-    return HttpResponse(response, mimetype="application/json")
+    return HttpResponse(response, content_type="application/json")
 
 
 @ajax_required
 @get_unit_context('review')
-def reject_qualitycheck(request, unit, checkid):
+def toggle_qualitycheck(request, unit, check_id):
     json = {}
     json["udbid"] = unit.id
-    json["checkid"] = checkid
-    if request.POST.get('reject'):
-        try:
-            check = unit.qualitycheck_set.get(id=checkid)
-            check.false_positive = True
-            check.save()
-            # update timestamp
-            unit.save()
-        except ObjectDoesNotExist:
-            raise Http404
+    json["checkid"] = check_id
+
+    try:
+        unit.toggle_qualitycheck(check_id,
+            bool(request.POST.get('mute')), request.user)
+    except ObjectDoesNotExist:
+        raise Http404
 
     response = jsonify(json)
-    return HttpResponse(response, mimetype="application/json")
+    return HttpResponse(response, content_type="application/json")

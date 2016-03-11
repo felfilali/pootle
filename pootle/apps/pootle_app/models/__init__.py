@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008 Zuza Software Foundation
+# Copyright 2014 Evernote Corporation
 #
-# This file is part of translate.
+# This file is part of Pootle.
 #
-# translate is free software; you can redistribute it and/or modify
+# Pootle is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
@@ -19,8 +20,9 @@
 # along with translate; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from pootle_app.models.suggestion import Suggestion
 from pootle_app.models.directory import Directory
 from pootle_app.models.permissions import PermissionSet
+from pootle_app.models.pootle_config import PootleConfig
 
-__all__ = ["Suggestion", "Directory", "PermissionSet"]
+
+__all__ = ["Directory", "PermissionSet", "PootleConfig"]

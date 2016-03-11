@@ -1,0 +1,13 @@
+{% extends "browser/base.html" %}
+
+{% block html_id %}tp{% endblock %}
+
+{% block title %}{{ translation_project.project }} | {{ language.name }} | {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<link rel="alternate" type="application/rss+xml" href="{% url 'pootle-notifications-feed' feed_path %}" />
+{% endblock %}
+
+{% block breadcrumbs %}
+{% include 'core/_breadcrumbs.html' with nav='translation_projects/_nav.html' %}
+{% endblock %}

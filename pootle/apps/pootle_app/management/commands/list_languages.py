@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2012 Zuza Software Foundation
+# Copyright 2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -19,9 +20,10 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
-
 from optparse import make_option
+
+# This must be run before importing Django.
+os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
 
 from pootle_app.management.commands import (NoArgsCommandMixin,
                                             ModifiedSinceMixin)
@@ -54,4 +56,4 @@ class Command(ModifiedSinceMixin, NoArgsCommandMixin):
             tps = tps.filter(project__code__in=projects)
 
         for lang in tps.values_list('language__code', flat=True):
-            print lang
+            self.stdout.write(lang)

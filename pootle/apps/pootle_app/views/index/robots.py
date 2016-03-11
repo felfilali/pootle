@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009 Zuza Software Foundation
+# Copyright 2009, 2014 Zuza Software Foundation
 #
 # This file is part of Pootle.
 #
@@ -21,10 +21,11 @@
 from django.http import HttpResponse
 from pootle_language.models import Language
 
+
 def view(request):
     """generates the robots.txt file"""
     langcodes = [language.code for language in Language.objects.iterator()]
     content = "User-agent: *\n"
     for langcode in langcodes + ["accounts"]:
         content += "Disallow: /%s/\n" % langcode
-    return HttpResponse(content, mimetype="text/plain")
+    return HttpResponse(content, content_type="text/plain")

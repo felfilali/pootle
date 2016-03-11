@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009 Zuza Software Foundation
+# Copyright 2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -18,13 +19,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
-
 import logging
+import os
 import sys
-
 from optparse import make_option
+
+# This must be run before importing Django.
+os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
 
 from pootle_app.management.commands import PootleCommand, ModifiedSinceMixin
 
@@ -44,22 +45,28 @@ class Command(ModifiedSinceMixin, PootleCommand):
         keep = options.get('keep', False)
         change_id = options.get('modified_since', 0)
 
-        if (change_id and not keep):
+        if change_id and not keep:
             logging.error(u"Both --keep and --modified-since must be set.")
             sys.exit(1)
 
         super(Command, self).handle_noargs(**options)
 
     def handle_translation_project(self, translation_project, **options):
-        logging.info(u"Scanning for new files in %s", translation_project)
-        translation_project.scan_files()
+        """
+        :return: flag if child stores should be updated
+        """
+        if not translation_project.directory.obsolete:
+            logging.info(u"Scanning for new files in %s", translation_project)
+            translation_project.scan_files()
+            return True
+
+        translation_project.directory.makeobsolete()
+        return False
 
     def handle_store(self, store, **options):
         keep = options.get('keep', False)
         force = options.get('force', False)
         change_id = options.get('modified_since', 0)
 
-        # Update new translations
-        store.update(update_translation=not keep, conservative=keep,
-                     update_structure=True, only_newer=not force,
-                     modified_since=change_id)
+        store.update(update_translation=not keep, update_structure=True,
+                     only_newer=not force, modified_since=change_id)

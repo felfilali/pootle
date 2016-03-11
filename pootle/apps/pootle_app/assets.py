@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2012 Zuza Software Foundation
+# Copyright 2012-2013 Zuza Software Foundation
+# Copyright 2013-2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -21,49 +22,81 @@
 from django_assets import Bundle, register
 
 js_common = Bundle(
-    'js/jquery/jquery.js', 'js/jquery/jquery.tipsy.js',
-    'js/jquery/jquery.cookie.js', 'js/jquery/jquery.bidi.js',
-    'js/jquery/jquery.fancybox.js', 'js/jquery/jquery.utils.js',
-    'js/jquery/jquery.easing.js', 'js/jquery/jquery.serializeObject.js',
-    'js/jquery/jquery.select2.js',
-    'js/bootstrap/bootstrap-alert.js', 'js/bootstrap/bootstrap-transition.js',
-    'js/common.js', 'js/search.js', 'js/sorttable.js', 'js/spin.js',
-    'js/utils.js', 'js/zoom.js',
-    'js/shortcut.js',  # Leave shortcut.js as the last one
-    filters='rjsmin', output='js/common.min.js')
+    'js/vendor/jquery/jquery.js',
+    'js/vendor/jquery/jquery.tipsy.js',
+    'js/vendor/jquery/jquery.cookie.js',
+    'js/vendor/jquery/jquery.bidi.js',
+    'js/vendor/jquery/jquery.magnific-popup.js',
+    'js/vendor/jquery/jquery.utils.js',
+    'js/vendor/jquery/jquery.easing.js',
+    'js/vendor/jquery/jquery.serializeObject.js',
+    'js/vendor/jquery/jquery.select2.js',
+    'js/vendor/bootstrap/bootstrap-alert.js',
+    'js/vendor/bootstrap/bootstrap-transition.js',
+    'js/browser.js',
+    'js/captcha.js',
+    'js/common.js',
+    'js/languages.js',
+    'js/contact.js',
+    'js/search.js',
+    'js/stats.js',
+    'js/utils.js',
+    'js/vendor/sorttable.js',
+    'js/vendor/spin.js',
+    'js/vendor/shortcut.js',  # Leave shortcut.js as the last one.
+    filters='rjsmin', output='js/common.min.%(version)s.js')
 register('js_common', js_common)
+
 
 js_admin = Bundle(
     'js/admin.js',
-    filters='rjsmin', output='js/admin.min.js')
+    filters='rjsmin', output='js/admin.min.%(version)s.js')
 register('js_admin', js_admin)
 
+
 js_editor = Bundle(
-    'js/jquery/jquery.history.js', 'js/jquery/jquery.tmpl.js',
-    'js/jquery/jquery.textarea-expander.js', 'js/diff_match_patch.js',
-    'js/jquery/jquery.fieldselection.js', 'js/jquery/jquery.caret.js',
-    'js/jquery/jquery.highlightRegex.js', 'js/jquery/jquery.jsonp.js',
-    'js/iso8601.js', 'js/editor.js', 'js/json2.js',
-    filters='rjsmin', output='js/editor.min.js')
+    'js/vendor/jquery/jquery.history.js',
+    'js/vendor/jquery/jquery.textarea-expander.js',
+    'js/vendor/jquery/jquery.textcomplete.js',
+    'js/vendor/diff_match_patch.js',
+    'js/vendor/jquery/jquery.caret.js',
+    'js/vendor/jquery/jquery.highlightRegex.js',
+    'js/vendor/jquery/jquery.jsonp.js',
+    'js/vendor/iso8601.js',
+    'js/vendor/underscore.js',
+    'js/vendor/backbone/backbone.js',
+    'js/vendor/backbone/backbone-relational.js',
+    'js/models.js',
+    'js/collections.js',
+    'js/editor.js',
+    filters='rjsmin', output='js/editor.min.%(version)s.js')
 register('js_editor', js_editor)
 
+
 css_common = Bundle(
-    'css/style.css', 'css/fancybox.css', 'css/tipsy.css',
-    'css/markup.css', 'css/sprite.css', 'css/select2.css',
-    filters='cssmin', output='css/common.min.css')
+    'css/style.css',
+    'css/buttons.css',
+    'css/contact.css',
+    'css/magnific-popup.css',
+    'css/navbar.css',
+    'css/tipsy.css',
+    'css/markup.css',
+    'css/sprite.css',
+    'css/select2.css',
+    'css/select2-pootle.css',
+    'css/custom/custom.css',
+    filters='cssmin', output='css/common.min.%(version)s.css')
 register('css_common', css_common)
+
 
 css_admin = Bundle(
     'css/admin.css',
-    filters='cssmin', output='css/admin.min.css')
+    filters='cssmin', output='css/admin.min.%(version)s.css')
 register('css_admin', css_admin)
+
 
 css_editor = Bundle(
     'css/editor.css',
-    filters='cssmin', output='css/editor.min.css')
+    'css/jquery.textcomplete.css',
+    filters='cssmin', output='css/editor.min.%(version)s.css')
 register('css_editor', css_editor)
-
-css_custom = Bundle(
-    'css/custom/custom.css',
-    filters='cssmin', output='css/custom/custom.min.css')
-register('css_custom', css_custom)

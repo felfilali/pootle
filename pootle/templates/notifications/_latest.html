@@ -1,0 +1,9 @@
+{% load i18n cleanhtml %}
+
+<ul>
+{% for item in news_items %}
+  <li class="newsitem">{{ item.message|clean }}</li>
+{% empty %}
+  <li>{% trans 'No news yet.' %}</li>
+{% endfor %}
+</ul>

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008,2012 Zuza Software Foundation
+# Copyright 2008-2014 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -19,15 +20,27 @@
 # along with Pootle; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.conf.urls.defaults import patterns
+from django.conf.urls import patterns, url
+
 
 urlpatterns = patterns('pootle_language.views',
-    (r'^(?P<language_code>[^/]*)/$',
-        'language_index'),
+    url(r'^(?P<language_code>[^/]*)/$',
+        'overview',
+        name='pootle-language-overview'),
+
+    url(r'^(?P<language_code>[^/]*)/translate/$',
+        'translate',
+        name='pootle-language-translate'),
+
+    url(r'^(?P<language_code>[^/]*)/export-view/$',
+        'export_view',
+        name='pootle-language-export-view'),
 
     # Admin
-    (r'^(?P<language_code>[^/]*)/edit_settings.html$',
-        'language_settings_edit'),
-    (r'^(?P<language_code>[^/]*)/admin.html$',
-        'language_admin'),
+    url(r'^(?P<language_code>[^/]*)/admin/settings/$',
+        'language_settings_edit',
+        name='pootle-language-admin-settings'),
+    url(r'^(?P<language_code>[^/]*)/admin/permissions/$',
+        'language_admin',
+        name='pootle-language-admin-permissions'),
 )

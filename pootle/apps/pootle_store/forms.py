@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Zuza Software Foundation
+# Copyright 2013-2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -22,17 +23,22 @@
 import re
 
 from django import forms
+from django.utils import timezone
 from django.utils.translation import get_language, ugettext as _
 
 from translate.misc.multistring import multistring
 
+from pootle.core.log import (TRANSLATION_ADDED, TRANSLATION_CHANGED,
+                             TRANSLATION_DELETED)
+from pootle.core.mixins import CachedMethods
 from pootle_app.models.permissions import check_permission
-from pootle_misc.util import timezone
 from pootle_statistics.models import (Submission, SubmissionFields,
                                       SubmissionTypes)
-from pootle_store.models import Unit
-from pootle_store.util import UNTRANSLATED, FUZZY, TRANSLATED
-from pootle_store.fields import PLURAL_PLACEHOLDER, to_db
+
+from .fields import to_db
+from .models import Unit
+from .util import FUZZY, TRANSLATED, UNTRANSLATED
+
 
 ############## text cleanup and highlighting #########################
 
@@ -53,7 +59,9 @@ def highlight_whitespace(text):
 
     return FORM_RE.sub(replace, text)
 
+
 FORM_UNRE = re.compile('\r|\n|\t|\\\\r|\\\\n|\\\\t|\\\\\\\\')
+
 def unhighlight_whitespace(text):
     """Replace visible whitespace with proper whitespace."""
 
@@ -70,6 +78,7 @@ def unhighlight_whitespace(text):
         return submap[match.group()]
 
     return FORM_UNRE.sub(replace, text)
+
 
 class MultiStringWidget(forms.MultiWidget):
     """Custom Widget for editing multistrings, expands number of text
@@ -109,6 +118,7 @@ class MultiStringWidget(forms.MultiWidget):
             return [highlight_whitespace(value)]
         else:
             raise ValueError
+
 
 class HiddenMultiStringWidget(MultiStringWidget):
     """Uses hidden input instead of textareas."""
@@ -151,21 +161,22 @@ class UnitStateField(forms.BooleanField):
     def to_python(self, value):
         """Returns a Python boolean object.
 
+        It is necessary to customize the behavior because the default
+        ``BooleanField`` treats the string '0' as ``False``, but if the
+        unit is in ``UNTRANSLATED`` state (which would report '0' as a
+        value), we need the marked checkbox to be evaluated as ``True``.
+
         :return: ``False`` for any unknown :cls:`~pootle_store.models.Unit`
             states and for the 'False' string.
         """
-        if (value in ('False',) or
-            value not in (str(s) for s in (UNTRANSLATED, FUZZY, TRANSLATED))):
+        truthy_values = (str(s) for s in (UNTRANSLATED, FUZZY, TRANSLATED))
+        if (isinstance(value, basestring) and
+            (value.lower() == 'false' or value not in truthy_values)):
             value = False
         else:
             value = bool(value)
 
-        value = super(forms.BooleanField, self).to_python(value)
-
-        if not value and self.required:
-            raise forms.ValidationError(self.error_messages['required'])
-
-        return value
+        return super(forms.BooleanField, self).to_python(value)
 
 
 def unit_form_factory(language, snplurals=None, request=None):
@@ -185,17 +196,17 @@ def unit_form_factory(language, snplurals=None, request=None):
 
     target_attrs = {
         'lang': language.code,
-        'dir': language.get_direction(),
-        'class': 'translation expanding focusthis',
+        'dir': language.direction,
+        'class': 'translation expanding focusthis js-translation-area',
         'rows': 5,
         'tabindex': 10,
-        }
+    }
 
     fuzzy_attrs = {
         'accesskey': 'f',
         'class': 'fuzzycheck',
         'tabindex': 13,
-        }
+    }
 
     if action_disabled:
         target_attrs['disabled'] = 'disabled'
@@ -204,33 +215,27 @@ def unit_form_factory(language, snplurals=None, request=None):
     class UnitForm(forms.ModelForm):
         class Meta:
             model = Unit
-            exclude = ['store', 'developer_comment', 'translator_comment',
-                       'submitted_by', 'commented_by']
+            fields = ('id', 'index', 'target_f', 'state',)
 
         id = forms.IntegerField(required=False)
-        source_f = MultiStringFormField(nplurals=snplurals or 1,
-                                        required=False, textarea=False)
-        target_f = MultiStringFormField(nplurals=tnplurals, required=False,
-                                        attrs=target_attrs)
-        state = UnitStateField(required=False, label=_('Needs work'),
-                               widget=forms.CheckboxInput(
-                                   attrs=fuzzy_attrs,
-                                   check_test=lambda x: x == FUZZY))
+        target_f = MultiStringFormField(
+            nplurals=tnplurals,
+            required=False,
+            attrs=target_attrs,
+        )
+        state = UnitStateField(
+            required=False,
+            label=_('Needs work'),
+            widget=forms.CheckboxInput(
+                attrs=fuzzy_attrs,
+                check_test=lambda x: x == FUZZY,
+            ),
+        )
 
-        def __init__(self, *args, **argv):
-            super(UnitForm, self).__init__(*args, **argv)
+        def __init__(self, *args, **kwargs):
+            self.request = kwargs.pop('request', None)
+            super(UnitForm, self).__init__(*args, **kwargs)
             self.updated_fields = []
-
-        def clean_source_f(self):
-            # NOTE(jgonzale|2014-09-05|INTL-591): treat it as readonly attribute field, it should not be modified
-            value = self.instance.source.strings
-
-            if snplurals == 1:
-                # plural with single form, insert placeholder
-                value = list(value)
-                value.append(PLURAL_PLACEHOLDER)
-
-            return value
 
         def clean_target_f(self):
             value = self.cleaned_data['target_f']
@@ -245,18 +250,39 @@ def unit_form_factory(language, snplurals=None, request=None):
 
         def clean_state(self):
             old_state = self.instance.state  # Integer
-            value = self.cleaned_data['state']  # Boolean
+            is_fuzzy = self.cleaned_data['state']  # Boolean
             new_target = self.cleaned_data['target_f']
 
-            new_state = None
+            if (self.request is not None and
+                not check_permission('administrate', self.request) and
+                is_fuzzy):
+                raise forms.ValidationError(_('Fuzzy flag must be cleared'))
+
             if new_target:
-                if value:
+                if old_state == UNTRANSLATED:
+                    self.instance._save_action = TRANSLATION_ADDED
+                    self.instance.store \
+                                 .flag_for_deletion(CachedMethods.TRANSLATED)
+                else:
+                    self.instance._save_action = TRANSLATION_CHANGED
+
+                if is_fuzzy:
                     new_state = FUZZY
                 else:
                     new_state = TRANSLATED
             else:
                 new_state = UNTRANSLATED
+                if old_state > FUZZY:
+                    self.instance._save_action = TRANSLATION_DELETED
+                    self.instance.store \
+                                 .flag_for_deletion(CachedMethods.TRANSLATED)
 
+            if is_fuzzy != (old_state == FUZZY):
+                # when Unit toggles its FUZZY state the number of translated words
+                # also changes
+                self.instance.store.flag_for_deletion(CachedMethods.FUZZY,
+                                                      CachedMethods.TRANSLATED,
+                                                      CachedMethods.LAST_ACTION)
 
             if old_state != new_state:
                 self.instance._state_updated = True
@@ -267,7 +293,6 @@ def unit_form_factory(language, snplurals=None, request=None):
 
             return new_state
 
-
     return UnitForm
 
 
@@ -275,12 +300,11 @@ def unit_comment_form_factory(language):
 
     comment_attrs = {
         'lang': language.code,
-        'dir': language.get_direction(),
+        'dir': language.direction,
         'class': 'comments expanding focusthis',
         'rows': 2,
         'tabindex': 15,
     }
-
 
     class UnitCommentForm(forms.ModelForm):
 
@@ -288,28 +312,26 @@ def unit_comment_form_factory(language):
             fields = ('translator_comment',)
             model = Unit
 
-
-        translator_comment = forms.CharField(required=True,
-                                             label=_("Translator comment"),
-                                             widget=forms.Textarea(
-                                                 attrs=comment_attrs))
-
+        translator_comment = forms.CharField(
+            required=True,
+            label=_("Translator comment"),
+            widget=forms.Textarea(attrs=comment_attrs),
+        )
 
         def __init__(self, *args, **kwargs):
             self.request = kwargs.pop('request', None)
             super(UnitCommentForm, self).__init__(*args, **kwargs)
 
-
         def save(self):
-            """Registers the submission and saves the comment."""
+            """Register the submission and save the comment."""
             if self.has_changed():
-                creation_time=timezone.now()
+                creation_time = timezone.now()
                 translation_project = self.request.translation_project
 
                 sub = Submission(
                     creation_time=creation_time,
                     translation_project=translation_project,
-                    submitter=self.request.profile,
+                    submitter=self.request.user,
                     unit=self.instance,
                     field=SubmissionFields.COMMENT,
                     type=SubmissionTypes.NORMAL,
@@ -319,6 +341,5 @@ def unit_comment_form_factory(language):
                 sub.save()
 
             super(UnitCommentForm, self).save()
-
 
     return UnitCommentForm
