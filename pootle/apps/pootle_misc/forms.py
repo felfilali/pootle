@@ -15,9 +15,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Pootle; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# You should have received a copy of the GNU General Public License along with
+# Pootle; if not, see <http://www.gnu.org/licenses/>.
 
 from django import forms
 from django.core.validators import EMPTY_VALUES
@@ -42,7 +41,8 @@ class GroupedModelChoiceField(forms.ModelChoiceField):
                 for choice in super(GroupedModelChoiceField, self).choices:
                     yield choice
             else:
-                yield (title, [choice for choice in super(GroupedModelChoiceField, self).choices])
+                yield (title, [choice for choice in
+                               super(GroupedModelChoiceField, self).choices])
 
         self.queryset = orig_queryset
         self.empty_label = orig_empty_label
@@ -50,11 +50,11 @@ class GroupedModelChoiceField(forms.ModelChoiceField):
 
 
 class LiberalModelChoiceField(forms.ModelChoiceField):
-    """
-    a ModelChoiceField that doesn't complain about choices not present in the queryset.
+    """ModelChoiceField that doesn't complain about choices not present in the
+    queryset.
 
-    this is essentially a hack for admin pages. to be able to exclude
-    currently used choices from dropdowns without failing validation.
+    This is essentially a hack for admin pages. to be able to exclude currently
+    used choices from dropdowns without failing validation.
     """
 
     def clean(self, value):
@@ -69,20 +69,24 @@ class LiberalModelChoiceField(forms.ModelChoiceField):
 
 
 def make_search_form(*args, **kwargs):
-    """A factory that instantiates one of the search forms below."""
+    """Factory that instantiates one of the search forms below."""
     terminology = kwargs.pop('terminology', False)
     request = kwargs.pop('request', None)
 
     if request is not None:
         env = terminology and "terminology" or "editor"
-        fields = request.COOKIES.get("search-%s" % env)
+        sparams_cookie = request.COOKIES.get("search-%s" % env)
 
-        if fields:
+        if sparams_cookie:
+            import json
             import urllib
-            from django.utils import simplejson
 
-            sfields = simplejson.loads(urllib.unquote(fields))
-            kwargs.update({'initial': {'sfields': sfields}})
+            initial_sparams = json.loads(urllib.unquote(sparams_cookie))
+            if isinstance(initial_sparams, dict):
+                if 'sfields' in initial_sparams:
+                    kwargs.update({
+                        'initial': initial_sparams,
+                    })
 
     if terminology:
         return TermSearchForm(*args, **kwargs)
@@ -92,33 +96,43 @@ def make_search_form(*args, **kwargs):
 
 class SearchForm(forms.Form):
     """Normal search form for translation projects."""
-    search = forms.CharField(widget=forms.TextInput(attrs={
-        'size': '15',
-        'title': _("Search (Ctrl+Shift+S)<br/>Type and press Enter to search")
-    }))
+    search = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'size': '15',
+            'title': _("Search (Ctrl+Shift+S)<br/>Type and press Enter to "
+                       "search"),
+        }),
+    )
+    soptions = forms.MultipleChoiceField(
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=(
+            ('exact', _('Exact Match')),
+        ),
+    )
     sfields = forms.MultipleChoiceField(
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=(
-                ('source', _('Source Text')),
-                ('target', _('Target Text')),
-                ('notes', _('Comments')),
-                ('locations', _('Locations'))
-            ),
-            initial=['source', 'target'],
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=(
+            ('source', _('Source Text')),
+            ('target', _('Target Text')),
+            ('notes', _('Comments')),
+            ('locations', _('Locations'))
+        ),
+        initial=['source', 'target'],
     )
 
 
 class TermSearchForm(SearchForm):
     """Search form for terminology projects and pootle-terminology files."""
-    # Mostly the same as SearchForm, but defining it this way seemed easiest
+    # Mostly the same as SearchForm, but defining it this way seemed easiest.
     sfields = forms.ChoiceField(
-            required=False,
-            widget=forms.CheckboxSelectMultiple,
-            choices=(
-                ('source', _('Source Terms')),
-                ('target', _('Target Terms')),
-                ('notes', _('Definitions')),
-            ),
-            initial=['source', 'target'],
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        choices=(
+            ('source', _('Source Terms')),
+            ('target', _('Target Terms')),
+            ('notes', _('Definitions')),
+        ),
+        initial=['source', 'target'],
     )

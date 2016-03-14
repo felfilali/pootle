@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008-2012 Zuza Software Foundation
+# Copyright 2008-2014 Zuza Software Foundation
+# Copyright 2013-2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -21,122 +22,112 @@
 import logging
 import os
 import StringIO
+import json
+from urllib import quote, unquote
 
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render_to_response
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader, RequestContext
-from django.utils.encoding import iri_to_uri
-from django.utils.translation import ugettext_lazy, ugettext as _
+from django.utils.translation import ugettext as _
+from django.views.decorators.http import require_POST
 
-from pootle_app.lib import view_handler
-from pootle_app.models.permissions import (get_matching_permissions,
-                                           check_permission)
-from pootle_app.models.signals import post_file_upload
+from pootle.core.browser import (get_children, get_parent,
+                                 get_table_headings)
+from pootle.core.decorators import (get_path_obj, get_resource,
+                                    permission_required)
+from pootle.core.helpers import (get_export_view_context, get_overview_context,
+                                 get_translation_context)
 from pootle_app.models import Directory
+from pootle_app.models.permissions import check_permission
 from pootle_app.project_tree import (ensure_target_dir_exists,
                                      direct_language_match_filename)
-from pootle_app.views.admin import util
 from pootle_app.views.admin.permissions import admin_permissions as admin_perms
-from pootle_app.views.language.view import (get_translation_project,
-                                            set_request_context)
-from pootle_app.views.top_stats import gentopstats_translation_project
-from pootle_misc.baseurl import redirect
-from pootle_misc.browser import get_children, get_table_headings
-from pootle_misc.checks import get_quality_check_failures
-from pootle_misc.stats import (get_raw_stats, get_translation_stats,
-                               get_path_summary)
 from pootle_misc.util import jsonify, ajax_required
-from pootle_profile.models import get_profile
 from pootle_statistics.models import Submission, SubmissionTypes
 from pootle_store.models import Store
-from pootle_store.util import absolute_real_path, relative_real_path
-from pootle_store.filetypes import factory_classes
-from pootle_translationproject.actions import action_groups
+from pootle_store.util import (absolute_real_path, relative_real_path,
+                               add_trailing_slash)
+
+from .forms import DescriptionForm, upload_form_factory
 
 
-@get_translation_project
-@set_request_context
-@util.has_permission('administrate')
+ANN_COOKIE_NAME = 'project-announcements'
+
+
+@get_path_obj
+@permission_required('administrate')
 def admin_permissions(request, translation_project):
+    ctx = {
+        'page': 'admin-permissions',
 
-    language = translation_project.language
-    project = translation_project.project
-
-    template_vars = {
         'translation_project': translation_project,
-        "project": project,
-        "language": language,
-        "directory": translation_project.directory,
-        "feed_path": translation_project.pootle_path[1:],
+        'project': translation_project.project,
+        'language': translation_project.language,
+        'directory': translation_project.directory,
+        'feed_path': translation_project.pootle_path[1:],
     }
-
     return admin_perms(request, translation_project.directory,
-                       "translation_project/admin_permissions.html",
-                       template_vars)
+                       'translation_projects/admin/permissions.html', ctx)
 
 
-@get_translation_project
-@set_request_context
-@util.has_permission('administrate')
+@get_path_obj
+@permission_required('administrate')
 def rescan_files(request, translation_project):
     try:
         translation_project.scan_files()
 
         for store in translation_project.stores.exclude(file='').iterator():
             store.sync(update_translation=True)
-            store.update(update_structure=True, update_translation=True,
-                         conservative=False)
+            store.update(update_structure=True, update_translation=True)
 
         messages.success(request, _("Translation project files have been "
                                     "rescanned."))
-    except Exception, e:
-        logging.error(u"Error while rescanning translation project files: %s",
-                      e)
+    except Exception:
+        logging.exception(u"Error while rescanning translation project files")
         messages.error(request, _("Error while rescanning translation project "
                                   "files."))
 
     language = translation_project.language.code
     project = translation_project.project.code
-    overview_url = reverse('tp.overview', args=[language, project, ''])
+    overview_url = reverse('pootle-tp-overview', args=[language, project, ''])
 
-    return HttpResponseRedirect(overview_url)
+    return redirect(overview_url)
 
 
-@get_translation_project
-@set_request_context
-@util.has_permission('administrate')
+@get_path_obj
+@permission_required('administrate')
 def update_against_templates(request, translation_project):
     try:
         translation_project.update_against_templates()
-
         messages.success(request, _("Translation project has been updated "
                                     "against latest templates."))
-    except Exception, e:
-        logging.error(u"Error while updating translation project against "
-                      u"latest templates: %s", e)
+    except Exception:
+        logging.exception(u"Error while updating translation project against "
+                          u"latest templates")
         messages.error(request, _("Error while updating translation project "
                                   "against latest templates."))
 
     language = translation_project.language.code
     project = translation_project.project.code
-    overview_url = reverse('tp.overview', args=[language, project, ''])
+    overview_url = reverse('pootle-tp-overview', args=[language, project, ''])
 
-    return HttpResponseRedirect(overview_url)
+    return redirect(overview_url)
 
 
-@get_translation_project
-@set_request_context
-@util.has_permission('administrate')
+@get_path_obj
+@permission_required('administrate')
 def delete_path_obj(request, translation_project, dir_path, filename=None):
     """Deletes the path objects under `dir_path` (+ `filename`) from the
-    filesystem, including `dir_path` in case it's not a translation project."""
-    current_path = translation_project.directory.pootle_path + dir_path
+    filesystem, including `dir_path` in case it's not a translation project.
+    """
+    current_path = translation_project.directory.pootle_path
+    if current_path != dir_path:
+        # HACK see bug 3274
+        current_path += dir_path
 
     try:
         if filename:
@@ -148,29 +139,29 @@ def delete_path_obj(request, translation_project, dir_path, filename=None):
             directory = get_object_or_404(Directory, pootle_path=current_path)
             stores_to_delete = directory.stores
 
-        # Delete stores in the current context from the DB and the filesystem
+        # Delete stores in the current context from the DB and the filesystem.
         for store in stores_to_delete:
-            # First from the FS
+            # First from the FS.
             if store.file:
                 store.file.storage.delete(store.file.name)
 
-            # From the DB after
+            # From the DB after.
             store.delete()
 
         if directory:
             directory_is_tp = directory.is_translationproject()
 
-            # First remove children directories from the DB
+            # First remove children directories from the DB.
             for child_dir in directory.child_dirs.iterator():
                 child_dir.delete()
 
             # Then the current directory (only if we are not in the root of the
-            # translation project)
+            # translation project).
             if not directory_is_tp:
                 directory.delete()
 
             # And finally all the directory tree from the filesystem (excluding
-            # the root of the translation project)
+            # the root of the translation project).
             try:
                 import shutil
                 po_dir = unicode(settings.PODIRECTORY)
@@ -193,145 +184,344 @@ def delete_path_obj(request, translation_project, dir_path, filename=None):
                                         "have been deleted."))
         else:
             messages.success(request, _("File has been deleted."))
-    except Exception, e:
-        logging.error(u"Error while trying to delete %s: %s",
-                      current_path, e)
-        if directory:
-            messages.error(request, _("Error while trying to delete "
-                                      "directory."))
-        else:
-            messages.error(request, _("Error while trying to delete file."))
+    except Exception:
+        logging.exception(u"Error while trying to delete %s", current_path)
+        messages.error(request, _("Error while trying to delete path."))
 
     language = translation_project.language.code
     project = translation_project.project.code
-    overview_url = reverse('tp.overview', args=[language, project, ''])
+    overview_url = reverse('pootle-tp-overview', args=[language, project, ''])
 
-    return HttpResponseRedirect(overview_url)
+    return redirect(overview_url)
 
 
-class ProjectIndexView(view_handler.View):
+@get_path_obj
+@permission_required('commit')
+def vcs_commit(request, translation_project, dir_path, filename):
+    current_path = translation_project.directory.pootle_path + dir_path
 
-    def GET(self, template_vars, request, translation_project, directory,
-            store=None):
-        can_edit = check_permission('administrate', request)
+    if filename:
+        current_path = current_path + filename
+        obj = get_object_or_404(Store, pootle_path=current_path)
+        result = translation_project.commit_file(request.user, obj, request)
+    else:
+        obj = get_object_or_404(Directory, pootle_path=current_path)
+        result = translation_project.commit_dir(request.user, obj, request)
 
-        project = translation_project.project
-        language = translation_project.language
+    return redirect(obj.get_absolute_url())
 
-        path_obj = store or directory
 
-        path_stats = get_raw_stats(path_obj, include_suggestions=True)
-        path_summary = get_path_summary(path_obj, path_stats)
-        actions = action_groups(request, path_obj, path_stats=path_stats)
+@get_path_obj
+@permission_required('commit')
+def vcs_update(request, translation_project, dir_path, filename):
+    current_path = translation_project.directory.pootle_path + dir_path
 
-        template_vars.update({
-            'translation_project': translation_project,
-            'project': project,
-            'language': language,
-            'directory': directory,
-            'path_summary': path_summary,
-            'stats': path_stats,
-            'topstats': gentopstats_translation_project(translation_project),
-            'feed_path': directory.pootle_path[1:],
-            'action_groups': actions,
-            'can_edit': can_edit,
+    if filename:
+        current_path = current_path + filename
+        obj = get_object_or_404(Store, pootle_path=current_path)
+        result = translation_project.update_file(request, obj)
+    else:
+        obj = get_object_or_404(Directory, pootle_path=current_path)
+        result = translation_project.update_dir(request, obj)
+
+    return redirect(obj.get_absolute_url())
+
+
+def _handle_upload_form(request, translation_project):
+    """Process the upload form in TP overview."""
+    from pootle_app.signals import post_file_upload
+
+    upload_form_class = upload_form_factory(request)
+
+    if request.method == 'POST' and 'file' in request.FILES:
+        upload_form = upload_form_class(request.POST, request.FILES)
+
+        if not upload_form.is_valid():
+            return upload_form
+        else:
+            django_file = upload_form.cleaned_data['file']
+            overwrite = upload_form.cleaned_data['overwrite']
+            upload_to = upload_form.cleaned_data['upload_to']
+            upload_to_dir = upload_form.cleaned_data['upload_to_dir']
+
+            # XXX Why do we scan here?
+            translation_project.scan_files(vcs_sync=False)
+            oldstats = translation_project.get_stats()
+
+            # The URL relative to the URL of the translation project. Thus, if
+            # directory.pootle_path == /af/pootle/foo/bar, then
+            # relative_root_dir == foo/bar.
+            if django_file.name.endswith('.zip'):
+                archive = True
+                target_directory = upload_to_dir or request.directory
+                upload_archive(request, target_directory, django_file,
+                               overwrite)
+            else:
+                archive = False
+                upload_file(request, request.directory, django_file, overwrite,
+                            store=upload_to)
+
+            translation_project.scan_files(vcs_sync=False)
+            newstats = translation_project.get_stats()
+
+            # Create a submission. Doesn't fix stats but at least shows up in
+            # last activity column.
+            from django.utils import timezone
+            s = Submission(
+                creation_time=timezone.now(),
+                translation_project=translation_project,
+                submitter=request.user,
+                type=SubmissionTypes.UPLOAD,
+                # The other fields are only relevant to unit-based changes.
+            )
+            s.save()
+
+            post_file_upload.send(sender=translation_project,
+                                  user=request.user, oldstats=oldstats,
+                                  newstats=newstats, archive=archive)
+
+    # Always return a blank upload form unless the upload form is not valid.
+    return upload_form_class()
+
+
+@get_path_obj
+@permission_required('view')
+@get_resource
+def overview(request, translation_project, dir_path, filename=None):
+    from django.utils import dateformat
+    from staticpages.models import StaticPage
+    from pootle.scripts.actions import EXTDIR, StoreAction, TranslationProjectAction
+    from .actions import action_groups
+
+    ctx = {}
+
+    if (check_permission('translate', request) or
+        check_permission('suggest', request) or
+        check_permission('overwrite', request)):
+
+        ctx.update({
+            'upload_form': _handle_upload_form(request, translation_project),
         })
 
-        if store is not None:
-            template_vars.update({
-                'store': store
-            })
+    can_edit = check_permission('administrate', request)
+
+    project = translation_project.project
+    language = translation_project.language
+
+    resource_obj = request.store or request.directory
+
+    actions = action_groups(request, resource_obj)
+
+    action_output = ''
+    running = request.GET.get(EXTDIR, '')
+
+    if running:
+        if request.store:
+            act = StoreAction
         else:
-            table_fields = ['name', 'progress', 'total', 'need-translation',
-                            'suggestions']
-            template_vars.update({
-                'table': {
-                    'id': 'tp',
-                    'proportional': True,
-                    'fields': table_fields,
-                    'headings': get_table_headings(table_fields),
-                    'items': get_children(translation_project, directory),
-                }
-            })
+            act = TranslationProjectAction
+        try:
+            action = act.lookup(running)
+        except KeyError:
+            messages.error(request, _("Unable to find '%(action)s' in '%(extdir)s'") %
+                                      {'action': act, 'extdir': running})
+        else:
+            if not getattr(action, 'nosync', False):
+                (request.store or translation_project).sync()
+            if action.is_active(request):
+                vcs_dir = settings.VCS_DIRECTORY
+                po_dir = settings.PODIRECTORY
+                tp_dir = request.directory.get_real_path()
+                store_fn = '*'
+                if request.store:
+                    tp_dir_slash = add_trailing_slash(tp_dir)
+                    if request.store.file.name.startswith(tp_dir_slash):
+                        # Note: store_f used below in reverse() call.
+                        store_f = request.store.file.name[len(tp_dir_slash):]
+                        store_fn = store_f.replace('/', os.sep)
 
-        if can_edit:
-            from pootle_translationproject.forms import DescriptionForm
-            template_vars['form'] = DescriptionForm(instance=translation_project)
+                # Clear possibly stale output/error (even from other
+                # resource_obj).
+                action.set_output('')
+                action.set_error('')
+                try:
+                    action.run(path=resource_obj, root=po_dir, tpdir=tp_dir,
+                               project=project.code, language=language.code,
+                               store=store_fn,
+                               style=translation_project.file_style,
+                               vc_root=vcs_dir)
+                except StandardError:
+                    err = (_("Error while running '%s' extension action") %
+                           action.title)
+                    logging.exception(err)
+                    if (action.error):
+                        messages.error(request, action.error)
+                    else:
+                        messages.error(request, err)
+                else:
+                    if (action.error):
+                        messages.warning(request, action.error)
 
-        return template_vars
+                action_output = action.output
+                if getattr(action, 'get_download', None):
+                    export_path = action.get_download(resource_obj)
+                    if export_path:
+                        import mimetypes
+                        abs_path = absolute_real_path(export_path)
+                        filename = os.path.basename(export_path)
+                        content_type, encoding = mimetypes.guess_type(filename)
+                        content_type = content_type or 'application/octet-stream'
+                        with open(abs_path, 'rb') as f:
+                            response = HttpResponse(f.read(),
+                                                    content_type=content_type)
+                        response['Content-Disposition'] = (
+                                'attachment; filename="%s"' % filename)
+                        return response
+
+                if not action_output:
+                    if not request.store:
+                        rev_args = [language.code, project.code, '']
+                        overview_url = reverse('pootle-tp-overview',
+                                               args=rev_args)
+                    else:
+                        slash = store_f.rfind('/')
+                        store_d = ''
+                        if slash > 0:
+                            store_d = store_f[:slash]
+                            store_f = store_f[slash + 1:]
+                        elif slash == 0:
+                            store_f = store_f[1:]
+                        rev_args = [language.code, project.code, store_d,
+                                    store_f]
+                        overview_url = reverse('pootle-tp-overview',
+                                               args=rev_args)
+                    return redirect(overview_url)
+
+    # TODO: cleanup and refactor, retrieve from cache
+    try:
+        ann_virtual_path = 'announcements/projects/' + project.code
+        announcement = StaticPage.objects.live(request.user).get(
+            virtual_path=ann_virtual_path,
+        )
+    except StaticPage.DoesNotExist:
+        announcement = None
+
+    display_announcement = True
+    stored_mtime = None
+    new_mtime = None
+    cookie_data = {}
+
+    if ANN_COOKIE_NAME in request.COOKIES:
+        json_str = unquote(request.COOKIES[ANN_COOKIE_NAME])
+        cookie_data = json.loads(json_str)
+
+        if 'isOpen' in cookie_data:
+            display_announcement = cookie_data['isOpen']
+
+        if project.code in cookie_data:
+            stored_mtime = cookie_data[project.code]
+
+    if announcement is not None:
+        ann_mtime = dateformat.format(announcement.modified_on, 'U')
+        if ann_mtime != stored_mtime:
+            display_announcement = True
+            new_mtime = ann_mtime
+
+    ctx.update(get_overview_context(request))
+    ctx.update({
+        'resource_obj': request.store or request.directory,  # Dirty hack.
+        'translation_project': translation_project,
+        'project': project,
+        'language': language,
+        'feed_path': request.directory.pootle_path[1:],
+        'action_groups': actions,
+        'action_output': action_output,
+        'can_edit': can_edit,
+
+        'browser_extends': 'translation_projects/base.html',
+
+        'announcement': announcement,
+        'announcement_displayed': display_announcement,
+    })
+
+    tp_pootle_path = translation_project.pootle_path
+
+    if request.store is None:
+        table_fields = ['name', 'progress', 'total', 'need-translation',
+                        'suggestions', 'critical', 'last-updated', 'activity']
+
+        ctx.update({
+            'table': {
+                'id': 'tp-files',
+                'fields': table_fields,
+                'headings': get_table_headings(table_fields),
+                'parent': get_parent(request.directory),
+                'items': get_children(request.directory),
+            },
+        })
+
+    if can_edit:
+        ctx.update({
+            'form': DescriptionForm(instance=translation_project),
+            'form_action': reverse('pootle-tp-admin-settings',
+                                   args=[language.code, project.code]),
+        })
+
+    response = render(request, 'browser/overview.html', ctx)
+
+    if new_mtime is not None:
+        cookie_data[project.code] = new_mtime
+        cookie_data = quote(json.dumps(cookie_data))
+        response.set_cookie(ANN_COOKIE_NAME, cookie_data)
+
+    return response
 
 
-@get_translation_project
-@set_request_context
-def overview(request, translation_project, dir_path, filename=None):
-    if not check_permission("view", request):
-        raise PermissionDenied(_("You do not have rights to access this "
-                                 "translation project."))
+@get_path_obj
+@permission_required('view')
+@get_resource
+def translate(request, translation_project, dir_path, filename):
+    language = translation_project.language
+    project = translation_project.project
 
-    current_path = translation_project.directory.pootle_path + dir_path
+    is_terminology = (project.is_terminology or request.store and
+                                                request.store.is_terminology)
+    context = get_translation_context(request, is_terminology=is_terminology)
 
-    if filename:
-        current_path = current_path + filename
-        store = get_object_or_404(Store, pootle_path=current_path)
-        directory = store.parent
-    else:
-        directory = get_object_or_404(Directory, pootle_path=current_path)
-        store = None
+    context.update({
+        'language': language,
+        'project': project,
+        'translation_project': translation_project,
 
-    request.current_path = current_path
+        'editor_extends': 'translation_projects/base.html',
+    })
 
-    view_obj = ProjectIndexView(forms=dict(upload=UploadHandler,
-                                          )
-                               )
-
-    return render_to_response("translation_project/overview.html",
-                              view_obj(request, translation_project,
-                                       directory, store),
-                              context_instance=RequestContext(request))
+    return render(request, "editor/main.html", context)
 
 
+@get_path_obj
+@permission_required('view')
+@get_resource
+def export_view(request, translation_project, dir_path, filename=None):
+    """Displays a list of units with filters applied."""
+    ctx = get_export_view_context(request)
+    ctx.update({
+        'source_language': translation_project.project.source_language,
+        'language': translation_project.language,
+        'project': translation_project.project,
+    })
+
+    return render(request, 'editor/export_view.html', ctx)
+
+
+@require_POST
 @ajax_required
-@get_translation_project
-def path_summary_more(request, translation_project, dir_path, filename=None):
-    """Returns an HTML snippet with more detailed summary information
-       for the current path."""
-    current_path = translation_project.directory.pootle_path + dir_path
-
-    if filename:
-        current_path = current_path + filename
-        store = get_object_or_404(Store, pootle_path=current_path)
-        directory = store.parent
-    else:
-        directory = get_object_or_404(Directory, pootle_path=current_path)
-        store = None
-
-    path_obj = store or directory
-
-    path_stats = get_raw_stats(path_obj)
-    translation_stats = get_translation_stats(path_obj, path_stats)
-    quality_checks = get_quality_check_failures(path_obj, path_stats)
-
-    context = {
-        'check_failures': quality_checks,
-        'trans_stats': translation_stats,
-    }
-
-    return render_to_response('translation_project/xhr-path_summary.html',
-                              context, RequestContext(request))
-
-
-@ajax_required
-@get_translation_project
+@get_path_obj
+@permission_required('administrate')
 def edit_settings(request, translation_project):
-    request.permissions = get_matching_permissions(
-            get_profile(request.user), translation_project.directory
-    )
-    if not check_permission('administrate', request):
-        raise PermissionDenied
+    from pootle.core.url_helpers import split_pootle_path
 
-    from pootle_translationproject.forms import DescriptionForm
     form = DescriptionForm(request.POST, instance=translation_project)
-
     response = {}
     rcode = 400
 
@@ -339,22 +529,15 @@ def edit_settings(request, translation_project):
         form.save()
         rcode = 200
 
-        if translation_project.description_html:
-            the_html = translation_project.description_html
-        else:
-            the_html = u"".join([
-                u'<p class="placeholder muted">',
-                _(u"No description yet."),
-                u"</p>"
-            ])
+        response["description"] = (u'<p class="placeholder muted">%s</p>' %
+                                   _(u"No description yet."))
 
-        response["description_html"] = the_html
-
+    path_args = split_pootle_path(translation_project.pootle_path)[:2]
     context = {
         "form": form,
-        "form_action": translation_project.pootle_path + "edit_settings.html",
+        "form_action": reverse('pootle-tp-admin-settings', args=path_args),
     }
-    t = loader.get_template('admin/general_settings_form.html')
+    t = loader.get_template('admin/_settings_form.html')
     c = RequestContext(request, context)
     response['form'] = t.render(c)
 
@@ -362,20 +545,18 @@ def edit_settings(request, translation_project):
                         mimetype="application/json")
 
 
-@get_translation_project
-@set_request_context
+@get_path_obj
+@permission_required('archive')
 def export_zip(request, translation_project, file_path):
-
-    if not check_permission("archive", request):
-        raise PermissionDenied(_('You do not have the right to create '
-                                 'ZIP archives.'))
+    from django.core.cache import cache
+    from django.utils.encoding import iri_to_uri
+    from django.utils.timezone import utc
 
     translation_project.sync()
     pootle_path = translation_project.pootle_path + (file_path or '')
 
-    archivename = '%s-%s' % (
-        translation_project.project.code, translation_project.language.code
-    )
+    archivename = '%s-%s' % (translation_project.project.code,
+                             translation_project.language.code)
 
     if file_path.endswith('/'):
         file_path = file_path[:-1]
@@ -391,17 +572,22 @@ def export_zip(request, translation_project, file_path):
     key = iri_to_uri("%s:export_zip" % pootle_path)
     last_export = cache.get(key)
 
-    if (not (last_export and last_export == translation_project.get_mtime() and
-        os.path.isfile(abs_export_path))):
-        ensure_target_dir_exists(abs_export_path)
+    tp_time = translation_project.get_mtime().replace(tzinfo=utc)
+    up_to_date = False
 
+    if last_export:
+        # Make both datetimes tz-aware to avoid a crash here
+        last_export = last_export.replace(tzinfo=utc)
+        up_to_date = last_export == tp_time
+
+    if not (up_to_date and os.path.isfile(abs_export_path)):
+        ensure_target_dir_exists(abs_export_path)
         stores = Store.objects.filter(pootle_path__startswith=pootle_path) \
                               .exclude(file='')
         translation_project.get_archive(stores, abs_export_path)
-        cache.set(key, translation_project.get_mtime(),
-                  settings.OBJECT_CACHE_TIMEOUT)
+        cache.set(key, tp_time, settings.OBJECT_CACHE_TIMEOUT)
 
-    return redirect('/export/' + export_path)
+    return redirect(reverse('pootle-export', args=[export_path]))
 
 
 def unix_to_host_path(p):
@@ -413,11 +599,11 @@ def host_to_unix_path(p):
 
 
 def get_upload_path(translation_project, relative_root_dir, local_filename):
-    """gets the path of a translation file being uploaded securely,
-    creating directories as neccessary"""
+    """Gets the path of a translation file being uploaded securely, creating
+    directories as necessary.
+    """
     dir_path = os.path.join(translation_project.real_path,
                             unix_to_host_path(relative_root_dir))
-
     return relative_real_path(os.path.join(dir_path, local_filename))
 
 
@@ -430,8 +616,7 @@ def get_local_filename(translation_project, upload_filename):
 
     local_filename =  '%s.%s' % (base, new_ext)
 
-    # check if name is valid
-
+    # Check if name is valid.
     if (os.path.basename(local_filename) != local_filename or
         local_filename.startswith(".")):
         raise ValueError(_("Invalid/insecure file name: %s", local_filename))
@@ -441,37 +626,39 @@ def get_local_filename(translation_project, upload_filename):
     # whether something is GNU-style or not.
     if (translation_project.file_style == "gnu" and
         not translation_project.is_template_project):
-        if not direct_language_match_filename(translation_project.language.code,
-                                              local_filename):
+
+        language_code = translation_project.language.code
+        if not direct_language_match_filename(language_code, local_filename):
+            invalid_dict = {
+                'local_filename': local_filename,
+                'langcode': translation_project.language.code,
+                'filetype': translation_project.project.localfiletype,
+            }
             raise ValueError(_("Invalid GNU-style file name: "
                                "%(local_filename)s. It must match "
-                               "'%(langcode)s.%(filetype)s'.",
-                             {'local_filename': local_filename,
-                              'langcode': translation_project.language.code,
-                              'filetype': translation_project.project.localfiletype,
-                              }))
-
+                               "'%(langcode)s.%(filetype)s'.", invalid_dict))
     return local_filename
 
 
 def unzip_external(request, directory, django_file, overwrite):
-    # Make a temporary directory to hold a zip file and its unzipped contents
+    # Make a temporary directory to hold a zip file and its unzipped contents.
     from pootle_misc import ptempfile as tempfile
     tempdir = tempfile.mkdtemp(prefix='pootle')
-    # Make a temporary file to hold the zip file
+
+    # Make a temporary file to hold the zip file.
     tempzipfd, tempzipname = tempfile.mkstemp(prefix='pootle', suffix='.zip')
     try:
-        # Dump the uploaded file to the temporary file
+        # Dump the uploaded file to the temporary file.
         try:
             os.write(tempzipfd, django_file.read())
         finally:
             os.close(tempzipfd)
-        # Unzip the temporary zip file
+        # Unzip the temporary zip file.
         import subprocess
         if subprocess.call(["unzip", tempzipname, "-d", tempdir]):
             import zipfile
             raise zipfile.BadZipfile(_("Error while extracting archive"))
-        # Enumerate the temporary directory...
+        # Enumerate the temporary directory.
         maybe_skip = True
         prefix = tempdir
         for basedir, dirs, files in os.walk(tempdir):
@@ -486,11 +673,11 @@ def unzip_external(request, directory, django_file, overwrite):
                 maybe_skip = False
 
             for fname in files:
-                # Read the contents of a file...
+                # Read the contents of a file.
                 fcontents = open(os.path.join(basedir, fname), 'rb').read()
                 newfile = StringIO.StringIO(fcontents)
                 newfile.name = os.path.basename(fname)
-                # Get the filesystem path relative to the temporary directory
+                # Get the filesystem path relative to the temporary directory.
                 subdir = host_to_unix_path(basedir[len(prefix)+len(os.sep):])
                 if subdir:
                     target_dir = directory.get_or_make_subdir(subdir)
@@ -498,15 +685,14 @@ def unzip_external(request, directory, django_file, overwrite):
                     target_dir = directory
                 # Construct a full UNIX path relative to the current
                 # translation project URL by attaching a UNIXified
-                # 'relative_host_dir' to the root relative path
-                # (i.e. the path from which the user is uploading the
-                # ZIP file.
+                # 'relative_host_dir' to the root relative path, i.e. the path
+                # from which the user is uploading the ZIP file.
                 try:
                     upload_file(request, target_dir, newfile, overwrite)
-                except ValueError, e:
-                    logging.error(u"Error adding %s\t%s", fname, e)
+                except ValueError:
+                    logging.exception(u"Error adding file %s", fname)
     finally:
-        # Clean up temporary file and directory used in try-block
+        # Clean up temporary file and directory used in try-block.
         import shutil
         os.unlink(tempzipname)
         shutil.rmtree(tempdir)
@@ -539,15 +725,15 @@ def unzip_python(request, directory, django_file, overwrite):
                     newfile = StringIO.StringIO(archive.read(filename))
                     newfile.name = os.path.basename(filename)
                     upload_file(request, target_dir, newfile, overwrite)
-            except ValueError, e:
-                logging.error(u"Error adding %s\t%s", filename, e)
+            except ValueError:
+                logging.exception(u"Error adding file %s", filename)
     finally:
         archive.close()
 
 
 def upload_archive(request, directory, django_file, overwrite):
     # First we try to use "unzip" from the system, otherwise fall back to using
-    # the slower zipfile module
+    # the slower zipfile module.
     try:
         unzip_external(request, directory, django_file, overwrite)
     except:
@@ -555,20 +741,19 @@ def upload_archive(request, directory, django_file, overwrite):
 
 
 def overwrite_file(request, relative_root_dir, django_file, upload_path):
-    """overwrite with uploaded file"""
+    """Overwrite with uploaded file."""
     upload_dir = os.path.dirname(absolute_real_path(upload_path))
-    # Ensure that there is a directory into which we can dump the
-    # uploaded file.
+    # Ensure that there is a directory into which we can dump the uploaded
+    # file.
     if not os.path.exists(upload_dir):
         os.makedirs(upload_dir)
 
-    # Get the file extensions of the uploaded filename and the
-    # current translation project
+    # Get the file extensions of the uploaded filename and the current
+    # translation project.
     _upload_base, upload_ext = os.path.splitext(django_file.name)
     _local_base, local_ext = os.path.splitext(upload_path)
-    # If the extension of the uploaded file matches the extension
-    # used in this translation project, then we simply write the
-    # file to the disc.
+    # If the extension of the uploaded file matches the extension used in this
+    # translation project, then we simply write the file to the disk.
     if upload_ext == local_ext:
         outfile = open(absolute_real_path(upload_path), "wb")
         try:
@@ -578,38 +763,44 @@ def overwrite_file(request, relative_root_dir, django_file, upload_path):
             try:
                 #FIXME: we need a way to delay reparsing
                 store = Store.objects.get(file=upload_path)
-                store.update(update_structure=True, update_translation=True,
-                             conservative=False)
+                store.update(update_structure=True, update_translation=True)
             except Store.DoesNotExist:
                 # newfile, delay parsing
                 pass
     else:
         from translate.storage import factory
+        from pootle_store.filetypes import factory_classes
         newstore = factory.getobject(django_file, classes=factory_classes)
         if not newstore.units:
             return
 
-        # If the extension of the uploaded file does not match the
-        # extension of the current translation project, we create
-        # an empty file (with the right extension)...
+        # If the extension of the uploaded file does not match the extension of
+        # the current translation project, we create an empty file (with the
+        # right extension).
         empty_store = factory.getobject(absolute_real_path(upload_path),
                                         classes=factory_classes)
-        # And save it...
+        # And save it.
         empty_store.save()
         request.translation_project.scan_files(vcs_sync=False)
-        # Then we open this newly created file and merge the
-        # uploaded file into it.
+        # Then we open this newly created file and merge the uploaded file into
+        # it.
         store = Store.objects.get(file=upload_path)
         #FIXME: maybe there is a faster way to do this?
         store.update(update_structure=True, update_translation=True,
-                     conservative=False, store=newstore)
+                     store=newstore)
         store.sync(update_structure=True, update_translation=True,
                    conservative=False)
 
 
 def upload_file(request, directory, django_file, overwrite, store=None):
+    from django.core.exceptions import PermissionDenied
+    from translate.storage import factory
+    from pootle_store.filetypes import factory_classes
+
     translation_project = request.translation_project
-    relative_root_dir = directory.pootle_path[len(translation_project.pootle_path):]
+    tp_pootle_path_length = len(translation_project.pootle_path)
+    relative_root_dir = directory.pootle_path[tp_pootle_path_length:]
+
     # for some reason factory checks explicitly for file existance and
     # if file is open, which makes it difficult to work with Django's
     # in memory uploads.
@@ -632,11 +823,11 @@ def upload_file(request, directory, django_file, overwrite, store=None):
         django_file.mode = 1
 
     if store and store.file:
-        # uploading to an existing file
+        # Uploading to an existing file.
         pootle_path = store.pootle_path
         upload_path = store.real_path
     elif store:
-        # uploading to a virtual store
+        # Uploading to a virtual store.
         pootle_path = store.pootle_path
         upload_path = get_upload_path(translation_project, relative_root_dir,
                                       store.name)
@@ -644,7 +835,7 @@ def upload_file(request, directory, django_file, overwrite, store=None):
         local_filename = get_local_filename(translation_project,
                                             django_file.name)
         pootle_path = directory.pootle_path + local_filename
-        # The full filesystem path to 'local_filename'
+        # The full filesystem path to 'local_filename'.
         upload_path = get_upload_path(translation_project, relative_root_dir,
                                       local_filename)
         try:
@@ -654,20 +845,20 @@ def upload_file(request, directory, django_file, overwrite, store=None):
 
     if (store is not None and overwrite == 'overwrite' and
         not check_permission('overwrite', request)):
-        raise PermissionDenied(_("You do not have rights to overwrite "
-                                 "files here."))
+        raise PermissionDenied(_("You do not have rights to overwrite files "
+                                 "here."))
 
     if store is None and not check_permission('administrate', request):
-        raise PermissionDenied(_("You do not have rights to upload new "
-                                 "files here."))
+        raise PermissionDenied(_("You do not have rights to upload new files "
+                                 "here."))
 
     if overwrite == 'merge' and not check_permission('translate', request):
-        raise PermissionDenied(_("You do not have rights to upload "
-                                 "files here."))
+        raise PermissionDenied(_("You do not have rights to upload files "
+                                 "here."))
 
     if overwrite == 'suggest' and not check_permission('suggest', request):
-        raise PermissionDenied(_("You do not have rights to upload "
-                                 "files here."))
+        raise PermissionDenied(_("You do not have rights to upload files "
+                                 "here."))
 
     if store is None or (overwrite == 'overwrite' and store.file != ""):
         overwrite_file(request, relative_root_dir, django_file, upload_path)
@@ -679,141 +870,16 @@ def upload_file(request, directory, django_file, overwrite, store=None):
         return
 
     django_file.seek(0)
-    from translate.storage import factory
     newstore = factory.getobject(django_file, classes=factory_classes)
 
     #FIXME: are we sure this is what we want to do? shouldn't we
-    # diffrentiate between structure changing uploads and mere
+    # differentiate between structure changing uploads and mere
     # pretranslate uploads?
     suggestions = overwrite == 'merge'
     notranslate = overwrite == 'suggest'
     allownewstrings = overwrite == 'overwrite' and store.file == ''
 
-    store.mergefile(newstore, get_profile(request.user),
-                    suggestions=suggestions, notranslate=notranslate,
+    store.mergefile(newstore, request.user, suggestions=suggestions,
+                    notranslate=notranslate,
                     allownewstrings=allownewstrings,
                     obsoletemissing=allownewstrings)
-
-
-class UploadHandler(view_handler.Handler):
-
-    actions = [('do_upload', ugettext_lazy('Upload'))]
-
-    @classmethod
-    def must_display(cls, request, *args, **kwargs):
-        return check_permission('translate', request) or \
-               check_permission('suggest', request) or \
-               check_permission('overwrite', request)
-
-    def __init__(self, request, data=None, files=None):
-        choices = []
-
-        if check_permission('overwrite', request):
-            choices.append(('overwrite',
-                _("Overwrite the current file if it exists")))
-
-        if check_permission('translate', request):
-            choices.append(('merge',
-                _("Merge the file with the current file and turn "
-                  "conflicts into suggestions")))
-
-        if check_permission('suggest', request):
-            choices.append(('suggest',
-                _("Add all new translations as suggestions")))
-
-        translation_project = request.translation_project
-
-
-        class StoreFormField(forms.ModelChoiceField):
-
-            def label_from_instance(self, instance):
-                return instance.pootle_path[len(request.current_path):]
-
-
-        class DirectoryFormField(forms.ModelChoiceField):
-
-            def label_from_instance(self, instance):
-                return instance.pootle_path[len(translation_project.pootle_path):]
-
-
-        class UploadForm(forms.Form):
-
-            file = forms.FileField(required=True, label=_('File'))
-
-            if check_permission('translate', request):
-                initial = 'merge'
-            else:
-                initial = 'suggest'
-
-            overwrite = forms.ChoiceField(
-                    required=True, widget=forms.RadioSelect,
-                    label='', choices=choices, initial=initial)
-            upload_to = StoreFormField(
-                    required=False, label=_('Upload to'),
-                    queryset=translation_project.stores.filter(
-                        pootle_path__startswith=request.current_path),
-                    help_text=_("Optionally select the file you want to "
-                                "merge with. If not specified, the uploaded "
-                                "file's name is used."))
-
-            upload_to_dir = DirectoryFormField(
-                    required=False, label=_('Upload to'),
-                    queryset=Directory.objects.filter(
-                        pootle_path__startswith=translation_project.pootle_path).\
-                        exclude(pk=translation_project.directory.pk),
-                    help_text=_("Optionally select the file you want to "
-                                "merge with. If not specified, the uploaded "
-                                "file's name is used."))
-
-
-        self.Form = UploadForm
-
-        super(UploadHandler, self).__init__(request, data, files)
-
-        self.form.allow_overwrite = check_permission('overwrite', request)
-        self.form.title = _("Upload File")
-
-    def do_upload(self, request, translation_project, directory, store):
-
-        if self.form.is_valid() and 'file' in request.FILES:
-            django_file = self.form.cleaned_data['file']
-            overwrite = self.form.cleaned_data['overwrite']
-            upload_to = self.form.cleaned_data['upload_to']
-            upload_to_dir = self.form.cleaned_data['upload_to_dir']
-            # XXX Why do we scan here?
-            translation_project.scan_files(vcs_sync=False)
-            oldstats = translation_project.getquickstats()
-
-            # The URL relative to the URL of the translation project. Thus, if
-            # directory.pootle_path == /af/pootle/foo/bar, then
-            # relative_root_dir == foo/bar.
-            if django_file.name.endswith('.zip'):
-                archive = True
-                target_directory = upload_to_dir or directory
-                upload_archive(request, target_directory, django_file,
-                               overwrite)
-            else:
-                archive = False
-                upload_file(request, directory, django_file, overwrite,
-                            store=upload_to)
-
-            translation_project.scan_files(vcs_sync=False)
-            newstats = translation_project.getquickstats()
-
-            # create a submission, doesn't fix stats but at least
-            # shows up in last activity column
-            from pootle_misc.util import timezone
-            s = Submission(
-                    creation_time=timezone.now(),
-                    translation_project=translation_project,
-                    submitter=get_profile(request.user),
-                    type=SubmissionTypes.UPLOAD,
-                    # the other fields are only relevant to unit-based changes
-            )
-            s.save()
-
-            post_file_upload.send(
-                    sender=translation_project, user=request.user,
-                    oldstats=oldstats, newstats=newstats, archive=archive)
-
-        return {'upload': self}

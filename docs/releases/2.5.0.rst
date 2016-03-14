@@ -2,6 +2,8 @@
 Welcome to the new Pootle 2.5.0
 ===============================
 
+*Released on 18 May 2013*
+
 Finally! Translate has a new baby and we're pretty proud of her. Many changes
 have gone into 2.5.0 which follows on from 2.1.6 released more then two years
 ago. So many changes that it's quite hard to list them all.
@@ -9,7 +11,7 @@ ago. So many changes that it's quite hard to list them all.
 Why so long? Well we had the `Egyptian revolution
 <https://www.google.co.uk/search?q=%23freealaa&tbm=isch>`_, a complete change
 in UI, and a load of features we wanted you to have.  It took much longer to
-stabalise it for you to enjoy.
+stabilise it for you to enjoy.
 
 Pootle 2.5.0 has been in production with many users, so although it is a new
 official release, we've had many people running their production server off
@@ -35,7 +37,7 @@ Installation and Upgrade
 Changes
 =======
 
-The are by no means extensive, check the git log for more details
+These are by no means exhaustive, check the git log for more details
 
 2.5.0 vs 2.5.0-rc1
 ------------------
@@ -66,12 +68,17 @@ In the editor:
 
 In the overview page:
 
+- Several features from translation projects have been merged into the
+  *Overview* tab, including quality check failures and directory- and
+  file-level actions. As a consequence the *Review* tab has been dropped and
+  the *Translate* tab serves solely to display the actual translation
+  editor.
 - The overview page allows you to drill down into certain types of units
   matching a translation state or with an error.
 - It is now easier to see what work needs attentions, as we highlight next
   actions for your project.
 - With editable project and language descriptions you can supply description
-  for projects. These are editable using Markdown, reStructuredi or HTML.
+  for projects. These are editable using Markdown, reStructuredText or HTML.
 - News alerts can now be sent via email to project participants.
 - The overview page provides an expanded checks page that highlights all
   failing checks.
@@ -84,7 +91,7 @@ Version Control
 - Update the whole project at once avoiding slow file by file updates
 - A separate `VCS_DIRECTORY
   <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/settings.html#std:setting-VCS_DIRECTORY>`_
-  for VCS checkout is where Pootle now does all VC related work this ensures
+  for VCS checkout is where Pootle now does all VC related work -- this ensures
   that we can work well with DVCS like Git.
 - Detect new and removed files after a VCS update
 - Management commands for VCS actions [Stuart Prescott]
@@ -100,7 +107,7 @@ New and changed commands:
   <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/commands.html#list-projects>`_
 - `latest_change_id
   <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/commands.html#latest-change-id>`_
-- --modified-since flag for `update_stores
+- :setting:`--modified-since` flag for `update_stores
   <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/commands.html#update-stores>`_
   and `sync_stores
   <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/commands.html#sync-stores>`_
@@ -108,6 +115,37 @@ New and changed commands:
   <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/commands.html#commit-to-vcs>`_
 - `update_from_vcs
   <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/commands.html#update-from-vcs>`_
+- ``update_from_templates`` has been renamed to `update_against_templates
+  <http://docs.translatehouse.org/projects/pootle/en/stable-2.5.0/server/commands.html#update-against-templates>`_
+
+
+Important server admin changes
+------------------------------
+
+- Static files are now handled by the ``django.contrib.staticfiles`` module.
+  This means you will need to run the ``pootle collectstatic`` command on
+  production and serve the *pootle/assets/* directory from your webserver at
+  */assets/*. If you are upgrading from a previous version, you will need to
+  replace the occurrences of *static* with *assets* within your web server
+  configuration.
+
+- Static files are bundled into assets by using `django-assets
+  <http://elsdoerfer.name/docs/django-assets/>`_.
+
+- Settings have been migrated from *localsettings.py* into *settings/\*.conf*
+  files. Your customizations now go in a :ref:`separate configuration file
+  <settings#customizing>` (or in *settings/90-local.conf* if running from a
+  repository clone).
+
+- The ``PootleServer`` script has been phased out in favor of a ``pootle``
+  runner script.
+
+- If you will be using Pootle with Django 1.3, you *have* to keep the timezone
+  on ``UTC``, unless you are using PostgreSQL. Users of PostgreSQL or Django
+  1.4 or later are free to set the time zone as they prefer.
+- Make sure to use the minimum required South version when performing
+  database upgrades.
+
 
 Infrastructure
 --------------
@@ -118,7 +156,7 @@ Infrastructure
   <https://travis-ci.org/translate/pootle>`_
 - All our `code <https://github.com/translate/pootle>`_ is now on Github
 
-...and of course, loads of bugs where fixed
+...and of course, loads of bugs were fixed
 
 Credits
 =======

@@ -19,16 +19,18 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.contrib.auth import get_user_model
+from django.shortcuts import render
 
 from pootle.i18n.gettext import tr_lang
-from pootle_app.models import Suggestion
 from pootle_language.models import Language
 from pootle_project.models import Project
 from pootle_statistics.models import Submission
+from pootle_store.models import Suggestion
 from pootle_translationproject.models import TranslationProject
+
+
+User = get_user_model()
 
 
 def view(request):
@@ -62,13 +64,13 @@ def view(request):
     user_names = {}  # user id -> name
     _skip_users = set()
     for user in (User.objects.all()
-                 .values('id', 'first_name', 'last_name', 'username')):
+                 .values("id", "full_name", "username")):
         if excluded_names:
-            names = [user[e] for e in ['username', 'first_name', 'last_name']]
+            names = [user[e] for e in ["username", "full_name"]]
             if set(names) & excluded_names:
                 _skip_users.add(user['id'])
                 continue
-        name = ('%s %s' % (user['first_name'], user['last_name'])).strip()
+        name = user["full_name"].strip()
         if not name:
             name = user['username']
         user_names[user['id']] = name
@@ -97,7 +99,7 @@ def view(request):
         tp_to_proj_id[tp['id']] = tp['project_id']
 
     for model, user_key in ((Submission, 'submitter_id'),
-                            (Suggestion, 'suggester_id'),
+                            (Suggestion, 'user_id'),
                             (Suggestion, 'reviewer_id')):
         for item in (model.objects.all()
                      .values('translation_project_id', user_key)
@@ -136,7 +138,8 @@ def view(request):
             contributors.append((language, projects))
     contributors.sort()
 
-    data = {'contributors': contributors}
+    ctx = {
+        'contributors': contributors,
+    }
 
-    return render_to_response('about/contributors.html', data,
-                              context_instance=RequestContext(request))
+    return render(request, 'about/contributors.html', ctx)

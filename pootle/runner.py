@@ -20,8 +20,7 @@
 
 import os
 import sys
-
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 from django.core import management
 
@@ -31,6 +30,16 @@ import syspath_override
 #: Length for the generated :setting:`SECRET_KEY`
 KEY_LENGTH = 50
 
+#: Default path for the settings file
+DEFAULT_SETTINGS_PATH = '~/.pootle/pootle.conf'
+
+#: Template that will be used to initialize settings from
+SETTINGS_TEMPLATE_FILENAME = 'settings/90-local.conf.sample'
+
+# Python 2+3 support for input()
+if sys.version_info[0] < 3:
+    input = raw_input
+
 
 def init_settings(settings_filepath, template_filename):
     """Initializes a sample settings file for new installations.
@@ -39,38 +48,19 @@ def init_settings(settings_filepath, template_filename):
         will be written to.
     :param template_filename: Template file used to initialize settings from.
     """
+    from base64 import b64encode
+
     dirname = os.path.dirname(settings_filepath)
     if dirname and not os.path.exists(dirname):
         os.makedirs(dirname)
 
     fp = open(settings_filepath, 'w')
 
-    import base64
     output = open(template_filename).read()
-    output = output % {
-            'default_key': base64.b64encode(os.urandom(KEY_LENGTH)),
-    }
-
+    # We can't use regular python string formatting here.
+    output = output.replace("${default_key}", b64encode(os.urandom(KEY_LENGTH)))
     fp.write(output)
     fp.close()
-
-
-def parse_args(args):
-    """Parses the given arguments.
-
-    :param args: List of command-line arguments as got from sys.argv.
-    :return: 3-element tuple: (args, command, command_args)
-    """
-    index = None
-    for i, arg in enumerate(args):
-        if not arg.startswith('-'):
-            index = i
-            break
-
-    if index is None:
-        return (args, None, [])
-
-    return (args[:index], args[index], args[(index + 1):])
 
 
 def configure_app(project, config_path, django_settings_module, runner_name):
@@ -94,10 +84,10 @@ def configure_app(project, config_path, django_settings_module, runner_name):
 
     if not (os.path.exists(config_path) or
             os.environ.get(settings_envvar, None)):
-        print u"Configuration file does not exist at %r or " \
-              u"%r environment variable has not been set.\n" \
-              u"Use '%s init' to initialize the configuration file." % \
-                (config_path, settings_envvar, runner_name)
+        print(u"Configuration file does not exist at %r or "
+              u"%r environment variable has not been set.\n"
+              u"Use '%s init' to initialize the configuration file." %
+                (config_path, settings_envvar, runner_name))
         sys.exit(2)
 
     os.environ.setdefault(settings_envvar, config_path)
@@ -116,85 +106,67 @@ def run_app(project, default_settings_path, settings_template,
     :param django_settings_module: The module that ``DJANGO_SETTINGS_MODULE``
         will be set to.
     """
-    sys_args = sys.argv
-    runner_name = os.path.basename(sys_args[0])
+    runner_name = os.path.basename(sys.argv[0])
 
-    (args, command, command_args) = parse_args(sys_args[1:])
+    parser = ArgumentParser()
 
-    if not (command or args):
-        # XXX: Should we display a more verbose help/usage message?
-        print "Usage: %s [--config=/path/to/settings.conf] [command] " \
-              "[options]" % runner_name
-        sys.exit(2)
+    parser.add_argument("--config",
+                        default=default_settings_path,
+                        help=u"Use the specified configuration file.")
+    parser.add_argument("--noinput", action="store_true", default=False,
+                        help=u"Never prompt for input")
+    parser.add_argument("--version", action="version", version=get_version())
 
-    if command == 'init':
-        # Determine which config file to write
-        try:
-            import re
-            config_path = command_args[0]
-            # Remove possible initial dashes
-            config_path = re.sub('^-+', '', config_path)
-        except IndexError:
-            config_path = default_settings_path
+    args, remainder = parser.parse_known_args(sys.argv[1:])
 
-        config_path = os.path.expanduser(config_path)
+    # bit hacky
+    if "init" in remainder:
+        config_path = os.path.expanduser(args.config)
 
         if os.path.exists(config_path):
             resp = None
-            while resp not in ('Y', 'n'):
-                resp = raw_input('File already exists at %r, overwrite? [nY] ' \
-                                 % config_path)
-                if resp == 'n':
-                    print "Aborted!"
-                    return
+            if args.noinput:
+                resp = 'n'
+            else:
+                resp = input("File already exists at %r, overwrite? [Ny] "
+                             % config_path).lower()
+            if resp not in ("y", "yes"):
+                print("File already exists, not overwriting.")
+                exit(2)
 
         try:
             init_settings(config_path, settings_template)
-        except (IOError, OSError), e:
-            raise e.__class__, 'Unable to write default settings file to %r' \
-                                % config_path
+        except (IOError, OSError) as e:
+            raise e.__class__('Unable to write default settings file to %r'
+                % config_path)
 
-        print "Configuration file created at %r" % config_path
+        print("Configuration file created at %r" % config_path)
+        exit(0)
 
-        return
-
-    parser = OptionParser()
-
-    parser.add_option('--config', metavar='CONFIG',
-                      default=default_settings_path,
-                      help=u'Use the specified configuration file.')
-    parser.add_option('-v', '--version', action='store_true',
-                      default=False,
-                      help=u'Display version information and exit.')
-
-    (opts, opt_args) = parser.parse_args(args)
-
-    if opts.version:
-        from pootle import __version__
-        from translate import __version__ as tt_version
-        from django import get_version
-
-        print "Pootle %s" % __version__.sver
-        print "Translate Toolkit %s" % tt_version.sver
-        print "Django %s" % get_version()
-
-        return
-
-    configure_app(project=project, config_path=opts.config,
+    configure_app(project=project, config_path=args.config,
                   django_settings_module=django_settings_module,
                   runner_name=runner_name)
 
-    management.execute_from_command_line([runner_name, command] + command_args)
+    management.execute_from_command_line([runner_name] + remainder)
 
     sys.exit(0)
 
 
+def get_version():
+    from pootle import __version__
+    from translate import __version__ as tt_version
+    from django import get_version as django_version
+
+    return ("Pootle %s (Django %s, Translate Toolkit %s)" %
+            (__version__.sver, django_version(), tt_version.sver))
+
+
 def main():
     src_dir = os.path.abspath(os.path.dirname(__file__))
-    settings_template = os.path.join(src_dir, 'settings/90-local.conf.sample')
+    settings_template = os.path.join(src_dir, SETTINGS_TEMPLATE_FILENAME)
 
     run_app(project='pootle',
-            default_settings_path='~/.pootle/pootle.conf',
+            default_settings_path=DEFAULT_SETTINGS_PATH,
             settings_template=settings_template,
             django_settings_module='pootle.settings')
 

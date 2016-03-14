@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -18,13 +19,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls.defaults import patterns
+from django.conf.urls import patterns, url
+
 
 urlpatterns = patterns('pootle_terminology.views',
-    (r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/terminology_extract.html',
-        'extract'),
-    (r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/terminology_manage.html',
-        'manage'),
-    (r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/(?P<path>.*?)/terminology_manage.html',
-        'manage'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)'
+        r'/terminology/extract/$',
+        'extract',
+        name='pootle-terminology-extract'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/terminology/',
+        'manage',
+        name='pootle-terminology-manage'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/(?P<path>.*?)'
+        r'/terminology/',
+        'manage',
+        name='pootle-terminology-manage-store'),
 )

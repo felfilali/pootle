@@ -25,10 +25,14 @@ If you want to reverse proxy through Apache, you will need to have `mod_proxy
 <https://httpd.apache.org/docs/current/mod/mod_proxy.html>`_ installed for
 forwarding requests and configure it accordingly.
 
+You also need to add the front/outside hostname (the hostname of the proxying
+Apache server) to the ALLOWED_HOSTS in ~/.pootle/pootle.conf file
+
 .. code-block:: apache
 
     ProxyPass / http://localhost:8000/
     ProxyPassReverse / http://localhost:8000/
+    ProxyPreserveHost On
 
 
 .. _apache#mod_wsgi:
@@ -46,32 +50,31 @@ set ``MaxClients`` to something like ``20``, for example.
 Make sure Apache has read access to all of Pootle's files and write access to
 the :setting:`PODIRECTORY` directory.
 
+.. note:: Most of the paths present in the examples in this section are the
+   result of deploying Pootle using a Python virtualenv as told in the
+   :ref:`Setting up the Environment <installation#setup_environment>` section
+   from the :ref:`Quickstart installation <installation>` instructions.
+
+   If for any reason you have different paths, you will have to adjust the
+   examples before using them.
+
+   For example the path :file:`/var/www/pootle/env/lib/python2.7/site-packages/`
+   will be different if you have another Python version, or if the Python
+   virtualenv is located in any other place.
+
+
+First it is necessary to create a WSGI loader script:
+
+.. literalinclude:: apache-wsgi.py
+   :language: python
+
+Place it in :file:`/var/www/pootle/wsgi.py`. If you use a different location
+remember to update the Apache configuration accordingly.
+
 A sample Apache configuration with mod_wsgi might look like this:
 
-.. code-block:: apache
-
-    # Point to the WSGI loader script
-    WSGIScriptAlias /pootle /var/www/pootle/wsgi.py
-
-    # The following two optional lines enables "daemon mode" which limits the
-    # number of processes and therefore also keeps memory use more predictable
-    WSGIDaemonProcess pootle processes=2 threads=3 stack-size=1048576 maximum-requests=5000 inactivity-timeout=900 display-name=%{GROUP}
-    WSGIProcessGroup pootle
-
-    # Directly serve static files like css and images, no need to go through
-    # mod_wsgi and django
-    Alias /pootle/assets /var/www/pootle/assets
-    <Directory /var/www/Pootle/assets>
-    Order deny,allow
-    Allow from all
-    </Directory>
-
-    # Allow downloading translation files directly
-    Alias /pootle/export /var/www/pootle/po
-    <Directory /var/www/pootle/po>
-    Order deny,allow
-    Allow from all
-    </Directory>
+.. literalinclude:: apache-virtualhost.conf
+   :language: apache
 
 You can find more information in the `Django docs about Apache and
 mod_wsgi <https://docs.djangoproject.com/en/dev/howto/deployment/wsgi/modwsgi/>`_.
@@ -126,6 +129,7 @@ and the dynamic content will be produced by the app server.
       server_name  pootle.example.com;
 
       access_log /path/to/pootle/logs/nginx-access.log;
+      gzip on; # Enable gzip compression
 
       charset utf-8;
 
@@ -167,6 +171,7 @@ And add the following lines to your Nginx config file:
       listen  80;  # port and optionally hostname where nginx listens
       server_name  example.com translate.example.com; # names of your site
       # Change the values above to the appropriate values
+      gzip on; # Enable gzip compression
 
       location ^~ /assets/ {
           root /path/to/pootle/;

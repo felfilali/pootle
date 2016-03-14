@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2012 Zuza Software Foundation
+# Copyright 2012-2013 Zuza Software Foundation
 #
 # This file is part of Pootle.
 #
@@ -17,8 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-
 import os
+
+# This must be run before importing Django.
 os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
 
 from django.core.management.base import NoArgsCommand
@@ -30,5 +31,10 @@ class Command(NoArgsCommand):
     help = "Print the ID of the latest change made."
 
     def handle_noargs(self, **options):
-        print Submission.objects.values_list('id', flat=True) \
-                                .select_related("").latest()
+        try:
+            changeid = Submission.objects.values_list("id", flat=True) \
+                       .select_related("").latest()
+        except Submission.DoesNotExist:
+            # if there is no latest id, treat it as id 0
+            changeid = 0
+        self.stdout.write("%i\n" % (changeid))

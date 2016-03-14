@@ -1,22 +1,47 @@
 # https://travis-ci.org/#!/translate/pootle
+sudo: false
 language: python
 python:
-  - 2.5
   - 2.6
   - 2.7
 env:
-  - DJANGO_VERSION=1.3.7
-  - DJANGO_VERSION=1.4.5
+  matrix:
+    - DJANGO_VERSION=1.6.2 DATABASE_BACKEND=sqlite
+    - DJANGO_VERSION=1.6.2 DATABASE_BACKEND=postgres
+    - DJANGO_VERSION=1.6.2 DATABASE_BACKEND=mysql
+  global:
+    - PIP_DOWNLOAD_CACHE=".pip_download_cache"
+cache:
+  apt: true
+  directories:
+    - .pip_download_cache
+    - docs/_build
 install:
-  - pip install --use-mirrors Django==$DJANGO_VERSION
-  - pip install -r requirements/build.txt --use-mirrors
+  - CFLAGS="-O0" travis_retry pip install -r requirements/travis.txt --timeout=240
+  - travis_retry pip install "Django>=$DJANGO_VERSION,<"$(echo $(echo $DJANGO_VERSION | cut -d"." -f1).$(( $(echo $DJANGO_VERSION | cut -d"." -f2) + 1 )) ) --timeout=240
+  - pip freeze  # Print all installed versions for reference.
+before_script:
+  - if [[ $DATABASE_BACKEND == 'postgres' ]]; then psql -c 'create database pootle;' -U postgres; fi
+  - if [[ $DATABASE_BACKEND == 'mysql' ]]; then mysql -e 'create database pootle;'; fi
 script:
-  - make build
-  - ./manage.py runserver &
+  - python -m compileall -q -f .
+  - make docs
+  - make build SHELL=/bin/bash TAIL='|tail -40; exit $$PIPESTATUS'
+  - coverage run --parallel-mode manage.py syncdb --noinput --traceback
+  - coverage run --parallel-mode manage.py migrate --traceback
+  - coverage run --parallel-mode manage.py initdb --traceback
+  - coverage run --parallel-mode ./manage.py runserver --traceback &
   - TESTPID=$!
-  - sleep 100
+  - sleep 20
   - kill -2 $TESTPID
+  - tests/version-migration/migrate.sh
+  - make pep8
+after_success:
+  - coverage combine
+  - coveralls
 notifications:
   email:
-    on_failure: change
+    on_failure: always
     on_success: change
+services:
+  - memcached

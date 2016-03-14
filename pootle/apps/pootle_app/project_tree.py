@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Zuza Software Foundation
+# Copyright 2013-2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -23,8 +24,6 @@ import os
 import re
 import shutil
 
-from translate.lang import data as langdata
-
 from pootle_app.models.directory import Directory
 from pootle_language.models import Language
 from pootle_store.models import Store, PARSED
@@ -39,17 +38,12 @@ LANGCODE_POSTFIX_RE = re.compile('^.*?[-_.]([a-z]{2,3}([_-][a-z]{2,3})?(@[a-z0-9
                                  re.IGNORECASE)
 
 
-def language_match_filename(language_code, filename):
-    name, ext = os.path.splitext(os.path.basename(filename))
-    return langdata.languagematch(language_code, name)
-
-
 def direct_language_match_filename(language_code, path_name):
     name, ext = os.path.splitext(os.path.basename(path_name))
     if name == language_code or name.lower() == language_code.lower():
         return True
 
-    # check file doesn't match another language
+    # Check file doesn't match another language.
     if Language.objects.filter(code__iexact=name).count():
         return False
 
@@ -68,11 +62,11 @@ def match_template_filename(project, filename):
     #FIXME: is the test for matching extension redundant?
     if ext == os.path.extsep + project.get_template_filetype():
         if ext != os.path.extsep + project.localfiletype:
-            # Template extension is distinct, surely file is a template
+            # Template extension is distinct, surely file is a template.
             return True
         elif not find_lang_postfix(filename):
             # File name can't possibly match any language, assume it is a
-            # template
+            # template.
             return True
 
     return False
@@ -86,21 +80,20 @@ def get_matching_language_dirs(project_dir, language):
 def get_non_existant_language_dir(project_dir, language, file_style, make_dirs):
     if file_style == "gnu":
         return project_dir
+    elif make_dirs:
+        language_dir = os.path.join(project_dir, language.code)
+        os.mkdir(language_dir)
+        return language_dir
     else:
-        if make_dirs:
-            language_dir = os.path.join(project_dir, language.code)
-            os.mkdir(language_dir)
-            return language_dir
-        else:
-            raise IndexError("Directory not found for language %s, project %s" %
-                             (language.code, project_dir))
+        raise IndexError("Directory not found for language %s, project %s" %
+                         (language.code, project_dir))
 
 
 def get_or_make_language_dir(project_dir, language, file_style, make_dirs):
     matching_language_dirs = get_matching_language_dirs(project_dir, language)
     if len(matching_language_dirs) == 0:
         # If no matching directories can be found, check if it is a GNU-style
-        # project
+        # project.
         return get_non_existant_language_dir(project_dir, language, file_style,
                                              make_dirs)
     else:
@@ -209,8 +202,9 @@ def add_items(fs_items, db_items, create_db_item):
         new_items.append(item)
         try:
             item.save()
-        except Exception, e:
-            logging.error('Error while adding %s:\n%s', item, e)
+        except Exception:
+            logging.exception('Error while adding %s', item)
+
     return items, new_items
 
 
@@ -227,14 +221,22 @@ def add_files(translation_project, ignored_files, ext, relative_dir, db_dir,
                            db_dir.child_stores.exclude(file='').iterator())
     existing_dirs = dict((dir.name, dir) for dir in
                          db_dir.child_dirs.iterator())
-    files, new_files = add_items(file_set, existing_stores,
-              lambda name: Store(file=os.path.join(relative_dir, name),
-                                 parent=db_dir,
-                                 name=name,
-                                 translation_project=translation_project))
+    files, new_files = add_items(
+        file_set,
+        existing_stores,
+        lambda name: Store(
+             file=os.path.join(relative_dir, name),
+             parent=db_dir,
+             name=name,
+             translation_project=translation_project,
+        )
+    )
 
-    db_subdirs, new_db_subdirs = add_items(dir_set, existing_dirs,
-                           lambda name: Directory(name=name, parent=db_dir))
+    db_subdirs, new_db_subdirs = add_items(
+        dir_set,
+        existing_dirs,
+        lambda name: Directory(name=name, parent=db_dir)
+    )
 
     for db_subdir in db_subdirs:
         fs_subdir = os.path.join(relative_dir, db_subdir.name)
@@ -342,28 +344,10 @@ def translation_project_should_exist(language, project):
     return False
 
 
-def get_extension(language, project):
-    """File extension used for this project, returns pot if it's a po project
-    and language is templates.
-    """
-    ext = project.localfiletype
-    if language.code == 'templates' and ext == 'po':
-        return 'pot'
-    else:
-        return ext
-
-
 def ensure_target_dir_exists(target_path):
     target_dir = os.path.dirname(target_path)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
-
-
-def read_original_target(target_path):
-    try:
-        return open(target_path, "rb")
-    except:
-        return None
 
 
 def convert_template(translation_project, template_store, target_pootle_path,
@@ -404,7 +388,7 @@ def convert_template(translation_project, template_store, target_pootle_path,
     if template_store.file:
         if store:
             store.update(update_structure=True, update_translation=True,
-                         conservative=False, store=output_file, fuzzy=True)
+                         store=output_file, fuzzy=True)
         output_file.settargetlanguage(translation_project.language.code)
         output_file.savefile(target_path)
     elif store:
@@ -491,7 +475,7 @@ def get_translated_name_gnu(translation_project, store):
     if store.file:
         path_parts = store.file.path.split(os.sep)
         name = prefix + suffix
-        path_parts[-1] =  name
+        path_parts[-1] = name
         pootle_path_parts[-1] = name
     else:
         path_parts = store.parent.get_real_path().split(os.sep)

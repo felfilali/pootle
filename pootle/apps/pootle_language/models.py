@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009-2012 Zuza Software Foundation
+# Copyright 2009-2013 Zuza Software Foundation
+# Copyright 2013-2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -18,117 +19,168 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
+from django.conf import settings
+from django.core.cache import cache
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from pootle.core.managers import RelatedManager
+from pootle.core.mixins import TreeItem
+from pootle.core.url_helpers import get_editor_filter
 from pootle.i18n.gettext import tr_lang, language_dir
-from pootle_app.lib.util import RelatedManager
-from pootle_misc.aggregate import max_column
-from pootle_misc.baseurl import l
-from pootle_misc.util import (getfromcache, get_markup_filter_name,
-                              apply_markup_filter)
-from pootle_store.models import Unit
-from pootle_store.util import statssum
 
 
-class LanguageManager(RelatedManager):
-
-    def get_by_natural_key(self, code):
-        return self.get(code=code)
+# FIXME: Generate key dynamically
+CACHE_KEY = 'pootle-languages'
 
 
-class Language(models.Model):
+class LiveLanguageManager(models.Manager):
+    """Manager that only considers `live` languages.
 
-    objects = LanguageManager()
+    A live language is any language other than the special `Templates`
+    language that have any project with translatable files and is not a
+    source language.
+    """
+    def get_queryset(self):
+        return super(LiveLanguageManager, self).get_queryset().filter(
+                ~models.Q(code='templates'),
+                translationproject__isnull=False,
+                project__isnull=True,
+            ).distinct()
+
+    def cached(self):
+        languages = cache.get(CACHE_KEY)
+        if not languages:
+            languages = self.all()
+            cache.set(CACHE_KEY, languages, settings.OBJECT_CACHE_TIMEOUT)
+
+        return languages
+
+
+class Language(models.Model, TreeItem):
+
+    code = models.CharField(
+        max_length=50,
+        null=False,
+        unique=True,
+        db_index=True,
+        verbose_name=_("Code"),
+        help_text=_('ISO 639 language code for the language, possibly '
+                    'followed by an underscore (_) and an ISO 3166 country '
+                    'code. <a href="http://www.w3.org/International/articles/'
+                    'language-tags/">More information</a>'),
+    )
+    fullname = models.CharField(
+        max_length=255,
+        null=False,
+        verbose_name=_("Full Name"),
+    )
+    specialchars = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Special Characters"),
+        help_text=_('Enter any special characters that users might find '
+                    'difficult to type'),
+    )
+    nplurals = models.SmallIntegerField(
+        default=0,
+        choices=(
+            (0, _('Unknown')), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)
+        ),
+        verbose_name=_("Number of Plurals"),
+        help_text=_('For more information, visit <a href="'
+                    'http://docs.translatehouse.org/projects/'
+                    'localization-guide/en/latest/l10n/pluralforms.html">our '
+                    'page</a> on plural forms.'),
+    )
+    pluralequation = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name=_("Plural Equation"),
+        help_text=_('For more information, visit <a href="'
+                    'http://docs.translatehouse.org/projects/'
+                    'localization-guide/en/latest/l10n/pluralforms.html">our '
+                    'page</a> on plural forms.'),
+    )
+    directory = models.OneToOneField(
+        'pootle_app.Directory',
+        db_index=True,
+        editable=False,
+    )
+
+    objects = RelatedManager()
+    live = LiveLanguageManager()
 
     class Meta:
         ordering = ['code']
         db_table = 'pootle_app_language'
 
-    code_help_text = _('ISO 639 language code for the language, possibly '
-            'followed by an underscore (_) and an ISO 3166 country code. '
-            '<a href="http://www.w3.org/International/articles/language-tags/">'
-            'More information</a>')
-    code = models.CharField(max_length=50, null=False, unique=True,
-            db_index=True, verbose_name=_("Code"), help_text=code_help_text)
-    fullname = models.CharField(max_length=255, null=False,
-            verbose_name=_("Full Name"))
+    ############################ Properties ###################################
 
-    description_help_text = _('A description of this language. '
-            'This is useful to give more information or instructions. '
-            'Allowed markup: %s', get_markup_filter_name())
-    description = models.TextField(blank=True, help_text=description_help_text)
-    description_html = models.TextField(editable=False, blank=True)
+    @property
+    def pootle_path(self):
+        return '/%s/' % self.code
 
-    specialchars_help_text = _('Enter any special characters that users '
-            'might find difficult to type')
-    specialchars = models.CharField(max_length=255, blank=True,
-            verbose_name=_("Special Characters"),
-            help_text=specialchars_help_text)
+    @property
+    def name(self):
+        """Localized fullname for the language."""
+        return tr_lang(self.fullname)
 
-    plurals_help_text = _('For more information, visit '
-            '<a href="http://translate.sourceforge.net/wiki/l10n/pluralforms">'
-            'our wiki page</a> on plural forms.')
-    nplural_choices = (
-            (0, _('Unknown')), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6)
-    )
-    nplurals = models.SmallIntegerField(default=0, choices=nplural_choices,
-            verbose_name=_("Number of Plurals"), help_text=plurals_help_text)
-    pluralequation = models.CharField(max_length=255, blank=True,
-            verbose_name=_("Plural Equation"), help_text=plurals_help_text)
+    ############################ Methods ######################################
 
-    directory = models.OneToOneField('pootle_app.Directory', db_index=True,
-            editable=False)
+    @property
+    def direction(self):
+        """Return the language direction."""
+        return language_dir(self.code)
 
-    pootle_path = property(lambda self: '/%s/' % self.code)
+    def __unicode__(self):
+        return u"%s - %s" % (self.name, self.code)
 
-    def natural_key(self):
-        return (self.code,)
-    natural_key.dependencies = ['pootle_app.Directory']
+    def __init__(self, *args, **kwargs):
+        super(Language, self).__init__(*args, **kwargs)
+
+    def __repr__(self):
+        return u'<%s: %s>' % (self.__class__.__name__, self.fullname)
 
     def save(self, *args, **kwargs):
         # create corresponding directory object
         from pootle_app.models.directory import Directory
         self.directory = Directory.objects.root.get_or_make_subdir(self.code)
 
-        # Apply markup filter
-        self.description_html = apply_markup_filter(self.description)
-
         super(Language, self).save(*args, **kwargs)
+
+        # FIXME: far from ideal, should cache at the manager level instead
+        cache.delete(CACHE_KEY)
 
     def delete(self, *args, **kwargs):
         directory = self.directory
         super(Language, self).delete(*args, **kwargs)
         directory.delete()
 
-    def __repr__(self):
-        return u'<%s: %s>' % (self.__class__.__name__, self.fullname)
-
-    def __unicode__(self):
-        return u"%s - %s" % (self.name, self.code)
-
-    @getfromcache
-    def get_mtime(self):
-        return max_column(Unit.objects.filter(
-            store__translation_project__language=self), 'mtime', None)
-
-    @getfromcache
-    def getquickstats(self):
-        return statssum(self.translationproject_set.iterator())
+        # FIXME: far from ideal, should cache at the manager level instead
+        cache.delete(CACHE_KEY)
 
     def get_absolute_url(self):
-        return l(self.pootle_path)
+        return reverse('pootle-language-overview', args=[self.code])
 
-    def localname(self):
-        """localized fullname"""
-        return tr_lang(self.fullname)
-    name = property(localname)
+    def get_translate_url(self, **kwargs):
+        return u''.join([
+            reverse('pootle-language-translate', args=[self.code]),
+            get_editor_filter(**kwargs),
+        ])
 
-    def get_direction(self):
-        """returns language direction"""
-        return language_dir(self.code)
+    ### TreeItem
+
+    def get_children(self):
+        return self.translationproject_set.live()
+
+    def get_cachekey(self):
+        return self.directory.pootle_path
+
+    ### /TreeItem
 
     def translated_percentage(self):
-        qs = self.getquickstats()
-        word_count = max(qs['totalsourcewords'], 1)
-        return int(100.0 * qs['translatedsourcewords'] / word_count)
+        total = max(self.get_total_wordcount(), 1)
+        translated = self.get_translated_wordcount()
+        return int(100.0 * translated / total)

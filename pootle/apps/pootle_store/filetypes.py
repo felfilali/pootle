@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2013 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -33,6 +34,7 @@ def get_supported_formats():
     try:
         from translate.storage.xliff import xlifffile
         formats.append(('xlf', _('XLIFF'), xlifffile, 'bilingual'))
+        formats.append(('xliff', _('XLIFF'), xlifffile, 'bilingual'))
     except ImportError:
         pass
 

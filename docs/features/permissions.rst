@@ -46,15 +46,30 @@ override all permissions.
 Available permissions
 ---------------------
 
-The following permissions may be set for the server or per language, or
-language-project combination:
+
+Access Permissions
+^^^^^^^^^^^^^^^^^^
+
+Access rights can be set server-wide or for projects. Bear in mind that
+when limiting access to projects the permissions affect to *all the
+languages* available in the project.
 
 view
-  Limits access to project of language but does not limit it's visibility.
+  Gives access to a project.
 
-:doc:`suggest <suggestions>`
-  The right to suggest a translation for a specific string, also implies the
-  right to upload file using suggest only method.
+hide
+  Forbids access to a project.
+
+
+Action Permissions
+^^^^^^^^^^^^^^^^^^
+
+Permissions restricting actions can be set server-wide, per language, or
+language-project combination:
+
+suggest
+  The right to :doc:`suggest <suggestions>` a translation for a specific
+  string, also implies the right to upload file using suggest only method.
 
 review
   The right to review the suggested translations and accept or reject them, as
@@ -103,7 +118,7 @@ users of the Pootle server for which non-default rights were assigned.
 .. _permissions#changing_permissions:
 
 Changing permissions
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 In the list of permissions, you can simply select which rights must be assigned
 to that user or class of users. You might need to hold down the ``Ctrl`` key of
@@ -114,7 +129,7 @@ the form.
 .. _permissions#adding_a_user:
 
 Adding a user
--------------
+^^^^^^^^^^^^^
 
 To set permissions for a specific user, select the user in the dropdown list
 and set the specific rights for that user. This is only necessary if the user
@@ -128,7 +143,7 @@ registered users.
 .. _permissions#removing_a_user:
 
 Removing a user
----------------
+^^^^^^^^^^^^^^^
 
 To reset a user's rights to the default rights, select the tick box next to
 their name and permissions list. When you submit, their rights will be reset to
@@ -138,3 +153,25 @@ the default rights.
 
     A user with administrative rights can remove his own administrative rights.
 
+
+.. _permissions#manage-permissions-with-management-commands:
+
+Manage permissions with management commands
+-------------------------------------------
+
+.. versionadded:: 2.6.0
+
+The assignment of Pootle permissions can also be handled using management
+commands.
+
+
+.. _permissions#assign-permissions-with-management-command:
+
+Assign permissions with management command
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 2.6.0
+
+It is also possible to assign permissions to a given user in a project,
+language or translation project using the :ref:`assign_permissions
+<commands#assign-permissions>` management command.

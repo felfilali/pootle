@@ -6,11 +6,27 @@ Customizing the look
 In some cases it might be desirable to customize the styling of Pootle to fit
 in with your other websites or other aspects of your identity. It might also be
 required to add a common header or footer for proper visual integration. Before
-you start editing the CSS of Pootle, have a look at our `styling guidelines for
-developers <http://translate.sourceforge.net/wiki/developers/styling>`_.
+you start editing the CSS of Pootle, have a look at our :wiki:`styling
+guidelines for developers <developers/styling>`.
 
 Custom changes are kept separate from the distributed files, so that upgrades
 are unlikely to affect your customizations.
+
+.. _customization#building:
+
+Rebuilding assets after customization
+-------------------------------------
+
+.. warning::
+
+   After doing any customization, please execute the following commands to
+   collect and build static content such as images, CSS and JavaScript files
+   that are served by Pootle server.
+
+   .. code-block:: bash
+
+      $ python manage.py collectstatic --noinput --clear
+      $ python manage.py assets build
 
 
 .. _customization#css:
@@ -18,8 +34,8 @@ are unlikely to affect your customizations.
 Customizing CSS
 ---------------
 
-Edit the file in *static/css/custom/custom.css* to override any rules from the
-main CSS file. That CSS file will be included in every page.
+Edit the file in :file:`static/css/custom/custom.css` to override any rules
+from the main CSS file. That CSS file will be included in every page.
 
 
 .. _customization#images:
@@ -27,9 +43,10 @@ main CSS file. That CSS file will be included in every page.
 Customizing images
 ------------------
 
-Any custom images can be placed in *static/css/custom/*. The *custom.css* file
-can refer to it directly by name, without having to specify a path, since it is
-in the same directory.
+Any custom images can be placed in :file:`static/css/custom/`. The
+:file:`custom.css` file can refer to it directly by name, including any paths
+relative to :file:`static/css` directory, for example:
+``url('custom/image.png')`` to refer to :file:`static/css/custom/image.png`.
 
 
 .. _customization#favicon:
@@ -38,10 +55,10 @@ Customizing the favicon
 -----------------------
 
 The favicon can be customized by editing the base template directly
-*templates/base.html*). This has the downside that you have to reimplement this
-on upgrades if the base template is replaced. Alternatively the base template
-can be overridden as a whole with the favicon customized to your needs (see the
-next section).
+:file:`templates/base.html`). This has the downside that you have to
+reimplement this on upgrades if the base template is replaced. Alternatively
+the base template can be overridden as a whole with the favicon customized to
+your needs (see the next section).
 
 
 .. _customization#templates:
@@ -49,9 +66,9 @@ next section).
 Customizing templates
 ---------------------
 
-In case you need to change a template, copy it into *templates/custom/* with
-the same name as it had before. Make sure that you have a complete copy of the
-template and then make any changes you require.
+In case you need to change a template, copy it into :file:`templates/custom/`
+with the same name as it had before. Make sure that you have a complete copy of
+the template and then make any changes you require.
 
 If you edit any templates, keep in mind that any changes to the text could
 result in untranslated text for users of the non-English user interface.

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008-2012 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -19,38 +20,63 @@
 # along with Pootle; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 
 
 urlpatterns = patterns('pootle_translationproject.views',
     # Admin views
-    (r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/((.*/)*)admin_permissions.html$',
-        'admin_permissions'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)'
+        r'/admin/permissions/',
+        'admin_permissions',
+        name='pootle-tp-admin-permissions'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)'
+        r'/admin/settings/$',
+        'edit_settings',
+        name='pootle-tp-admin-settings'),
 
     # Management actions
     url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/rescan/?$',
         'rescan_files',
-        name='tp.rescan'),
+        name='pootle-tp-rescan'),
     url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/update/?$',
         'update_against_templates',
-        name='tp.update_against_templates'),
-    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/delete/(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        name='pootle-tp-update-against-templates'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/delete/'
+        r'(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
         'delete_path_obj',
-        name='tp.delete_path_obj'),
+        name='pootle-tp-delete-path-obj'),
 
-    # XHR views
-    (r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/((.*/)*)edit_settings.html$',
-        'edit_settings'),
-    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/summary/(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
-        'path_summary_more',
-        name='tp.path_summary_more'),
+    # VCS
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/'
+        r'vcs-commit/(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        'vcs_commit',
+        name='pootle-vcs-commit'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/'
+        r'vcs-update/(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        'vcs_update',
+        name='pootle-vcs-update'),
 
     # Exporting files
-    (r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/(?P<file_path>.*)export/zip$',
-        'export_zip'),
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/'
+        r'(?P<file_path>.*)export/zip/$',
+        'export_zip',
+        name='pootle-tp-export-zip'),
+
+    # Translation
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/'
+        r'translate/(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        'translate',
+        name='pootle-tp-translate'),
+
+    # Export view for proofreading
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/'
+        r'export-view/(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+        'export_view',
+        name='pootle-tp-export-view'),
 
     # Overview
-    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
+    url(r'^(?P<language_code>[^/]*)/(?P<project_code>[^/]*)/'
+        r'(?P<dir_path>(.*/)*)(?P<filename>.*\.*)?$',
         'overview',
-        name='tp.overview'),
+        name='pootle-tp-overview'),
 )

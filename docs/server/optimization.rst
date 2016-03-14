@@ -34,8 +34,8 @@ Caching
 Fast and efficient caching avoids hitting the DB when it's not really needed.
 Adjust the :setting:`CACHES` setting accordingly.
 
-`python-memcached <http://www.tummy.com/Community/software/python-memcached/>`_
-  Efficient caching.
+`python-memcached <http://www.tummy.com/software/python-memcached/>`_ Efficient
+caching.
 
 
 Indexing Engines
@@ -84,7 +84,7 @@ Speed-ups and Extras
 zip and unzip
   Fast (un)compression of file archives.
 
-`python-levenshtein <http://sourceforge.net/projects/translate/files/python-Levenshtein/>`_
+`python-Levenshtein <https://pypi.python.org/pypi/python-Levenshtein/>`_
   Provides speed-up when updating against templates.
 
 `iso-codes <http://packages.debian.org/unstable/source/iso-codes>`_
@@ -122,8 +122,6 @@ some tips for performance tuning on your Pootle installation.
   also give better performance.  You can :doc:`upgrade <upgrading>` to newer
   versions of Pootle easily.
 
-- Ensure :setting:`LIVE_TRANSLATION` is disabled.
-
 - Ensure :setting:`DEBUG` mode is disabled.
 
 - Ensure that the ``zip`` and ``unzip`` commands are installed on your
@@ -147,6 +145,10 @@ some tips for performance tuning on your Pootle installation.
 - Disable swap on the server.  Things should be configured so that physical
   memory of the server is never exceeded. Swapping is bound to seriously
   degrade the user experience.
+
+- Ensure gzip compression is enabled on your web server. For Apache,
+  `mod_deflate <https://httpd.apache.org/docs/2.4/mod/mod_deflate.html>`_
+  handles this. Also see `nginx wiki <http://wiki.nginx.org/HttpGzipModule>`_.
 
 
 .. _optimization#apache:

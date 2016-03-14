@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008-2012 Zuza Software Foundation
+# Copyright 2008-2014 Zuza Software Foundation
+# Copyright 2014 Evernote Corporation
 #
 # This file is part of Pootle.
 #
@@ -19,14 +20,10 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from django import template
-from django.template.defaultfilters import stringfilter
 
-from pootle_misc.baseurl import l, m, s, abs_l, get_next
+from pootle_misc.baseurl import get_next
+
 
 register = template.Library()
 
-register.filter('l', stringfilter(l))
-register.filter('m', stringfilter(m))
-register.filter('s', stringfilter(s))
-register.filter('abs_l', stringfilter(abs_l))
 register.filter('get_next', get_next)

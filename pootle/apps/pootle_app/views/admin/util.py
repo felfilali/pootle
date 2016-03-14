@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2008-2012 Zuza Software Foundation
+# Copyright 2013 Evernote Corporation
 #
 # This file is part of translate.
 #
@@ -18,49 +19,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-from django.core.exceptions import PermissionDenied
 from django.forms.models import modelformset_factory
 from django.forms.util import ErrorList
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
-from pootle_app.models.permissions import (get_matching_permissions,
-                                           check_permission)
-from pootle_misc.baseurl import l
-from pootle_misc.util import paginate
-from pootle_profile.models import get_profile
-
-
-# XXX: Move to pootle_misc?
-def user_is_admin(f):
-    def decorated_f(request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied(_("You do not have rights to administer "
-                                     "Pootle."))
-        else:
-            return f(request, *args, **kwargs)
-
-    return decorated_f
-
-
-def has_permission(permission_code):
-    def wrap_f(f):
-        def decorated_f(request, path_obj, *args, **kwargs):
-            profile = get_profile(request.user)
-            request.permissions = get_matching_permissions(profile,
-                                                           path_obj.directory)
-
-            if check_permission(permission_code, request):
-                return f(request, path_obj, *args, **kwargs)
-            else:
-                raise PermissionDenied(_("You do not have rights to "
-                                         "administer %s.", path_obj.fullname))
-
-        return decorated_f
-
-    return wrap_f
+from pootle.core.paginator import paginate
 
 
 def form_set_as_table(formset, link=None, linkfield='code'):
@@ -91,7 +56,7 @@ def form_set_as_table(formset, link=None, linkfield='code'):
             if widget_name in ('CheckboxInput',):
                 result.append(form[field].as_widget())
                 result.append(form[field].label_tag())
-            elif form.fields[field].label is not None:
+            elif form.fields[field].label is not None and not widget.is_hidden:
                 result.append(unicode(form.fields[field].label))
 
             result.append('</th>\n')
@@ -100,10 +65,11 @@ def form_set_as_table(formset, link=None, linkfield='code'):
     def add_footer(result, fields, form):
         result.append('<tr>\n')
         for field in fields:
+            field_obj = form.fields[field]
             result.append('<td>')
 
-            if form.fields[field].label is not None:
-                result.append(unicode(form.fields[field].label))
+            if field_obj.label is not None and not field_obj.widget.is_hidden:
+                result.append(unicode(field_obj.label))
 
             result.append('</td>\n')
         result.append('</tr>\n')
@@ -133,12 +99,8 @@ def form_set_as_table(formset, link=None, linkfield='code'):
             # widget
             if field == linkfield and linkfield in form.initial and link:
                 if callable(link):
-                    result.append(link(form.instance))
-                    result.append(form[field].as_hidden())
-                else:
-                    link = l(link % form.initial[linkfield])
-                    result.append("<a href='"+link+"'>"+form.initial[linkfield]+"</a>")
-                    result.append(form[field].as_hidden())
+                    result.append(link(form.instance).decode("utf-8"))
+                result.append(form[field].as_hidden())
             else:
                 result.append(form[field].as_widget())
 
@@ -209,40 +171,23 @@ def process_modelformset(request, model_class, queryset, **kwargs):
             return formset, _("There are errors in the form. Please review "
                               "the problems below."), objects
 
-        # Hack to force reevaluation of same query
-        queryset = queryset.filter()
-
     objects = paginate(request, queryset)
 
     return formset_class(queryset=objects.object_list), None, objects
 
 
-def edit(request, template, model_class, model_args={},
+def edit(request, template, model_class, ctx=None,
          link=None, linkfield='code', queryset=None, **kwargs):
     formset, msg, objects = process_modelformset(request, model_class,
                                                  queryset=queryset, **kwargs)
-    template_vars = {
-            "formset_text": mark_safe(form_set_as_table(formset, link, linkfield)),
-            "formset": formset,
-            "objects": objects,
-            "error_msg": msg,
-    }
+    if ctx is None:
+        ctx = {}
 
-    #FIXME: this should be done through an extra context argument
-    if 'translation_project' in model_args:
-        template_vars['translation_project'] = model_args['translation_project']
-    if 'project' in model_args:
-        template_vars["project"] = model_args['project']
-    if 'language' in model_args:
-        template_vars['language'] = model_args['language']
-    if 'source_language' in model_args:
-        template_vars['source_language'] = model_args['source_language']
-    if 'directory' in model_args:
-        template_vars['directory'] = model_args['directory']
-    if 'navitems' in model_args:
-        template_vars["navitems"] = model_args['navitems']
-    if 'feed_path' in model_args:
-        template_vars["feed_path"] = model_args['feed_path']
+    ctx.update({
+        'formset_text': mark_safe(form_set_as_table(formset, link, linkfield)),
+        'formset': formset,
+        'objects': objects,
+        'error_msg': msg,
+    })
 
-    return render_to_response(template, template_vars,
-                              context_instance=RequestContext(request))
+    return render(request, template, ctx)

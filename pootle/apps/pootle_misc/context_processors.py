@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009-2012 Zuza Software Foundation
+# Copyright 2009-2014 Zuza Software Foundation
 #
 # This file is part of Pootle.
 #
@@ -21,15 +21,31 @@
 from django.conf import settings
 
 from pootle.__version__ import sver
+from pootle_language.models import Language
+from pootle_project.models import Project
+from staticpages.models import LegalPage
+
+
+def _agreement_context(request):
+    """Returns whether the agreement box should be displayed or not."""
+    request_path = request.META['PATH_INFO']
+    nocheck = filter(lambda x: request_path.startswith(x),
+                     settings.LEGALPAGE_NOCHECK_PREFIXES)
+
+    if (request.user.is_authenticated() and not nocheck and
+        LegalPage.objects.pending_user_agreement(request.user).exists()):
+        return True
+
+    return False
 
 
 def pootle_context(request):
     """Exposes settings to templates."""
     #FIXME: maybe we should expose relevant settings only?
-    context = {
+    return {
         'settings': {
             'TITLE': settings.TITLE,
-            'DESCRIPTION': settings.DESCRIPTION,
+            'DESCRIPTION':  settings.DESCRIPTION,
             'CAN_REGISTER': settings.CAN_REGISTER,
             'CAN_CONTACT': settings.CAN_CONTACT and settings.CONTACT_EMAIL,
             'SCRIPT_NAME': settings.SCRIPT_NAME,
@@ -38,6 +54,7 @@ def pootle_context(request):
             'DEBUG': settings.DEBUG,
         },
         'custom': settings.CUSTOM_TEMPLATE_CONTEXT,
+        'ALL_LANGUAGES': Language.live.cached(),
+        'ALL_PROJECTS': Project.objects.cached(),
+        'display_agreement': _agreement_context(request),
     }
-
-    return context

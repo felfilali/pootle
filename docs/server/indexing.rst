@@ -54,10 +54,10 @@ See below for details.
 Lucene
 ^^^^^^
 
-- Install the `PyLucene <http://pylucene.osafoundation.org/>`_ package
+- Install the `PyLucene <http://lucene.apache.org/pylucene/>`_ package
 
   - For debian: follow this `Howto
-    <https://systemausfall.org/wikis/howto/pyluceneondebian>`_
+    <https://systemausfall.org/wikis/howto/PyLuceneOnDebian>`_
 
 
 .. _indexing#xapian:
@@ -68,11 +68,34 @@ Xapian
 - Install the `Python bindings for Xapian
   <http://xapian.org/docs/bindings/python/>`_
 
-  - For debian: ``apt-get install python-xapian xapian-tools``
+  - Debian: ``apt-get install python-xapian xapian-tools``
+  - `Other distributions and platforms <http://xapian.org/download>`_
 
 The Xapian tools packaged is required for the *xapian-check* command which
-is used to determines whether the Xapian version is compatable with Pootle.
+is used to determines whether the Xapian version is compatible with Pootle.
 
+.. note:: If you are deploying using a virtualenv and want to make use of
+   Xapian then you will need to, either:
+
+   #. Install your virtualenv with access to the system packages using the
+      `--system-site-packages
+      <http://www.virtualenv.org/en/latest/#the-system-site-packages-option>`_
+      option::
+
+        virtualenv --system-site-packages ENV
+
+   #. `Compile the Python bindings
+      <http://nomad.coop/blog/installing-xapian-in-virtualenv-django/>`_
+
+   #. Symbolically link the Xapian bindings into your virtualenv, as follows on
+      an Ubuntu system:
+
+      .. code-block:: bash
+
+         $ mkdir ${ENV}/lib/python2.6/dist-packages
+         $ cd ${ENV}/lib/python2.6/dist-packages
+         $ ln -s /usr/lib/python2.6/dist-packages/xapian.py
+         $ ln -s /usr/lib/python2.6/dist-packages/_xapian.so
 
 .. _indexing#debugging:
 
@@ -88,7 +111,7 @@ Pootle::
 This will display the installed engines and check if they work as expected.
 
 .. note:: Please file a `bug report
-   <http://bugs.locamotion.org/enter_bug.cgi?product=Pootle&component=Pootle>`_
-   if you encounter any errors when running these tests.
+   <https://github.com/translate/pootle/issues/new>`_ if you encounter any
+   errors when running these tests.
 
 The actual test for xapian is ``xapian-check --version``.

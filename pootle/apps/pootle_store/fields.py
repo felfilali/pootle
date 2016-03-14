@@ -26,6 +26,8 @@ import os
 from django.db import models
 from django.db.models.fields.files import FieldFile, FileField
 
+from south.modelsinspector import add_introspection_rules
+
 from translate.misc.multistring import multistring
 
 from pootle_store.signals import translation_file_updated
@@ -82,7 +84,8 @@ def to_python(value):
         ms.plural = plural
         return ms
     elif isinstance(value, dict):
-        return multistring([val for key, val in sorted(value.items())], encoding="UTF-8")
+        return multistring([val for key, val in sorted(value.items())],
+                           encoding="UTF-8")
     else:
         return multistring(value, encoding="UTF-8")
 
@@ -100,14 +103,21 @@ class MultiStringField(models.Field):
     def to_python(self, value):
         return to_python(value)
 
-    def get_db_prep_value(self, value, *args, **kwargs):
-        #FIXME: maybe we need to override get_db_prep_save instead?
+    def get_prep_value(self, value):
         return to_db(value)
 
-    def get_db_prep_lookup(self, lookup_type, value, *args, **kwargs):
-        if lookup_type in ('exact', 'iexact') or not isinstance(value, basestring):
-            value = self.get_db_prep_value(value)
-        return super(MultiStringField, self).get_db_prep_lookup(lookup_type, value, *args, **kwargs)
+    def get_prep_lookup(self, lookup_type, value):
+        if (lookup_type in ('exact', 'iexact') or
+            not isinstance(value, basestring)):
+            value = self.get_prep_value(value)
+        return super(MultiStringField, self) \
+                .get_prep_lookup(lookup_type, value)
+
+add_introspection_rules(
+        [],
+        ["^pootle_store\.fields\.MultiStringField"],
+    )
+
 
 ################# File ###############################
 
@@ -135,9 +145,9 @@ class TranslationStoreFieldFile(FieldFile):
         file_stat = os.stat(self.realpath)
         return file_stat.st_mtime, file_stat.st_size
 
-    def _get_filename(self):
+    @property
+    def filename(self):
         return os.path.basename(self.name)
-    filename = property(_get_filename)
 
     def _get_realpath(self):
         """Return realpath resolving symlinks if necessary."""
@@ -145,15 +155,16 @@ class TranslationStoreFieldFile(FieldFile):
             self._realpath = os.path.realpath(self.path)
         return self._realpath
 
-    def _get_cached_realpath(self):
+    @property
+    def realpath(self):
         """Get real path from cache before attempting to check for symlinks."""
         if not hasattr(self, "_store_tuple"):
             return self._get_realpath()
         else:
             return self._store_tuple.realpath
-    realpath = property(_get_cached_realpath)
 
-    def _get_store(self):
+    @property
+    def store(self):
         """Get translation store from dictionary cache, populate if store not
         already cached."""
         self._update_store_cache()
@@ -163,7 +174,8 @@ class TranslationStoreFieldFile(FieldFile):
         """Add translation store to dictionary cache, replace old cached
         version if needed."""
         mod_info = self.getpomtime()
-        if not hasattr(self, "_store_tuple") or self._store_tuple.mod_info != mod_info:
+        if (not hasattr(self, "_store_tuple") or
+            self._store_tuple.mod_info != mod_info):
             try:
                 self._store_tuple = self._store_cache[self.path]
                 if self._store_tuple.mod_info != mod_info:
@@ -208,8 +220,6 @@ class TranslationStoreFieldFile(FieldFile):
 
         translation_file_updated.send(sender=self, path=self.path)
 
-    store = property(_get_store)
-
     def exists(self):
         return os.path.exists(self.realpath)
 
@@ -234,6 +244,11 @@ class TranslationStoreFieldFile(FieldFile):
         if save:
             super(TranslationStoreFieldFile, self).delete(save)
 
+add_introspection_rules(
+        [],
+        ["^pootle_store\.fields\.TranslationStoreFieldFile"],
+    )
+
 
 class TranslationStoreField(FileField):
     """This is the field class to represent a FileField in a model that
@@ -246,3 +261,13 @@ class TranslationStoreField(FileField):
         determine file format for parsing, useful for .pending files"""
         self.ignore = ignore
         super(TranslationStoreField, self).__init__(**kwargs)
+
+add_introspection_rules([
+    (
+        [TranslationStoreField],
+        [],
+        {
+            'ignore': ['ignore', {'default': None}],
+        },
+    ),
+], ["^pootle_store\.fields\.TranslationStoreField"])
