@@ -24,6 +24,5 @@ Additional Notes
 
    releases/index
    changelog
-   releases/index
    external_docs
    license

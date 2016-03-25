@@ -1186,7 +1186,6 @@ msgid_plural ""
 "review)."
 msgstr[0] ""
 msgstr[1] ""
-"%(type)s: %(oversatt)d av %(totalt)d oversatte strenger(%(fuzzy)d fuzzy)."
 
 #: apps/pootle_misc/stats.py:304
 #, python-format
@@ -2288,7 +2287,6 @@ msgstr ""
 #: apps/pootle_translationproject/templates/translation_project/export_view.html:99
 msgid "Goal"
 msgstr ""
-"Bruk denne for å oppdatere alle filer i dette området fra version control."
 
 #: apps/pootle_translationproject/templates/translation_project/export_view.html:141
 msgid "No strings."
@@ -2626,14 +2624,6 @@ msgid ""
 "Finished building the language pack, click on the download link to download "
 "it."
 msgstr ""
-"<div dir=\"ltr\" lang=\"nb\">\n"
-"<h2>Dette er en demoversjon av Pootle.</h2>\n"
-"<p>Du kan også besøke den offisielle<a "
-"href=\"http://pootle.locamotion.org\">Pootle serveren</a>. Server admin har "
-"ikke gitt kontaktinfo eller beskrivelse av denne serveren. Hvis du er admin "
-"for denne serveren, kan du redigere denne beskrivelsen i preferencefilen "
-"eller i admin-grensesnittet.</p>\n"
-"</div>\n"
 
 #: templates/403.html:4 templates/403.html.py:7 templates/403.html.py:12
 msgid "Permission Denied"

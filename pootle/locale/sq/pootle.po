@@ -638,6 +638,7 @@ msgid ""
 "connect to the memcached server. Caching is currently disabled."
 msgstr ""
 "Pootle është konfiguruar për të përdorur memcached si një backend caching, "
+"por nuk mund të lidhet me serverin memcached. Caching nuk është i aktivizuar "
 "aktualisht."
 
 #: apps/pootle_app/views/admin/dashboard.py:179
@@ -1694,7 +1695,6 @@ msgid "You do not have rights to add tags."
 msgstr "Nuk keni të drejta për të shtuar tags."
 
 #: apps/pootle_store/templates/unit/comment.html:12
-#, fuzzy
 msgid "Comment:"
 msgstr "Koment:"
 
@@ -1857,7 +1857,6 @@ msgid "Vote for this suggestion"
 msgstr "Voto për këtë sygjerim"
 
 #: apps/pootle_store/templates/unit/term_edit.html:40
-#, fuzzy
 msgid "Comment: "
 msgstr "Koment:"
 

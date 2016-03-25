@@ -1693,7 +1693,6 @@ msgid "You do not have rights to add tags."
 msgstr ""
 
 #: apps/pootle_store/templates/unit/comment.html:12
-#, fuzzy
 msgid "Comment:"
 msgstr "Beachd:"
 

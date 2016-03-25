@@ -54,6 +54,7 @@ def get_base_direction(text):
         # text composed of weak bidi characters
         return -1
 
+
 def insert_embeding(text):
     """Insert LRE (left-to-right embedding) or RLE (right-to-left
     embedding) marks around text according to its base direction, to ensure

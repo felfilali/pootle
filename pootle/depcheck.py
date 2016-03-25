@@ -38,6 +38,7 @@ LXML_MINIMUM_REQUIRED_VERSION = (2, 3, 6, 0)
 ##########################
 # Test core dependencies #
 ##########################
+
 def test_translate():
     try:
         from translate.__version__ import ver, sver

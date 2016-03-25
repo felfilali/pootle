@@ -2321,8 +2321,6 @@ msgstr ""
 #: apps/pootle_translationproject/templates/translation_project/export_view.html:7
 msgid "Export View"
 msgstr ""
-"Використовуйте цей параметр для оновлення з системи контролю версій усіх "
-"файлів у цій області."
 
 #: apps/pootle_translationproject/templates/translation_project/export_view.html:99
 msgid "Goal"
