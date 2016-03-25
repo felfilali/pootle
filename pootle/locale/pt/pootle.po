@@ -103,7 +103,7 @@ msgstr "nome"
 
 #: strings.py:34
 msgid "last name"
-msgstr "Sobrenome"
+msgstr "apelido"
 
 #: strings.py:35
 msgid "e-mail address"
@@ -192,8 +192,8 @@ msgstr "O Akismet pensa que esta mensagem é lixo eletrónico"
 #: apps/djblets/siteconfig/templates/siteconfig/settings.html:17
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
-msgstr[0] "Por favor, corrija o erro abaixo."
-msgstr[1] "Por favor, corrija os erros abaixo."
+msgstr[0] "Por favor corrija o erro abaixo."
+msgstr[1] "Por favor corrija os erros abaixo."
 
 #: apps/djblets/siteconfig/templates/siteconfig/settings.html:23
 msgid "The settings have been saved."

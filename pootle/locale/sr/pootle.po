@@ -1195,14 +1195,8 @@ msgid_plural ""
 "%(type)s: %(translated)d of %(total)d strings translated (%(fuzzy)d need "
 "review)."
 msgstr[0] ""
-"%(type)s: %(translated)d од %(total)d поруке преведено (приближних израза: %"
-"(fuzzy)d)."
 msgstr[1] ""
-"%(type)s: %(translated)d од %(total)d поруке преведено (приближних израза: %"
-"(fuzzy)d)."
 msgstr[2] ""
-"%(type)s: %(translated)d од %(total)d порука преведено (приближних израза: %"
-"(fuzzy)d)."
 
 #: apps/pootle_misc/stats.py:304
 #, python-format
@@ -2300,14 +2294,10 @@ msgstr ""
 #: apps/pootle_translationproject/templates/translation_project/export_view.html:7
 msgid "Export View"
 msgstr ""
-"Ако желите, изаберите датотеку с којом желите да је обједините. Ако је не "
-"наведете, користиће се име отпремљене датотеке."
 
 #: apps/pootle_translationproject/templates/translation_project/export_view.html:99
 msgid "Goal"
 msgstr ""
-"Испод можете да додајете, уређујете и бришете дозволе за овај преводилачки "
-"пројекат."
 
 #: apps/pootle_translationproject/templates/translation_project/export_view.html:141
 msgid "No strings."
@@ -2316,8 +2306,6 @@ msgstr ""
 #: apps/pootle_translationproject/templates/translation_project/overview.html:61
 msgid "Translation project files and folders"
 msgstr ""
-"Користите ову опцију да ажурирате све датотеке у овој области из система за "
-"управљање верзијама."
 
 #: apps/pootle_translationproject/templates/translation_project/overview.html:68
 #, fuzzy
@@ -2651,13 +2639,6 @@ msgid ""
 "Finished building the language pack, click on the download link to download "
 "it."
 msgstr ""
-"<div dir=\"ltr\" lang=\"sr\">\n"
-"<h2>Ово је пробна инсталација Pootle-а.</h2>\n"
-"<p>Можете да посетите и <a href=\"http://pootle.locamotion.org\">Pootle-ов "
-"званични сервер</a>. Администратор сервера није навео податке за контакт ни "
-"опис овог сервера. Ако сте ви његов администратор, уредите опис у датотеци "
-"са поставкама или у административном интерфејсу.</p>\n"
-"</div>\n"
 
 #: templates/403.html:4 templates/403.html.py:7 templates/403.html.py:12
 msgid "Permission Denied"

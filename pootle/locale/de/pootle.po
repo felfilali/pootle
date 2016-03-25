@@ -140,7 +140,7 @@ msgstr "Rechtliches"
 #. Translators: Label that refers to the site's license requirements
 #: strings.py:55
 msgid "License"
-msgstr "Lizenzen"
+msgstr "Lizenz"
 
 #. Translators: Label that refers to the site's license requirements
 #: strings.py:57
@@ -1205,8 +1205,6 @@ msgstr[0] ""
 "%(type)s: %(translated)d von %(total)d Wort übersetzt (%(fuzzy)d benötigen "
 "Auferksamkeit)."
 msgstr[1] ""
-"%(type)s: %(translated)d von %(total)d Zeichenketten übersetzt (%(fuzzy)d "
-"fuzzy)."
 
 #: apps/pootle_misc/stats.py:304
 #, python-format
@@ -1397,7 +1395,7 @@ msgstr "Dateiformat"
 
 #: apps/pootle_project/models.py:87
 msgid "Automatic detection (slower)"
-msgstr "Automatische Erkennung (träger)"
+msgstr "Automatische Erkennung (langsamer)"
 
 #: apps/pootle_project/models.py:88
 msgid "GNU style: files named by language code"

@@ -52,6 +52,7 @@ def supported_langs():
     from django.conf import settings
     return settings.LANGUAGES
 
+
 def lang_choices():
     """Generate locale choices for drop down lists in forms."""
     choices = []
