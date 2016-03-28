@@ -1,0 +1,155 @@
+{% extends browser_extends %}
+
+{% load assets cleanhtml i18n locale common_tags profile_tags %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block header_content_block %}
+<div id="top-stats" class="header">
+  {% block header_content %}
+  <a id="js-path-summary" href="#">
+    <div id="progressbar">
+      <i id="js-expand-icon" class="icon-expand-stats"
+         title="{% trans 'Expand details' %}"></i>
+      {% include "browser/_progressbar.html" %}
+    </div>
+  </a>
+
+  <div class="path-summary-more" id="js-path-summary-more">
+    <div class="hd">
+      <h3><span>{% trans "Translation Statistics" %}</span></h3>
+    </div>
+    <div class="bd">
+      <table class="stats" lang="{{ LANGUAGE_CODE }}" dir="{% locale_dir %}">
+        <tbody>
+          {% for item in translation_states %}
+          <tr id="stats-{{ item.state }}">
+            <td id="stats-name">{{ item.title }}</td>
+            <td class="stats-number"><a href="{{ item.url }}"></a></td>
+            <td class="stats-percentage"><span></span>%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="bd">
+      <table class="last">
+        <tbody>
+          <tr id="js-last-updated">
+            <td>{% trans "Last updated" %}</td>
+            <td class="last-updated"></td>
+          </tr>
+          <tr id="js-last-action">
+            <td>{% trans "Last action" %}</td>
+            <td class="last-action"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="js-stats-checks" class="hide stats-checks">
+      <div class="hd">
+        <h3><span>{% trans "Failing Checks" %}</span></h3>
+      </div>
+      <div class="bd">
+      {% for item in check_categories %}
+        <div id="check-{{ item.name }}" class="checks js-checks">
+          <h4 class="clear">{{ item.title }}</h4>
+          {% for check in item.checks %}
+          <div class="check js-check" data-code="{{ check.code }}">
+            <div class="check-name"><a href="{{ check.url }}">{{ check.title }}</a></div>
+            <div class="check-count"><a href="{{ check.url }}">0</a></div>
+          </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <div class="clear"></div>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+</div>
+{% endblock %}
+
+{% block actions %}
+{% include 'browser/_actions.html' %}
+{% endblock %}
+
+{% block pre_content %}
+{% if has_sidebar %}
+<div id="sidebar"
+  class="js-sidebar{% if is_sidebar_open %} sidebar-open{% endif %}">
+  <div id="sidebar-content">
+    {% block sidebar_content %}
+
+    {% if announcements %}
+    <div class="sidebar-group">
+      {% for announcement in announcements %}
+        {% include "staticpages/_body.html" with page=announcement %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% endblock %}
+  </div>
+  <a id="sidebar-toggle" class="js-sidebar-toggle"></a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if project and project.disabled %}
+<div class="alert alert-danger">
+{% trans "This project is disabled and visible to administrators only." %}
+</div>
+{% endif %}
+
+<div id="autorefresh-notice">
+  {% blocktrans trimmed %}
+  Some data on this page is currently being calculated, and the page will be
+  refreshed automatically in <strong>30 seconds</strong>.
+  {% endblocktrans %}
+  <a href="#" class="js-stats-refresh">{% trans "Refresh now" %}</a>
+</div>
+
+{% if parent %}
+<div class="browser-parent" lang="{{ LANGUAGE_CODE }}">
+  <a href="{{ parent.href }}"><i class="icon-folder-parent"></i> <span>{{ parent.title }}</span></a>
+</div>
+{% endif %}
+
+{% if vfolders %}
+<div class="bd vfolders" lang="{{ LANGUAGE_CODE }}">
+  {% display_table vfolders %}
+</div>
+{% endif %}
+
+{% if table %}
+<div class="bd" lang="{{ LANGUAGE_CODE }}">
+  {% display_table table %}
+</div>
+{% endif %}
+{% endblock content %}
+
+{% block scripts_extra %}
+{{ block.super }}
+
+<script type="text/javascript">
+$(function () {
+  PTL.search.init();
+  PTL.stats.init({
+    pootlePath: "{{ pootle_path }}",
+    isAdmin: {{ is_admin|yesno:"true,false" }},
+    isInitiallyExpanded: {{ is_store|yesno:"true,false" }},
+    initialData: {{ stats|safe }},
+  });
+
+  {% if 'finished' in request.GET %}
+  PTL.msg.show({
+    text: '{% trans "Congratulations! You have completed this task!" %}',
+    level: 'success',
+    language: '{{ LANGUAGE_CODE }}'
+  });
+  {% endif %}
+});
+</script>
+{% endblock %}

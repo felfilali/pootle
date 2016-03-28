@@ -1,10 +1,18 @@
 /*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
+
+/*
  * NAVBAR
  */
 
 #navbar
 {
-    background-color: #0489B7;
+    background-color: #005b7a;
     height: 50px;
     line-height: 50px;
 }
@@ -24,7 +32,6 @@
 {
     color: #c1e1ee;
     text-decoration: none;
-    text-shadow: 0 1px 0 #130f30;
     outline: none;
 }
 
@@ -37,20 +44,18 @@
 
 #navbar h1
 {
-    font-family: webfont, 'Helvetica Neue', Helvetica, Helvetica, Arial, sans-serif;
+    font-family: 'Helvetica Neue', Helvetica, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
     display: inline-block;
     float: left;
-    font-size: 18px;
+    font-size: 23px;
     padding: 0 16px;
-}
 
-#navbar .logo
-{
-    display: inline-block;
-    margin-top: -4px;
-    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40%;
 }
 
 html[dir="rtl"] #navbar h1.brand
@@ -66,13 +71,24 @@ html[dir="rtl"] #navbar h1.brand
 #navbar h1 .site-title
 {
     color: #fff;
-    padding-left: 0.2em;
+    padding-left: 16px;
+}
+
+html[dir="rtl"] #navbar h1 .site-title
+{
+    padding-left: auto;
+    padding-right: 16px;
+}
+
+#navbar h1 .icon-logo
+{
+    position: relative;
+    top: -4px;
 }
 
 #nav-main > .menu-divider
 {
     display: inline-block;
-    background-color: #2D73BE;
     box-shadow: 1px 0 0 rgba(255, 255, 255, 0.1);
     height: 100%;
     margin-right: 2px;
@@ -118,7 +134,7 @@ html[dir="rtl"] #nav-main > li
 #nav-main li a:active,
 #nav-main li a:focus
 {
-    color: rgba(255, 255, 255, 0.9);
+    color: #fff;
     display: inline-block;
     text-decoration: none;
     padding: 0 1.5em;
@@ -131,19 +147,19 @@ html[dir="rtl"] #nav-main > li
 #nav-main li a:hover,
 #nav-main li.show-dropdown
 {
-    text-shadow: 2px 2px 1px rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 #nav-main li a:active,
 #nav-main li a:focus
 {
-    background-color: rgba(28, 120, 172, 1);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 #nav-main a.admin,
 #nav-main a.admin:hover
 {
-    color: #FF8500;
+    color: #f33;
 }
 
 #user
@@ -162,12 +178,44 @@ html[dir="rtl"] #nav-main > li
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-#nav-main #js-login .btn
+#nav-main .login .btn
 {
     padding: 0.1em 1em;
     font-weight: normal;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
     line-height: 2em;
+}
+
+
+/* Dropdown menu */
+
+.show-dropdown .dropdown-menu
+{
+    display: block;
+}
+
+.dropdown-menu
+{
+    position: absolute;
+    z-index: 500;
+    top: 100%;
+
+    display: none;
+
+    background-color: #005b7a;
+    min-width: 200px;
+    line-height: 35px;
+    padding: 0.2em 0;
+
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.7);
+}
+
+.dropdown-menu .menu-divider
+{
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+    height: 1px;
+    margin: 0.25em 0;
 }
 
 
@@ -190,65 +238,6 @@ html[dir="rtl"] #nav-access
 }
 
 
-/* Language picker */
-
-#s2id_js-language-picker
-{
-    width: auto !important;
-}
-#s2id_js-language-picker>a
-{
-    display: block !important;
-}
-
-#s2id_js-language-picker:not(.select2-dropdown-open)
-{
-    opacity: 0.5;
-    padding-left: 14px;
-}
-
-#s2id_js-language-picker:not(.select2-dropdown-open):hover
-{
-    opacity: 1.0;
-}
-
-#s2id_js-language-picker:not(.select2-dropdown-open) a
-{
-    background: transparent;
-    border: 0;
-    padding: 0 !important;
-}
-
-#s2id_js-language-picker.select2-container-active
-{
-    box-shadow: none;
-}
-
-#s2id_js-language-picker.select2-dropdown-open a
-{
-    color: rgb(72, 112, 117);
-    padding: 0 0 0 12px !important;
-    text-shadow: none;
-}
-
-#s2id_js-language-picker:not(.select2-dropdown-open) .select2-arrow
-{
-    background: none;
-    border: 0;
-}
-
-#s2id_js-language-picker:not(.select2-dropdown-open) .select2-arrow b
-{
-    background: none;
-}
-
-.select2-drop.s2js-freefloat-drop
-{
-    padding-top: 5px;
-    width: auto !important;
-}
-
-
 /* Responsive styles */
 
 @media screen and (min-width: 900px) {
@@ -262,6 +251,11 @@ html[dir="rtl"] #nav-access
     .brand-name
     {
         display: none;
+    }
+
+    #navbar h1
+    {
+        max-width: 70%;
     }
 
     #navbar:after
@@ -303,11 +297,6 @@ html[dir="rtl"] #nav-access
         border-radius: 0;
         border: 0 none;
         box-shadow: none;
-    }
-
-    #nav-main .odometer
-    {
-        width: auto !important;
     }
 
     #menu-toggle

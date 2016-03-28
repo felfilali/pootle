@@ -1,21 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Zuza Software Foundation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# Pootle; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import logging
 
@@ -23,7 +13,6 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import models
 from django.utils.safestring import mark_safe
-from south.modelsinspector import add_introspection_rules
 
 from .filters import apply_markup_filter
 from .widgets import MarkupTextarea
@@ -62,7 +51,7 @@ class Markup(object):
             logger.debug(u'Caching rendered output of %r', self.cache_key)
             rendered = apply_markup_filter(self.raw)
             cache.set(self.cache_key, rendered,
-                      settings.OBJECT_CACHE_TIMEOUT)
+                      settings.POOTLE_CACHE_TIMEOUT)
 
         return rendered
 
@@ -110,7 +99,7 @@ class MarkupField(models.TextField):
         value = super(MarkupField, self).pre_save(model_instance, add)
 
         if not add:
-            # Invalidate cache to force rendering upon next retrieval.
+            # Invalidate cache to force rendering upon next retrieval
             cache_key = _rendered_cache_key(model_instance.__class__.__name__,
                                             model_instance.pk,
                                             self.name)
@@ -134,8 +123,7 @@ class MarkupField(models.TextField):
         defaults.update(kwargs)
         return super(MarkupField, self).formfield(**defaults)
 
-
-add_introspection_rules(
-        [],
-        ["^pootle\.core\.markup\.fields\.MarkupField"],
-    )
+    def deconstruct(self):
+        name, path, args, kwargs = super(MarkupField, self).deconstruct()
+        kwargs.pop('help_text', None)
+        return name, path, args, kwargs

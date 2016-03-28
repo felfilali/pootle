@@ -1,43 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# Pootle; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 from itertools import groupby
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext as _
 
+from pootle_app.models.directory import Directory
 from pootle_app.models.permissions import check_permission
 from pootle_misc.checks import check_names, get_qualitycheck_schema
 from pootle_misc.forms import make_search_form
 from pootle_misc.stats import get_translation_states
 from pootle_store.models import Unit
 from pootle_store.views import get_step_query
+from pootle_translationproject.models import TranslationProject
+from virtualfolder.models import VirtualFolder
 
 from .url_helpers import get_path_parts, get_previous_url
 
 
-User = get_user_model()
+EXPORT_VIEW_QUERY_LIMIT = 10000
 
 
 def get_filter_name(GET):
-    """Get current filter's human-readable name.
+    """Gets current filter's human-readable name.
 
     :param GET: A copy of ``request.GET``.
     :return: Two-tuple with the filter name, and a list of extra arguments
@@ -78,18 +70,19 @@ def get_filter_name(GET):
     return (filter_name, extra)
 
 
-def get_translation_context(request, is_terminology=False):
-    """Return a common context for translation views.
+def get_translation_context(request):
+    """Returns a common context for translation views.
 
     :param request: a :cls:`django.http.HttpRequest` object.
-    :param is_terminology: boolean indicating if the translation context
-        is relevant to a terminology project.
     """
     resource_path = getattr(request, 'resource_path', '')
+    vfolder_pk = getattr(request, 'current_vfolder', '')
+    display_priority = False
 
-    user = request.user
-    if not user.is_authenticated():
-        user = User.objects.get_nobody_user()
+    if not vfolder_pk:
+        display_priority = VirtualFolder.objects.filter(
+            units__store__pootle_path__startswith=request.pootle_path
+        ).exists()
 
     return {
         'page': 'translate',
@@ -98,23 +91,22 @@ def get_translation_context(request, is_terminology=False):
         'cansuggest': check_permission("suggest", request),
         'canreview': check_permission("review", request),
         'is_admin': check_permission('administrate', request),
+        'profile': request.profile,
 
         'pootle_path': request.pootle_path,
         'ctx_path': request.ctx_path,
+        'current_vfolder_pk': vfolder_pk,
+        'display_priority': display_priority,
         'resource_path': resource_path,
         'resource_path_parts': get_path_parts(resource_path),
 
         'check_categories': get_qualitycheck_schema(),
 
-        'unit_rows': user.unit_rows,
-
-        'search_form': make_search_form(request=request,
-                                        terminology=is_terminology),
+        'search_form': make_search_form(request=request),
 
         'previous_url': get_previous_url(request),
 
-        'MT_BACKENDS': settings.MT_BACKENDS,
-        'LOOKUP_BACKENDS': settings.LOOKUP_BACKENDS,
+        'POOTLE_MT_BACKENDS': settings.POOTLE_MT_BACKENDS,
         'AMAGAMA_URL': settings.AMAGAMA_URL,
     }
 
@@ -124,35 +116,59 @@ def get_export_view_context(request):
 
     :param request: a :cls:`django.http.HttpRequest` object.
     """
+    res = {}
     filter_name, filter_extra = get_filter_name(request.GET)
 
-    units_qs = Unit.objects.get_for_path(request.pootle_path, request.user)
+    units_qs = Unit.objects.get_for_path(request.pootle_path,
+                                         request.profile)
     units = get_step_query(request, units_qs)
+    unit_total_count = units.annotate().count()
+
+    units = units.select_related('store')
+    if unit_total_count > EXPORT_VIEW_QUERY_LIMIT:
+        units = units[:EXPORT_VIEW_QUERY_LIMIT]
+        res.update({
+            'unit_total_count': unit_total_count,
+            'displayed_unit_count': EXPORT_VIEW_QUERY_LIMIT,
+        })
+
     unit_groups = [(path, list(units)) for path, units in
                    groupby(units, lambda x: x.store.pootle_path)]
-    return {
+
+    res.update({
         'unit_groups': unit_groups,
-
         'filter_name': filter_name,
-        'filter_extra': filter_extra
-    }
+        'filter_extra': filter_extra,
+    })
+
+    return res
 
 
-def get_overview_context(request):
-    """Return a common context for overview browser pages.
+def get_browser_context(request):
+    """Returns a common context for browser pages.
 
     :param request: a :cls:`django.http.HttpRequest` object.
     """
     resource_obj = request.resource_obj
     resource_path = getattr(request, 'resource_path', '')
 
-    url_action_continue = resource_obj.get_translate_url(state='incomplete')
-    url_action_fixcritical = resource_obj.get_critical_url()
-    url_action_review = resource_obj.get_translate_url(state='suggestions')
+    filters = {}
+
+    if ((isinstance(resource_obj, Directory) and
+         resource_obj.has_vfolders) or
+        (isinstance(resource_obj, TranslationProject) and
+         resource_obj.directory.has_vfolders)):
+        filters['sort'] = 'priority'
+
+    url_action_continue = resource_obj.get_translate_url(state='incomplete',
+                                                         **filters)
+    url_action_fixcritical = resource_obj.get_critical_url(**filters)
+    url_action_review = resource_obj.get_translate_url(state='suggestions',
+                                                       **filters)
     url_action_view_all = resource_obj.get_translate_url(state='all')
 
     return {
-        'page': 'overview',
+        'page': 'browse',
 
         'pootle_path': request.pootle_path,
         'resource_obj': resource_obj,

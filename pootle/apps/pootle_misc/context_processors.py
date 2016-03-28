@@ -1,26 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009-2014 Zuza Software Foundation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 from django.conf import settings
+from django.utils import translation
 
-from pootle.__version__ import sver
+from pootle.core.utils.json import jsonify
 from pootle_language.models import Language
 from pootle_project.models import Project
 from staticpages.models import LegalPage
@@ -30,13 +20,22 @@ def _agreement_context(request):
     """Returns whether the agreement box should be displayed or not."""
     request_path = request.META['PATH_INFO']
     nocheck = filter(lambda x: request_path.startswith(x),
-                     settings.LEGALPAGE_NOCHECK_PREFIXES)
+                     settings.POOTLE_LEGALPAGE_NOCHECK_PREFIXES)
 
     if (request.user.is_authenticated() and not nocheck and
-        LegalPage.objects.pending_user_agreement(request.user).exists()):
+        LegalPage.objects.has_pending_agreement(request.user)):
         return True
 
     return False
+
+
+def _get_social_auth_providers(request):
+    if 'allauth.socialaccount' not in settings.INSTALLED_APPS:
+        return []
+
+    from allauth.socialaccount import providers
+    return [{'name': provider.name, 'url': provider.get_login_url(request)}
+            for provider in providers.registry.get_list()]
 
 
 def pootle_context(request):
@@ -44,17 +43,18 @@ def pootle_context(request):
     #FIXME: maybe we should expose relevant settings only?
     return {
         'settings': {
-            'TITLE': settings.TITLE,
-            'DESCRIPTION':  settings.DESCRIPTION,
-            'CAN_REGISTER': settings.CAN_REGISTER,
-            'CAN_CONTACT': settings.CAN_CONTACT and settings.CONTACT_EMAIL,
+            'POOTLE_TITLE': settings.POOTLE_TITLE,
+            'POOTLE_INSTANCE_ID': settings.POOTLE_INSTANCE_ID,
+            'POOTLE_CONTACT_ENABLED': (settings.POOTLE_CONTACT_ENABLED and
+                                       settings.POOTLE_CONTACT_EMAIL),
+            'POOTLE_SIGNUP_ENABLED': settings.POOTLE_SIGNUP_ENABLED,
             'SCRIPT_NAME': settings.SCRIPT_NAME,
-            'POOTLE_VERSION': sver,
-            'CACHE_TIMEOUT': settings.CACHE_MIDDLEWARE_SECONDS,
+            'POOTLE_CACHE_TIMEOUT': settings.POOTLE_CACHE_TIMEOUT,
             'DEBUG': settings.DEBUG,
         },
-        'custom': settings.CUSTOM_TEMPLATE_CONTEXT,
-        'ALL_LANGUAGES': Language.live.cached(),
-        'ALL_PROJECTS': Project.objects.cached(),
+        'custom': settings.POOTLE_CUSTOM_TEMPLATE_CONTEXT,
+        'ALL_LANGUAGES': Language.live.cached_dict(translation.get_language()),
+        'ALL_PROJECTS': Project.objects.cached_dict(request.user),
+        'SOCIAL_AUTH_PROVIDERS': jsonify(_get_social_auth_providers(request)),
         'display_agreement': _agreement_context(request),
     }

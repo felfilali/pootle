@@ -12,12 +12,9 @@ Backends and storage
 .. toctree::
    :maxdepth: 2
 
-   authentication
    formats
-   hooks
    statistics
    templates
-   version_control
 
 
 .. _features#editor:
@@ -33,15 +30,12 @@ Online translation editor
    checks
    translation_memory
    machine_translation
-   offline
    searching
    shortcuts
    suggestions
-   placeables
    terminology
-   actions
-   tags
-   goals
+   virtual_folders
+   offline
 
 
 .. _features#admin:
@@ -52,7 +46,6 @@ Administrative features
 .. toctree::
    :maxdepth: 2
 
+   staticpages
    captcha
-   news
-   notifications
    permissions

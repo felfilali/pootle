@@ -14,6 +14,14 @@ need to change the extension of this file from ``.conf.sample`` to ``.conf``.
 # Base
 #
 
+# Site title
+POOTLE_TITLE = 'Pootle Development Server'
+
+POOTLE_INSTANCE_ID = 'development'
+
+# Some dummy secret key fine for dev
+SECRET_KEY = '__P00TL3d3vS3CR3T__'
+
 # General Django debugging settings
 
 # Enable Django debug mode
@@ -27,7 +35,11 @@ TEMPLATE_DEBUG = DEBUG
 # A list of strings representing the host/domain names that this Pootle server
 # can serve. This is a Django's security measure. More details at
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    #'${your_server}',
+]
 
 
 #
@@ -38,7 +50,7 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 DATABASES = {
     'default': {
         # Although has issues with locking, SQLite is handy for development
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'transaction_hooks.backends.sqlite3',
         # Database name or path to database file if using sqlite3.
         'NAME': working_path('dbs/pootle.db'),
         # Not used with sqlite3.
@@ -58,71 +70,32 @@ DATABASES = {
 
 #
 # Cache Backend settings
-#
-# Use local memory caching for development
-# https://docs.djangoproject.com/en/dev/topics/cache/#local-memory-caching
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'pootlecache',
-    }
-}
 
-
-# Logging
-
-POOTLE_LOG_DIRECTORY = working_path('log/')
-
-LOGGING = {
-    'version': 1,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-        'action': {
-            'format' : "[%(asctime)s]\t%(message)s",
-            'datefmt' : "%Y-%m-%dT%H:%M:%S"
-        },
-    },
-    'handlers': {
-        'null': {
-            'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
-        },
-        'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        # Log to a text file that can be rotated by logrotate
-        'log_action': {
-            'class': 'logging.handlers.WatchedFileHandler',
-            'filename': os.path.join(POOTLE_LOG_DIRECTORY,
-                                     'pootle-activity.log'),
-            'formatter':'action',
-        },
-    },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['null'],  # Quiet by default!
-            'propagate': False,
-            'level':'DEBUG',
-        },
-        'django.request': {
-            'handlers': ['null'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'action': {
-            'handlers': ['log_action',],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
+# For more information, check
+# http://docs.djangoproject.com/en/dev/topics/cache/#setting-up-the-cache
+# and http://niwibe.github.io/django-redis/
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django_redis.cache.RedisCache',
+#        'LOCATION': 'redis://127.0.0.1:6379/1',
+#        'TIMEOUT': 60,
+#    },
+#    'redis': {
+#        'BACKEND': 'django_redis.cache.RedisCache',
+#        'LOCATION': 'redis://127.0.0.1:6379/2',
+#        'TIMEOUT': None,
+#    },
+#    'stats': {
+#        'BACKEND': 'django_redis.cache.RedisCache',
+#        'LOCATION': 'redis://127.0.0.1:6379/3',
+#        'TIMEOUT': None,
+#    },
+#    'exports': {
+#        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#        'LOCATION': working_path('exports/'),
+#        'TIMEOUT': 259200,  # 3 days.
+#    },
+#}
 
 
 #
@@ -183,6 +156,8 @@ MIDDLEWARE_CLASSES += [
 DEBUG_TOOLBAR_CONFIG = {
     # Toolbar options
     'SHOW_COLLAPSED': True,
+    # Panel options
+    'INTERCEPT_REDIRECTS': False,
 }
 
 
@@ -191,10 +166,7 @@ DEBUG_TOOLBAR_CONFIG = {
 #
 
 # The directory where the translation files are kept
-PODIRECTORY = working_path('po')
-
-# The directory where version control clones/checkouts are kept
-VCS_DIRECTORY = working_path('repos')
+POOTLE_TRANSLATION_DIRECTORY = working_path('translations')
 
 # Two-tuple defining the markup filter to apply in certain textareas.
 #
@@ -207,25 +179,29 @@ VCS_DIRECTORY = working_path('repos')
 # your own the required packages.
 #
 # Examples:
-#    MARKUP_FILTER = (None, {})
-#    MARKUP_FILTER = ('markdown', {'safe_mode': 'escape'})
-#    MARKUP_FILTER = ('restructuredtext', {
-#                         'settings_overrides': {
-#                             'report_level': 'quiet',
-#                         }
-#                     })
-MARKUP_FILTER = (None, {})
+#    POOTLE_MARKUP_FILTER = (None, {})
+#    POOTLE_MARKUP_FILTER = ('markdown', {'safe_mode': 'escape'})
+#    POOTLE_MARKUP_FILTER = ('restructuredtext', {
+#                                'settings_overrides': {
+#                                    'report_level': 'quiet',
+#                                }
+#                            })
+POOTLE_MARKUP_FILTER = (None, {})
 
 # Suggestions through Machine Translation services (service name, API key).
-MT_BACKENDS = [
+POOTLE_MT_BACKENDS = [
 #        ('APERTIUM', ''),
 #        ('GOOGLE_TRANSLATE', ''),
-]
-
-# Web-based lookup
-LOOKUP_BACKENDS = [
-#        'wikipedia',
+#        ('YANDEX_TRANSLATE', ''),
 ]
 
 # URL for the amaGama TM server.
 AMAGAMA_URL = 'https://amagama-live.translatehouse.org/api/v1/'
+
+# Silence the DEBUG check on dev servers
+SILENCED_SYSTEM_CHECKS = [
+    'pootle.W004', # python-levenstein not installed
+    'pootle.W005', # DEBUG = True
+    'pootle.W010', # DEFAULT_FROM_EMAIL has default setting
+    'pootle.W011', # POOTLE_CONTACT_EMAIL has default setting
+]

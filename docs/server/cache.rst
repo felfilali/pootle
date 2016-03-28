@@ -3,9 +3,9 @@
 Caching System
 ==============
 
-Pootle uses a caching system to improve performance. It is an essential part
-of :doc:`optimizing <optimization>` your Pootle installation. It is based on
-|Django's caching system|_, and is used for various things:
+Pootle uses a caching system to improve performance. It is an essential part of
+your Pootle installation. It is based on |Django's caching system|_, and is
+used for various things:
 
 - To serve cached (possibly slightly outdated) versions of most pages to
   anonymous users to reduce their impact on server performance.
@@ -22,6 +22,18 @@ of :doc:`optimizing <optimization>` your Pootle installation. It is based on
 
 Without a well functioning cache system, Pootle could be slow.
 
+.. _cache#named_caches:
+
+Named Caches
+------------
+Pootle is configured with a these named caches:
+
+- ``'default'`` -- all non specified cache data and all cache data.
+- ``'stats'`` --  all cached data related to overview stats.
+
+In large installations you may want to setup separate caches to improve cache
+performance.  You can then setup caching parameters for each cache separately.
+
 
 .. _cache#cache_backends:
 
@@ -29,89 +41,14 @@ Cache Backends
 --------------
 
 Django supports :ref:`multiple cache backends <django:setting-up-the-cache>`
-(methods of storing cache data). You can specify which backend to use by
-overriding the value of :setting:`CACHES` in your configuration file.
+(methods of storing cache data).  However, Redis is the only cache backend
+supported by Pootle.  We use some custom features of Redis so cannot support
+other backends. You can customise the Redis cache settings by overriding the
+value of :setting:`CACHES` in your configuration file, an example exists in
+file:`90-local.conf.sample`.
 
 
-.. _cache#memcached:
-
-Memcached
-^^^^^^^^^
-
-.. code-block:: python
-
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': '127.0.0.1:11211',
-        }
-    }
-
-:ref:`Memcached <django:memcached>` is the **recommended cache backend**, it
-provides the best performance.  And works fine with multiprocessing servers
-like Apache. It requires the `python-memcached` package and a running
-memcached server. Due to extra dependencies it is not enabled by default.
-
-
-.. _cache#memcached_on_unix_sockets:
-
-Memcached on Unix sockets
-"""""""""""""""""""""""""
-
-.. code-block:: python
-
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': 'unix:/path/to/memcached.sock',
-        }
-    }
-
-If you don't want Pootle using TCP/IP to access memcached then you can use Unix
-sockets.  This is often a situation in hardened installations using SELinux.
-
-You will need to ensure that memcached is running with the ``-s`` option:
-
-.. code-block:: bash
-
-    $ memcached -u nobody -s /path/to/memcached.sock -a 0777
-
-
-.. _cache#database:
-
-Database
-^^^^^^^^
-
-.. code-block:: python
-
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-            'LOCATION': 'my_cache_table',
-        }
-    }
-
-:ref:`Database caching <django:database-caching>` relies on a table in the main
-Pootle database for storing the cached data, which makes it suitable for
-multiprocessing servers, with the added benefit that the cached data remains
-intact after a server reboot (unlike memcached) but it is considerably slower
-than memcached.
-
-.. versionchanged:: 2.1.1
-
-This is the default cache backend. On new installs and upgrades the required
-database will be created.
-
-Users of older versions need to create the cache tables manually if they would
-like to switch to the database cache backend using this :doc:`management
-command <commands>`:
-
-.. code-block:: bash
-
-    $ pootle createcachetable pootlecache
-
-
-.. _Django's caching system: http://docs.djangoproject.com/en/dev/topics/cache/
+.. _Django's caching system: https://docs.djangoproject.com/en/dev/topics/cache/
 .. |Django's caching system| replace:: *Django's caching system*
 
 .. we use | | here and above for italics like :ref: in normal links

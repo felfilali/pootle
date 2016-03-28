@@ -1,29 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2012-2013 Zuza Software Foundation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# translate is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with translate; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
-from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.db.models.aggregates import Max
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.utils.timezone import now
@@ -63,7 +50,6 @@ class AbstractPage(DirtyFieldsMixin, models.Model):
         help_text=_('If set, any references to this page will redirect to this'
                     ' URL'),
     )
-    # This will go away with bug 2830, but works fine for now.
     modified_on = models.DateTimeField(
         default=now,
         editable=False,
@@ -77,13 +63,12 @@ class AbstractPage(DirtyFieldsMixin, models.Model):
     def __unicode__(self):
         return self.virtual_path
 
-    def save(self):
+    def save(self, **kwargs):
         # Update the `modified_on` timestamp only when specific fields change.
-        dirty_fields = self.get_dirty_fields()
-        if any(field in dirty_fields for field in ('title', 'body', 'url')):
+        if self.has_changes():
             self.modified_on = now()
 
-        super(AbstractPage, self).save()
+        super(AbstractPage, self).save(**kwargs)
 
     def get_absolute_url(self):
         if self.url:
@@ -117,6 +102,10 @@ class AbstractPage(DirtyFieldsMixin, models.Model):
                  for p in AbstractPage.__subclasses__()]
         if True in pages:
             raise ValidationError(_(u'Virtual path already in use.'))
+
+    def has_changes(self):
+        dirty_fields = self.get_dirty_fields()
+        return any(field in dirty_fields for field in ('title', 'body', 'url'))
 
 
 class LegalPage(AbstractPage):
@@ -153,6 +142,9 @@ class Agreement(models.Model):
 
     class Meta:
         unique_together = ('user', 'document',)
+
+    def __unicode__(self):
+        return u'%s (%s@%s)' % (self.document, self.user, self.agreed_on)
 
     def save(self, **kwargs):
         # When updating always explicitly renew agreement date

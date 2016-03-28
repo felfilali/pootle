@@ -1,14 +1,16 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) 2012 Zuza Software Foundation (Translate.org.za)
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Copyright (C) Pootle contributors.
+#
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: translate-pootle@lists.sourceforge.net\n"
-"POT-Creation-Date: 2013-11-12 10:57+0000\n"
-"PO-Revision-Date: 2014-05-04 04:29+0000\n"
-"Last-Translator: Wei <contact@huwei.name>\n"
+"Report-Msgid-Bugs-To: https://github.com/translate/pootle/issues/new\n"
+"POT-Creation-Date: 2015-09-22 16:16+0100\n"
+"PO-Revision-Date: 2015-09-20 11:55+0000\n"
+"Last-Translator: Heyang <qysnn1@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -16,196 +18,991 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Pootle 2.5.1-rc1\n"
-"X-POOTLE-MTIME: 1399177774.000000\n"
+"X-POOTLE-MTIME: 1442750154.000000\n"
 
-#: static/js/common.js:13
-msgid "All Languages"
-msgstr "全部语言"
+#: static/js/admin/components/AdminController.js:95
+msgid "Saved successfully."
+msgstr "保存成功。"
 
-#: static/js/common.js:26
-msgid "All Projects"
-msgstr "全部工程"
+#: static/js/admin/components/AdminController.js:103
+msgid "Deleted successfully."
+msgstr "删除成功。"
 
-#: static/js/common.js:62
-msgid "Expand details"
-msgstr "展开详细说明"
+#: static/js/admin/components/ItemDelete.js:51
+msgid "Delete"
+msgstr "删除"
 
-#: static/js/common.js:62
-msgid "Collapse details"
-msgstr "收起详细说明"
+#: static/js/admin/components/LanguageForm.js:58
+#: static/js/admin/components/ProjectForm.js:61
+msgid "Code"
+msgstr "代码"
 
-#: static/js/common.js:91
-msgid "Are you sure you want to continue?"
-msgstr "您确定要继续吗？"
+#: static/js/admin/components/LanguageForm.js:64
+#: static/js/admin/components/ProjectForm.js:67
+#: static/js/admin/components/UserForm.js:89 static/js/user/forms.jsx:75
+msgid "Full Name"
+msgstr "全名"
 
-#: static/js/common.js:92
-msgid "This operation cannot be undone."
-msgstr "这个操作无法撤销。"
+#: static/js/admin/components/LanguageForm.js:70
+msgid "Special Characters"
+msgstr "特殊字符"
 
-#: static/js/common.js:139
-msgid "Show tags"
-msgstr "显示标签"
+#: static/js/admin/components/LanguageForm.js:79
+msgid "Number of Plurals"
+msgstr "复数形式数量"
 
-#: static/js/common.js:142 static/js/vendor/sorttable.js:357
-msgid "Hide tags"
-msgstr "隐藏标签"
+#: static/js/admin/components/LanguageForm.js:85
+msgid "Plural Equation"
+msgstr "复数表达式"
 
-#: static/js/common.js:293 static/js/common.js.c:309
-msgid "Hide filtering"
-msgstr "隐藏过滤器"
+#: static/js/admin/components/LanguageForm.js:95
+#: static/js/admin/components/ProjectForm.js:137
+#: static/js/admin/components/UserForm.js:144 static/js/user/forms.jsx:121
+msgid "Save"
+msgstr "保存"
 
-#: static/js/common.js:296 static/js/common.js.c:303
-msgid "Show filtering"
-msgstr "显示过滤器"
+#: static/js/admin/components/LanguageForm.js:98
+#: static/js/admin/components/ProjectForm.js:140
+msgid "Overview"
+msgstr "概览"
 
-#: static/js/editor.js:209
-msgid "Go to the next string (Ctrl+.)"
-msgstr "转到下一字符串(Ctrl+.)"
+#: static/js/admin/components/LanguageForm.js:99
+#: static/js/admin/components/ProjectForm.js:142
+msgid "Permissions"
+msgstr "权限"
 
-#: static/js/editor.js:215
-msgid "Go to the previous string (Ctrl+,)"
-msgstr "转到上一字符串(Ctrl+,)"
+#: static/js/admin/components/ProjectForm.js:76
+msgid "Quality Checks"
+msgstr "质量检查"
 
-#. Translators: '%s' is a username
-#: static/js/editor.js:333
-#, c-format
+#: static/js/admin/components/ProjectForm.js:85
+msgid "File Type"
+msgstr "文件类型"
+
+#: static/js/admin/components/ProjectForm.js:94
+msgid "Project Tree Style"
+msgstr "项目树样式"
+
+#: static/js/admin/components/ProjectForm.js:103
+msgid "Source Language"
+msgstr "源语言"
+
+#: static/js/admin/components/ProjectForm.js:109
+msgid "Ignore Files"
+msgstr "忽略文件"
+
+#: static/js/admin/components/ProjectForm.js:116
+msgid "String Errors Contact"
+msgstr ""
+
+#: static/js/admin/components/ProjectForm.js:122
+msgid "Screenshot Search Prefix"
+msgstr "屏幕截图搜索前缀"
+
+#: static/js/admin/components/ProjectForm.js:129
+msgid "Disabled"
+msgstr "已禁用"
+
+#: static/js/admin/components/ProjectForm.js:141
+msgid "Languages"
+msgstr "语言"
+
+#: static/js/admin/components/Search.js:66
+msgid "Load More"
+msgstr "加载更多"
+
+#: static/js/admin/components/Search.js:89
+msgid "Loading..."
+msgstr "正在加载..."
+
+#: static/js/admin/components/UserForm.js:52
+#, fuzzy
+msgid ""
+"Note: when deleting a user their contributions to the site, e.g. comments, "
+"suggestions and translations, are attributed to the anonymous user (nobody)."
+msgstr "注意：删除用户将使其的贡献如评论、建议和翻译归于匿名用户。"
+
+#: static/js/admin/components/UserForm.js:64
+#: static/js/auth/components/SignInForm.js:95
+#: static/js/auth/components/SignUpForm.js:84
+msgid "Username"
+msgstr "用户名"
+
+#: static/js/admin/components/UserForm.js:73
+msgid "Active"
+msgstr "活跃"
+
+#: static/js/admin/components/UserForm.js:80
+#: static/js/auth/components/SignInForm.js:104
+#: static/js/auth/components/SignUpForm.js:100
+#: static/js/auth/components/SocialVerification.js:94
+#: static/js/auth/components/PasswordResetForm.js:113
+msgid "Password"
+msgstr "密码"
+
+#: static/js/admin/components/UserForm.js:81
+msgid "Set a new password"
+msgstr "设置新密码"
+
+#: static/js/admin/components/UserForm.js:95
+#: static/js/auth/components/SignUpForm.js:92
+msgid "Email"
+msgstr "电子邮件地址"
+
+#: static/js/admin/components/UserForm.js:104
+msgid "Administrator"
+msgstr "管理员"
+
+#: static/js/admin/components/UserForm.js:111 static/js/user/forms.jsx:89
+msgid "Twitter"
+msgstr "Twitter"
+
+#: static/js/admin/components/UserForm.js:113
+msgid "Twitter username"
+msgstr "Twitter 用户名"
+
+#: static/js/admin/components/UserForm.js:119 static/js/user/forms.jsx:96
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: static/js/admin/components/UserForm.js:121
+msgid "LinkedIn profile URL"
+msgstr "LinkedIn 个人资料网址"
+
+#: static/js/admin/components/UserForm.js:126 static/js/user/forms.jsx:102
+msgid "Website"
+msgstr "网站"
+
+#: static/js/admin/components/UserForm.js:128
+msgid "Personal website URL"
+msgstr "个人网站网址"
+
+#: static/js/admin/components/UserForm.js:134 static/js/user/forms.jsx:109
+msgid "Short Bio"
+msgstr "个人简介"
+
+#: static/js/admin/components/UserForm.js:136
+msgid "Personal description"
+msgstr "个人介绍"
+
+#: static/js/admin/components/UserForm.js:147
+msgid "Public Profile"
+msgstr "公开个人资料"
+
+#: static/js/admin/components/UserForm.js:148
+msgid "Settings"
+msgstr "设置"
+
+#: static/js/admin/components/UserForm.js:149
+msgid "Statistics"
+msgstr "统计"
+
+#: static/js/admin/components/UserForm.js:150
+msgid "Reports"
+msgstr "报告"
+
+#: static/js/auth/components/AccountActivation.js:33
+#: static/js/auth/components/RequestPasswordResetSent.js:44
+#, python-format, javascript-format
+msgid "We have sent an email containing the special link to <span>%s</span>"
+msgstr "我们已经发送了一封电子邮件，该邮件中包含了<span>%s</span>的链接。"
+
+#: static/js/auth/components/AccountActivation.js:38
+msgid ""
+"We have sent an email containing the special link to the address used to "
+"register this account."
+msgstr "我们已经发送了一封电子邮件，该邮件中含有用于注册该帐号的链接。"
+
+#: static/js/auth/components/AccountActivation.js:42
+msgid "Your account needs activation."
+msgstr "您的帐号需要激活。"
+
+#: static/js/auth/components/AccountActivation.js:43
+msgid "Please follow that link to continue the account creation."
+msgstr "请点击这个链接继续创建帐号。"
+
+#: static/js/auth/components/AccountActivation.js:57
+#: static/js/auth/components/AccountInactive.js:36
+#: static/js/auth/components/EmailConfirmation.js:36
+msgid "Close"
+msgstr "关闭"
+
+#: static/js/auth/components/AccountInactive.js:30
+msgid "Your account is inactive because an administrator deactivated it."
+msgstr "您的帐号已被管理员停用。"
+
+#: static/js/auth/components/AuthController.js:85
+msgid "Sign In With..."
+msgstr "通过其他方式登录"
+
+#: static/js/auth/components/AuthController.js:85
+#: static/js/auth/components/SignInForm.js:122
+#: static/js/auth/components/SocialVerification.js:112
+msgid "Sign In"
+msgstr "登录"
+
+#: static/js/auth/components/AuthController.js:92
+msgid "Account Inactive"
+msgstr "账号已停用"
+
+#: static/js/auth/components/AuthController.js:99
+#: static/js/auth/components/SignUpForm.js:121
+msgid "Sign Up"
+msgstr "注册"
+
+#: static/js/auth/components/AuthController.js:106
+msgid "Account Activation"
+msgstr "帐号激活"
+
+#: static/js/auth/components/AuthController.js:113
+msgid "Email Confirmation"
+msgstr "电子邮件确认"
+
+#: static/js/auth/components/AuthController.js:120
+#: static/js/auth/components/AuthController.js:127
+#: static/js/auth/components/AuthController.js:134
+msgid "Reset Your Password"
+msgstr "重设您的密码"
+
+#: static/js/auth/components/AuthController.js:141
+msgid "Oops..."
+msgstr "Oops..."
+
+#: static/js/auth/components/AuthController.js:148
+msgid "Social Verification"
+msgstr ""
+
+#: static/js/auth/components/AuthWindow.js:29
+msgid "Contact Us"
+msgstr "联系我们"
+
+#: static/js/auth/components/EmailConfirmation.js:30
+msgid "This email confirmation link expired or is invalid."
+msgstr "这个确认链接已失效或是无效的"
+
+#: static/js/auth/components/PasswordResetForm.js:80
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used. Please request a new password reset."
+msgstr "密码重置链接无效，可能是因为它已经被使用了。请重新重置密码。"
+
+#: static/js/auth/components/PasswordResetForm.js:86
+msgid "Reset Password"
+msgstr "重设密码"
+
+#: static/js/auth/components/PasswordResetForm.js:98
+msgid "Password changed, signing in..."
+msgstr "密码已更改，正在登录..."
+
+#: static/js/auth/components/PasswordResetForm.js:122
+#: static/js/auth/components/SignUpForm.js:108
+msgid "Repeat Password"
+msgstr "重复密码"
+
+#: static/js/auth/components/PasswordResetForm.js:135
+msgid "Set New Password"
+msgstr "设置新密码"
+
+#: static/js/auth/components/PasswordResetForm.js:139
+msgid "After changing your password you will sign in automatically."
+msgstr "更改您的密码后，您将自动登录。"
+
+#: static/js/auth/components/RequestPasswordResetProgress.js:25
+#, python-format, javascript-format
+msgid "Sending email to %s..."
+msgstr "正在向 %s 发送电子邮件"
+
+#: static/js/auth/components/RequestPasswordResetSent.js:47
+msgid "Please follow that link to continue the password reset procedure."
+msgstr "请点击该链接继续密码重置过程。"
+
+#: static/js/auth/components/RequestPasswordResetSent.js:48
+msgid ""
+"Didn't receive an email? Check if it was accidentally filtered out as spam, "
+"or try requesting another copy of the email."
+msgstr "没有收到邮件？请检查是不是被归类为垃圾邮件，或者请求再次发送"
+
+#: static/js/auth/components/RequestPasswordResetSent.js:62
+msgid "Resend Email"
+msgstr "重发电子邮件"
+
+#: static/js/auth/components/SignInForm.js:83
+#: static/js/auth/components/RequestPasswordResetForm.js:120
+msgid "Sign up as a new user"
+msgstr "注册新账户"
+
+#: static/js/auth/components/SignInForm.js:111
+#: static/js/auth/components/SocialVerification.js:101
+msgid "I forgot my password"
+msgstr "我忘记了密码"
+
+#: static/js/auth/components/SignInPanel.js:49
+#: static/js/auth/components/SocialVerification.js:72
+msgid "Signed in. Redirecting..."
+msgstr "已登录。正在跳转..."
+
+#: static/js/auth/components/SignInPanel.js:62
+msgid "Social Services"
+msgstr "社交服务"
+
+#: static/js/auth/components/SignInPanel.js:65
+msgid "Login / Password"
+msgstr "登录/密码"
+
+#: static/js/auth/components/SignUpForm.js:126
+msgid "Sign in as an existing user"
+msgstr "以现有用户登录"
+
+#: static/js/auth/components/SocialAuthError.js:31
+#, python-format, javascript-format
+msgid "An error occurred while attempting to sign in via %s."
+msgstr "试图通过%s登陆时发生了错误。"
+
+#: static/js/auth/components/SocialAuthError.js:35
+msgid "An error occurred while attempting to sign in via your social account."
+msgstr "试图通过您的社交网络账户登陆时发生了错误。"
+
+#: static/js/auth/components/SocialAuthError.js:51
+msgid "Try again"
+msgstr "重试"
+
+#: static/js/auth/components/SocialSignInForm.js:40
+#, python-format, javascript-format
+msgid "Sign In With %s"
+msgstr "使用%s登陆"
+
+#: static/js/auth/components/SocialSignInForm.js:46
+msgid ""
+"Signing in with an external service for the first time will automatically "
+"create an account for you."
+msgstr "使用外部账户第一次登陆时会自动为您创建一个账户"
+
+#: static/js/editor/app.js:241 static/js/editor/app.js:537
+#, fuzzy
+msgid ""
+"You have unsaved changes in this string. Navigating away will discard those "
+"changes."
+msgstr "你在这个单元有未保存的数据。离开会丢失这些数据。"
+
+#: static/js/editor/app.js:267
+msgid ""
+"Go to the next string (Ctrl+.)<br/><br/>Also:<br/>Next page: Ctrl+Shift+.<br/"
+">Last page: Ctrl+Shift+End"
+msgstr ""
+"转到下一个字符串 (Ctrl+.)<br/><br/>也可以：<br/>下一页：Ctrl+Shift+.<br/>最后"
+"一页：Ctrl+Shift+End"
+
+#: static/js/editor/app.js:271
+msgid ""
+"Go to the previous string (Ctrl+,)<br/><br/>Also:</br>Previous page: Ctrl"
+"+Shift+,<br/>First page: Ctrl+Shift+Home"
+msgstr ""
+"转到上一个字符串 (Ctrl+.)<br/><br/>也可以：<br/>上一页：Ctrl+Shift+,<br/>第一"
+"页：Ctrl+Shift+Home"
+
+#: static/js/editor/app.js:383
+#, python-format, javascript-format
 msgid "%s's pending suggestions"
 msgstr "%s 的待审建议"
 
-#. Translators: '%s' is a username
-#: static/js/editor.js:336
-#, c-format
+#: static/js/editor/app.js:386
+#, python-format, javascript-format
 msgid "%s's accepted suggestions"
 msgstr "%s 的获准建议"
 
-#. Translators: '%s' is a username
-#: static/js/editor.js:339
-#, c-format
+#: static/js/editor/app.js:389
+#, python-format, javascript-format
 msgid "%s's rejected suggestions"
 msgstr "%s 的被拒建议"
 
-#. Translators: '%s' is a username
-#: static/js/editor.js:342
-#, c-format
+#: static/js/editor/app.js:392
+#, python-format, javascript-format
 msgid "%s's submissions"
 msgstr "%s 的提交"
 
-#. Translators: '%s' is a username, meaning "submissions by %s, that were overwritten"
-#: static/js/editor.js:345
-#, c-format
+#: static/js/editor/app.js:396
+#, python-format, javascript-format
 msgid "%s's overwritten submissions"
-msgstr "%s 被覆盖的提交"
+msgstr "%s 的被覆盖的提交"
 
-#: static/js/editor.js:476 static/js/editor.js.c:1521
+#: static/js/editor/app.js:529 static/js/editor/app.js:1741
 msgid "No results."
-msgstr "无结果。"
+msgstr "没有结果。"
 
-#: static/js/editor.js:748
-msgid "Export View"
-msgstr "导出视图"
-
-#: static/js/editor.js:798
+#: static/js/editor/app.js:1043
 msgid "Error while connecting to the server"
 msgstr "连接到服务器时出错"
 
-#: static/js/editor.js:800
+#: static/js/editor/app.js:1047
+msgid "Not found"
+msgstr "未找到"
+
+#: static/js/editor/app.js:1049
 msgid "Server error"
 msgstr "服务器错误"
 
-#: static/js/editor.js:802
+#: static/js/editor/app.js:1051
 msgid "The server seems down. Try again later."
 msgstr "服务器似乎宕机了。请您稍后重试。"
 
-#: static/js/editor.js:809
+#: static/js/editor/app.js:1058
 msgid "Unknown error"
 msgstr "未知错误"
 
-#: static/js/editor.js:1367
-msgid "You reached the beginning of the list"
-msgstr "您已到达列表的开始"
+#: static/js/editor/app.js:1066
+#, fuzzy
+msgid "This string no longer exists."
+msgstr "此单位已不存在。"
 
-#: static/js/editor.js:1370
-msgid "You reached the end of the list."
-msgstr "您已到达列表的末尾。"
+#: static/js/editor/app.js:1067
+#, fuzzy
+msgid "Go back to browsing"
+msgstr "返回概览"
 
-#: static/js/editor.js:1372
-msgid "Return to the overview page."
-msgstr "回到概览页面。"
+#: static/js/editor/app.js:1069
+msgid "Reload page"
+msgstr "重新载入页面"
 
-#. Translators: This is the quality match percentage of a TM result.
-#. '%s' will be replaced by a number, and you should keep the extra
-#. '%' symbol to denote a percentage is being used.
-#: static/js/editor.js:1807
-#, c-format
-msgid "%s% match"
-msgstr "%s% 项匹配"
+#: static/js/editor/app.js:2095
+msgid "some anonymous user"
+msgstr "一些匿名用户"
 
-#: static/js/editor.js:1851
+#: static/js/editor/app.js:2097
+msgid "someone"
+msgstr "某人"
+
+#: static/js/editor/app.js:2115 static/js/editor/app.js:2164
 msgid "Similar translations"
-msgstr "相似的翻译"
+msgstr "类似的翻译"
 
-#. Translators: from pootle/apps/pootle_store/templates/unit/xhr-edit-ctx.html
-#: static/js/strings.js:7
-msgid "More"
-msgstr "更多"
+#: static/js/shared/models/project.js:59
+msgid "disabled"
+msgstr "已禁用"
 
-#. Translators: from pootle/apps/pootle_store/templates/unit/xhr-edit-ctx.html
-#: static/js/strings.js:10
-msgid "Hide"
-msgstr "隐藏"
+#: static/js/stats.js:353
+#, python-format, javascript-format
+msgid "%s second"
+msgid_plural "%s seconds"
+msgstr[0] "%s 秒"
 
-#. Translators: from pootle/apps/pootle_store/templates/unit/xhr-edit-ctx.html
-#: static/js/strings.js:13
-msgid "Less"
-msgstr "更少"
+#: static/js/stats.js:397
+msgid "Collapse details"
+msgstr "收起细节"
 
-#. Translators: from pootle/apps/pootle_store/templates/unit/xhr-edit-ctx.html
-#: static/js/strings.js:16
-msgid "Show"
-msgstr "显示"
+#: static/js/stats.js:397
+msgid "Expand details"
+msgstr "展开细节"
 
-#: static/js/utils.js:143
-#, c-format
+#: static/js/user/components/UserProfileEdit.js:106
+msgid "Edit My Public Profile"
+msgstr "编辑我的公开个人资料"
+
+#: static/js/user/components/UserProfileEdit.js:113
+msgid "My Public Profile"
+msgstr "我的公开个人资料"
+
+#: static/js/user/components/UserProfileEdit.js:125
+msgid "Discard changes."
+msgstr "舍弃更改"
+
+#: static/js/user/components/UserProfileEdit.js:126
+msgid "Yes"
+msgstr "是"
+
+#: static/js/user/components/UserProfileEdit.js:127
+msgid "No"
+msgstr "否"
+
+#: static/js/user/components/UserProfileEdit.js:128
+msgid "There are unsaved changes. Do you want to discard them?"
+msgstr "尚有未保存的更改。您要舍弃它们吗？"
+
+#: static/js/utils.js:151
+#, javascript-format
 msgid "A year ago"
 msgid_plural "%s years ago"
-msgstr[0] "%1 年前"
+msgstr[0] "%s 年前"
 
-#: static/js/utils.js:146
-#, c-format
+#: static/js/utils.js:154
+#, javascript-format
 msgid "A week ago"
 msgid_plural "%s weeks ago"
-msgstr[0] "%1 周前"
+msgstr[0] "%s 周前"
 
-#: static/js/utils.js:149
-#, c-format
+#: static/js/utils.js:157
+#, javascript-format
 msgid "Yesterday"
 msgid_plural "%s days ago"
-msgstr[0] "%1 天前"
+msgstr[0] "%s 天前"
 
-#: static/js/utils.js:152
-#, c-format
+#: static/js/utils.js:160
+#, javascript-format
 msgid "An hour ago"
 msgid_plural "%s hours ago"
-msgstr[0] "%1 小时前"
-
-#: static/js/utils.js:155
-#, c-format
-msgid "A minute ago"
-msgid_plural "%s minutes ago"
-msgstr[0] "%1 分钟前"
+msgstr[0] "%s 小时前"
 
 #: static/js/utils.js:163
+#, javascript-format
+msgid "A minute ago"
+msgid_plural "%s minutes ago"
+msgstr[0] "%s 分钟前"
+
+#: static/js/utils.js:171
 msgid "A few seconds ago"
 msgstr "几秒钟前"
 
-#, c-format
+#: static/js/auth/components/RequestPasswordResetForm.js:95
+msgid "Email Address"
+msgstr ""
+
+#: static/js/auth/components/RequestPasswordResetForm.js:96
+msgid ""
+"Enter your email address, and we will send you a message with the special "
+"link to reset your password."
+msgstr ""
+
+#: static/js/auth/components/RequestPasswordResetForm.js:106
+msgid "No, thanks"
+msgstr ""
+
+#: static/js/auth/components/RequestPasswordResetForm.js:114
+#, fuzzy
+msgid "Send Email"
+msgstr "重发电子邮件"
+
+#: static/js/auth/components/SignInForm.js:85
+msgid "Creating new user accounts is prohibited."
+msgstr ""
+
+#: static/js/auth/components/SocialVerification.js:79
+#, python-format
+msgid ""
+"We found a user with <span>%s</span> email in our system. Please provide the "
+"password to finish the sign in procedure. This is a one-off procedure, which "
+"will establish a link between your Pootle and %s accounts."
+msgstr ""
+
+#: static/js/browser.js:163
+msgid "All Languages"
+msgstr "所有语言"
+
+#: static/js/browser.js:166
+msgid "All Projects"
+msgstr "所有项目"
+
+#: static/js/browser.js:170
+msgid "Entire Project"
+msgstr "整个项目"
+
+#: static/js/shared/components/UserEvent.js:73
+#: static/js/shared/components/UserEvent.js:94
+#, python-brace-format
+msgid "removed translation for ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:75
+#, fuzzy, python-brace-format
+msgid "accepted suggestion for ${sourceString}"
+msgstr "%s 的获准建议"
+
+#: static/js/shared/components/UserEvent.js:77
+msgid "uploaded file"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:79
+#, python-brace-format
+msgid "muted ${check} for ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:81
+#, python-brace-format
+msgid "unmuted ${check} for ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:83
+#, python-brace-format
+msgid "added suggestion for ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:85
+#, fuzzy, python-brace-format
+msgid "rejected suggestion for ${sourceString}"
+msgstr "%s 的被拒建议"
+
+#: static/js/shared/components/UserEvent.js:88
+#, python-brace-format
+msgid "translated ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:90
+#, python-brace-format
+msgid "edited ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:92
+#, python-brace-format
+msgid "pre-translated ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:96
+#, python-brace-format
+msgid "reviewed ${sourceString}"
+msgstr ""
+
+#: static/js/shared/components/UserEvent.js:98
+#, python-brace-format
+msgid "marked as needs work ${sourceString}"
+msgstr ""
+
+#: static/js/admin/components/language.jsx:52
+#, python-format
+msgid "%(count)s language matches your query."
+msgid_plural "%(count)s languages match your query."
+msgstr[0] "%(count)s 种语言匹配您的查询。"
+
+#: static/js/admin/components/language.jsx:56
+#, python-format
+msgid "There is %(count)s language."
+msgid_plural ""
+"There are %(count)s languages. Below are the most recently added ones."
+msgstr[0] "这里有 %(count)s 种语言。下面是最近添加的。"
+
+#: static/js/admin/components/language.jsx:74
+msgid "Search Languages"
+msgstr "搜索语言"
+
+#: static/js/admin/components/language.jsx:75
+msgid "Find language by name, code"
+msgstr "按名称或代码查找语言"
+
+#: static/js/admin/components/language.jsx:103
+#: static/js/admin/components/language.jsx:138
+msgid "Add Language"
+msgstr "添加语言"
+
+#: static/js/admin/components/language.jsx:106
+#: static/js/admin/components/project.jsx:106
+#: static/js/admin/components/user.jsx:106
+msgid "Cancel"
+msgstr "取消"
+
+#: static/js/admin/components/language.jsx:135
+msgid "Edit Language"
+msgstr "编辑语言"
+
+#: static/js/admin/components/language.jsx:142
+msgid ""
+"Use the search form to find the language, then click on a language to edit."
+msgstr "使用搜索表单查找语言，然后点击一个语言以编辑。"
+
+#: static/js/admin/components/project.jsx:52
+#, python-format
+msgid "%(count)s project matches your query."
+msgid_plural "%(count)s projects match your query."
+msgstr[0] "%(count)s 个项目匹配您的查询。"
+
+#: static/js/admin/components/project.jsx:56
+#, fuzzy, python-format
+msgid "There is %(count)s project."
+msgid_plural ""
+"There are %(count)s projects. Below are the most recently added ones."
+msgstr[0] "这里有 %(count)s 个项目。"
+
+#: static/js/admin/components/project.jsx:74
+msgid "Search Projects"
+msgstr "搜索项目"
+
+#: static/js/admin/components/project.jsx:75
+msgid "Find project by name, code"
+msgstr "按名称或代码查找项目"
+
+#: static/js/admin/components/project.jsx:103
+#: static/js/admin/components/project.jsx:138
+msgid "Add Project"
+msgstr "添加项目"
+
+#: static/js/admin/components/project.jsx:135
+msgid "Edit Project"
+msgstr "编辑项目"
+
+#: static/js/admin/components/project.jsx:142
+msgid ""
+"Use the search form to find the project, then click on a project to edit."
+msgstr "使用搜索表格来查找项目，然后点击一个项目以编辑。"
+
+#: static/js/admin/components/user.jsx:52
+#, python-format
+msgid "%(count)s user matches your query."
+msgid_plural "%(count)s users match your query."
+msgstr[0] ""
+"共有%(count)s 个用户符合您的查询条件。%(count)s 个用户符合您的查询条件。"
+
+#: static/js/admin/components/user.jsx:56
+#, python-format
+msgid "There is %(count)s user."
+msgid_plural ""
+"There are %(count)s users. Below are the most recently added ones."
+msgstr[0] ""
+"这里有 %(count)s 个用户。这里有 %(count)s 个用户。下面显示的是最近注册的用"
+"户。"
+
+#: static/js/admin/components/user.jsx:74
+msgid "Search Users"
+msgstr "搜索用户"
+
+#: static/js/admin/components/user.jsx:75
+msgid "Find user by name, email, properties"
+msgstr "按名称、电子邮件地址或属性查找用户"
+
+#: static/js/admin/components/user.jsx:103
+#: static/js/admin/components/user.jsx:138
+msgid "Add User"
+msgstr "添加用户"
+
+#: static/js/admin/components/user.jsx:135
+msgid "Edit User"
+msgstr "编辑用户"
+
+#: static/js/admin/components/user.jsx:142
+msgid "Use the search form to find the user, then click on a user to edit."
+msgstr "使用搜索表单查找用户，然后点击用户以编辑。"
+
+#: static/js/shared/components/forms.jsx:69
+msgid "Select..."
+msgstr "选择..."
+
+#: static/js/shared/components/forms.jsx:70
+msgid "No results found"
+msgstr "未找到结果"
+
+#: static/js/shared/components/forms.jsx:71
+msgid "Clear value"
+msgstr "清除值"
+
+#: static/js/shared/components/forms.jsx:72
+msgid "Clear all"
+msgstr "全部清除"
+
+#: static/js/shared/components/forms.jsx:73
+msgid "Type to search"
+msgstr "输入进行搜索"
+
+#: static/js/user/forms.jsx:63
+#, python-format
+msgid ""
+"To set or change your avatar for your email address (%(email)s), please go "
+"to gravatar.com."
+msgstr ""
+"要设置或者更改将用于您的电子邮件地址 (%(email)s) 的头像，请访问 gravatar."
+"com。"
+
+#: static/js/user/forms.jsx:76
+msgid "Your Full Name"
+msgstr "您的全名"
+
+#: static/js/user/forms.jsx:82
+msgid "Avatar"
+msgstr "头像"
+
+#: static/js/user/forms.jsx:91
+msgid "Your Twitter username"
+msgstr "您的 Twitter 用户名"
+
+#: static/js/user/forms.jsx:98
+msgid "Your LinkedIn profile URL"
+msgstr "您的 LinkedIn 个人资料网址"
+
+#: static/js/user/forms.jsx:104
+msgid "Your Personal website/blog URL"
+msgstr "您的个人网站/博客网址"
+
+#: static/js/user/forms.jsx:112
+msgid ""
+"Why are you part of our translation project? Describe yourself, inspire "
+"others!"
+msgstr "你为何成为了翻译项目的一员？介绍自己，激励他人！"
+
+#: templates/admin/xhr_language_user_activity.html:6
+msgid "Project / Language"
+msgstr "项目 / 语言"
+
+#: templates/admin/xhr_language_user_activity.html:7
+msgid "Suggested"
+msgstr "建议的"
+
+#: templates/admin/xhr_language_user_activity.html:8
+msgid "Translated"
+msgstr "已翻译"
+
+#: templates/admin/xhr_language_user_activity.html:9
+msgid "Reviewed"
+msgstr "已审阅"
+
+#: templates/admin/xhr_language_user_activity.html:10
+msgid "Score Change"
+msgstr "得分变化"
+
+#: templates/admin/xhr_language_user_activity.html:20
+#: templates/admin/xhr_language_user_activity.html:24
+#: templates/admin/xhr_language_user_activity.html:31
+#: templates/admin/xhr_language_user_activity.html:35
+#: templates/admin/xhr_language_user_activity.html:40
+#: templates/admin/xhr_language_user_activity.html:51
+#: templates/admin/xhr_language_user_activity.html:55
+#: templates/admin/xhr_language_user_activity.html:59
+#, fuzzy, python-format
+msgid "%s word"
+msgid_plural "%s words"
+msgstr[0] "词"
+
+#: templates/admin/xhr_language_user_activity.html:69
+msgid "No activity recorded in a given period"
+msgstr "指定周期内没有活动记录"
+
+#: templates/admin/xhr_language_user_activity.html:72
+msgid "Please select a valid user."
+msgstr "请选择一个有效的用户。"
+
+#: templates/admin/xhr_paid_tasks_report.html:3
+msgid "Registered Tasks"
+msgstr "已注册的任务"
+
+#: templates/admin/xhr_paid_tasks_report.html:7
+msgid "Datetime"
+msgstr "日期时间"
+
+#: templates/admin/xhr_paid_tasks_report.html:8
+msgid "Comment"
+msgstr "备注"
+
+#: templates/admin/xhr_paid_tasks_report.html:9
+#: templates/admin/xhr_summary_report.html:7
+msgid "Action"
+msgstr "动作"
+
+#: templates/admin/xhr_paid_tasks_report.html:10
+#: templates/admin/xhr_summary_report.html:8
+msgid "Amount"
+msgstr "数量"
+
+#: templates/admin/xhr_paid_tasks_report.html:11
+#: templates/admin/xhr_summary_report.html:9
+msgid "Rate"
+msgstr "比率"
+
+#: templates/admin/xhr_paid_tasks_report.html:12
+#: templates/admin/xhr_summary_report.html:10
+msgid "Subtotal"
+msgstr "分类汇总"
+
+#: templates/admin/xhr_paid_tasks_report.html:21
+#: templates/admin/xhr_summary_report.html:32
+msgid "hour"
+msgid_plural "hours"
+msgstr[0] "小时"
+
+#: templates/admin/xhr_paid_tasks_report.html:24
+#: templates/admin/xhr_summary_report.html:21
+#: templates/admin/xhr_summary_report.html:35
+msgid "word"
+msgid_plural "words"
+msgstr[0] "词"
+
+#: templates/admin/xhr_paid_tasks_report.html:36
+msgid "Remove task"
+msgstr "移除任务"
+
+#: templates/admin/xhr_paid_tasks_report.html:41
+msgid "Comment on it"
+msgstr "为它备注"
+
+#: templates/admin/xhr_summary_report.html:2
+msgid "Summary"
+msgstr "摘要"
+
+#: templates/admin/xhr_summary_report.html:6
+msgid "Period"
+msgstr "周期"
+
+#: templates/admin/xhr_summary_report.html:41
+msgid "(registered tasks)"
+msgstr "（已注册的任务）"
+
+#: templates/admin/xhr_summary_report.html:49
+#, python-format
+msgid "Total (%(currency)s)"
+msgstr "总计 (%(currency)s)"
+
+#: templates/editor/units/xhr_edit_ctx.html:4
+msgid "More"
+msgstr "更多"
+
+#: templates/editor/units/xhr_edit_ctx.html:5
+msgid "Hide"
+msgstr "隐藏"
+
+#: templates/editor/units/xhr_edit_ctx.html:6
+msgid "Less"
+msgstr "更少"
+
+#: templates/editor/units/xhr_edit_ctx.html:7
+msgid "Show"
+msgstr "显示"
+
+#: templates/editor/units/xhr_tm.html:13
+#, python-format
+msgid ""
+"Translated by %(fullname)s in &ldquo;<span title=\"%(path)s\">%(project)s</"
+"span>&rdquo; project"
+msgstr ""
+"已被 %(fullname)s 在 &ldquo;<span title=\"%(path)s\">%(project)s</"
+"span>&rdquo; 项目中翻译"
+
+#~ msgid "Are you sure you want to continue?"
+#~ msgstr "您确定要继续吗？"
+
+#~ msgid "This operation cannot be undone."
+#~ msgstr "此操作无法撤销。"
+
+#~ msgid "Show tags"
+#~ msgstr "显示标签"
+
+#~ msgid "Hide tags"
+#~ msgstr "隐藏标签"
+
+#~ msgid "Hide filtering"
+#~ msgstr "隐藏过滤器"
+
+#~ msgid "Show filtering"
+#~ msgstr "显示过滤器"
+
+#~ msgid "Go to the next string (Ctrl+.)"
+#~ msgstr "转到下一个字符串 (Ctrl+.)"
+
+#~ msgid "Go to the previous string (Ctrl+,)"
+#~ msgstr "转到上一个字符串 (Ctrl+,)"
+
+#~ msgid "Export View"
+#~ msgstr "导出视图"
+
+#~ msgid "You reached the beginning of the list"
+#~ msgstr "您已到达列表的开头"
+
+#~ msgid "You reached the end of the list."
+#~ msgstr "您已到达列表的末尾。"
+
+#~ msgid "Return to the overview page."
+#~ msgstr "返回到概览页面。"
+
+#~ msgid "%s% match"
+#~ msgstr "%s% 项匹配"
+
 #~ msgid "<a href=\"%s\">String %s</a>"
 #~ msgstr "<a href=\"%s\">字符串 %s</a>"
 
 #~ msgid "Congratulations, you walked through all strings."
 #~ msgstr "祝贺您，您已遍历全部字符串。"
 
-#, c-format
 #~ msgid "<a href=\"%s\">Unit %s</a>"
 #~ msgstr "<a href=\"%s\">单元 %s</a>"
 

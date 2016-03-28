@@ -1,33 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009-2012 Zuza Software Foundation
-# Copyright 2013-2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
+import errno
 import logging
 import os
 import re
-import shutil
 
+from django.conf import settings
+
+from pootle.core.log import store_log, STORE_RESURRECTED
+from pootle.core.utils.timezone import datetime_min
 from pootle_app.models.directory import Directory
 from pootle_language.models import Language
-from pootle_store.models import Store, PARSED
-from pootle_store.util import absolute_real_path, add_trailing_slash
+from pootle_store.models import Store
+from pootle_store.util import absolute_real_path, relative_real_path
 
 
 #: Case insensitive match for language codes
@@ -143,61 +135,37 @@ def split_files_and_dirs(ignored_files, ext, real_dir, file_filter):
     return files, dirs
 
 
-def recursive_files_and_dirs(ignored_files, ext, real_dir, file_filter):
-    """Traverses :param:`real_dir` searching for files and directories.
+def add_items(fs_items_set, db_items, create_or_resurrect_db_item, parent):
+    """Add/make obsolete the database items to correspond to the filesystem.
 
-    :param ignored_files: List of files that will be ignored.
-    :param ext: Only files ending with this extension will be considered.
-    :param real_dir:
-    :param file_filter: Filtering function applied to the list of files found.
-    :return: A tuple of lists of files and directories found when traversing the
-        given path and after applying the given restrictions.
-    """
-    real_dir = add_trailing_slash(real_dir)
-    files = []
-    dirs = []
-
-    for _path, _dirs, _files in os.walk(real_dir, followlinks=True):
-        # Make it relative:
-        _path = _path[len(real_dir):]
-        files += [os.path.join(_path, f) for f in filter(file_filter, _files)
-                  if f.endswith(ext) and f not in ignored_files]
-
-        # Edit _dirs in place to avoid further recursion into hidden directories
-        for d in _dirs:
-            if is_hidden_file(d):
-                _dirs.remove(d)
-
-        dirs += _dirs
-
-    return files, dirs
-
-
-def add_items(fs_items, db_items, create_db_item):
-    """Add/remove the database items to correspond to the filesystem.
-
-    :param fs_items: entries currently in the filesystem
-    :param db_items: entries currently in the database
-    :create_db_item: callable that will create a new db item with a given name
+    :param fs_items_set: items (dirs, files) currently in the filesystem
+    :param db_items: dict (name, item) of items (dirs, stores) currently in the
+        database
+    :create_or_resurrect_db_item: callable that will create a new db item
+        or resurrect an obsolete db item with a given name and parent.
+    :parent: parent db directory for the items
     :return: list of all items, list of newly added items
     :rtype: tuple
     """
     items = []
     new_items = []
-    fs_items_set = set(fs_items)
     db_items_set = set(db_items)
 
     items_to_delete = db_items_set - fs_items_set
     items_to_create = fs_items_set - db_items_set
 
     for name in items_to_delete:
-        db_items[name].delete()
+        db_items[name].makeobsolete()
+    if len(items_to_delete) > 0:
+        parent.update_all_cache()
+        for vfolder_treeitem in parent.vfolder_treeitems:
+            vfolder_treeitem.update_all_cache()
 
     for name in db_items_set - items_to_delete:
         items.append(db_items[name])
 
     for name in items_to_create:
-        item = create_db_item(name)
+        item = create_or_resurrect_db_item(name)
         items.append(item)
         new_items.append(item)
         try:
@@ -208,88 +176,89 @@ def add_items(fs_items, db_items, create_db_item):
     return items, new_items
 
 
+def create_or_resurrect_store(file, parent, name, translation_project):
+    """Create or resurrect a store db item with given name and parent."""
+    try:
+        store = Store.objects.get(parent=parent, name=name)
+        store.obsolete = False
+        store.file_mtime = datetime_min
+        if store.last_sync_revision is None:
+            store.last_sync_revision = store.get_max_unit_revision()
+
+        store_log(user='system', action=STORE_RESURRECTED,
+                  path=store.pootle_path, store=store.id)
+    except Store.DoesNotExist:
+        store = Store(file=file, parent=parent,
+                      name=name, translation_project=translation_project)
+
+    store.mark_all_dirty()
+    return store
+
+
+def create_or_resurrect_dir(name, parent):
+    """Create or resurrect a directory db item with given name and parent."""
+    try:
+        dir = Directory.objects.get(parent=parent, name=name)
+        dir.obsolete = False
+    except Directory.DoesNotExist:
+        dir = Directory(name=name, parent=parent)
+
+    dir.mark_all_dirty()
+    return dir
+
+
+# TODO: rename function or even rewrite it
 def add_files(translation_project, ignored_files, ext, relative_dir, db_dir,
               file_filter=lambda _x: True):
-    from pootle_misc import versioncontrol
-    podir_path = versioncontrol.to_podir_path(relative_dir)
+    podir_path = to_podir_path(relative_dir)
     files, dirs = split_files_and_dirs(ignored_files, ext, podir_path,
                                        file_filter)
     file_set = set(files)
     dir_set = set(dirs)
 
     existing_stores = dict((store.name, store) for store in
-                           db_dir.child_stores.exclude(file='').iterator())
+                           db_dir.child_stores.live().exclude(file='')
+                                                     .iterator())
     existing_dirs = dict((dir.name, dir) for dir in
-                         db_dir.child_dirs.iterator())
+                         db_dir.child_dirs.live().iterator())
     files, new_files = add_items(
         file_set,
         existing_stores,
-        lambda name: Store(
+        lambda name: create_or_resurrect_store(
              file=os.path.join(relative_dir, name),
              parent=db_dir,
              name=name,
              translation_project=translation_project,
-        )
+        ),
+        db_dir,
     )
 
     db_subdirs, new_db_subdirs = add_items(
         dir_set,
         existing_dirs,
-        lambda name: Directory(name=name, parent=db_dir)
+        lambda name: create_or_resurrect_dir(name=name, parent=db_dir),
+        db_dir,
     )
 
+    is_empty = len(files) == 0
     for db_subdir in db_subdirs:
         fs_subdir = os.path.join(relative_dir, db_subdir.name)
-        _files, _new_files = add_files(translation_project, ignored_files, ext,
-                                       fs_subdir, db_subdir, file_filter)
+        _files, _new_files, _is_empty = \
+            add_files(translation_project, ignored_files, ext, fs_subdir,
+                      db_subdir, file_filter)
         files += _files
         new_files += _new_files
+        is_empty &= _is_empty
 
-    return files, new_files
+    if is_empty:
+        db_dir.makeobsolete()
+
+    return files, new_files, is_empty
 
 
-def sync_from_vcs(ignored_files, ext, relative_dir,
-                  file_filter=lambda _x: True):
-    """Recursively synchronise the PO directory from the VCS directory.
-
-    This brings over files from VCS, and removes files in PO directory that
-    were removed in VCS.
-    """
-    from pootle_misc import versioncontrol
-    if not versioncontrol.hasversioning(relative_dir):
-        return
-
-    podir_path = versioncontrol.to_podir_path(relative_dir)
-    vcs_path = versioncontrol.to_vcs_path(relative_dir)
-    vcs_files, vcs_dirs = recursive_files_and_dirs(ignored_files, ext,
-                                                   vcs_path, file_filter)
-    files, dirs = recursive_files_and_dirs(ignored_files, ext, podir_path,
-                                           file_filter)
-
-    vcs_file_set = set(vcs_files)
-    vcs_dir_set = set(vcs_dirs)
-    file_set = set(files)
-    dir_set = set(dirs)
-
-    for d in vcs_dir_set - dir_set:
-        new_path = os.path.join(podir_path, d)
-        os.makedirs(new_path)
-
-    # copy into podir
-    for f in vcs_file_set - file_set:
-        vcs_f = os.path.join(vcs_path, f)
-        new_path = os.path.join(podir_path, f)
-        shutil.copy2(vcs_f, new_path)
-
-    # remove from podir
-    #TODO: review this carefully, as we are now deleting stuff
-    for f in file_set - vcs_file_set:
-        remove_path = os.path.join(podir_path, f)
-        os.remove(remove_path)
-
-    for d in dir_set - vcs_dir_set:
-        remove_path = os.path.join(podir_path, d)
-        shutil.rmtree(remove_path)
+def to_podir_path(path):
+    path = relative_real_path(path)
+    return os.path.join(settings.POOTLE_TRANSLATION_DIRECTORY, path)
 
 
 def find_lang_postfix(filename):
@@ -344,69 +313,24 @@ def translation_project_should_exist(language, project):
     return False
 
 
-def ensure_target_dir_exists(target_path):
+def init_store_from_template(translation_project, template_store):
+    """Initialize a new file for `translation_project` using `template_store`.
+    """
+    if translation_project.file_style == 'gnu':
+        target_pootle_path, target_path = get_translated_name_gnu(translation_project,
+                                                                  template_store)
+    else:
+        target_pootle_path, target_path = get_translated_name(translation_project,
+                                                              template_store)
+
+    # Create the missing directories for the new TP.
     target_dir = os.path.dirname(target_path)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
-
-def convert_template(translation_project, template_store, target_pootle_path,
-                     target_path, monolingual=False):
-    """Run pot2po to update or initialize the file on `target_path` with
-    `template_store`.
-    """
-
-    ensure_target_dir_exists(target_path)
-
-    if template_store.file:
-        template_file = template_store.file.store
-    else:
-        template_file = template_store
-
-    try:
-        store = Store.objects.get(pootle_path=target_pootle_path)
-
-        if monolingual and store.state < PARSED:
-            #HACKISH: exploiting update from templates to parse monolingual files
-            store.update(store=template_file)
-            store.update(update_translation=True)
-            return
-
-        if not store.file or monolingual:
-            original_file = store
-        else:
-            original_file = store.file.store
-    except Store.DoesNotExist:
-        original_file = None
-        store = None
-
-    from translate.convert import pot2po
-    from pootle_store.filetypes import factory_classes
-    output_file = pot2po.convert_stores(template_file, original_file,
-                                        fuzzymatching=False,
-                                        classes=factory_classes)
-    if template_store.file:
-        if store:
-            store.update(update_structure=True, update_translation=True,
-                         store=output_file, fuzzy=True)
-        output_file.settargetlanguage(translation_project.language.code)
-        output_file.savefile(target_path)
-    elif store:
-        store.mergefile(output_file, None, allownewstrings=True,
-                        suggestions=False, notranslate=False,
-                        obsoletemissing=True)
-    else:
-        output_file.translation_project = translation_project
-        output_file.name = template_store.name
-        output_file.parent = translation_project.directory
-        output_file.state = PARSED
-        output_file.save()
-
-    # pot2po modifies its input stores so clear caches is needed
-    if template_store.file:
-        template_store.file._delete_store_cache()
-    if store and store.file:
-        store.file._delete_store_cache()
+    output_file = template_store.file.store
+    output_file.settargetlanguage(translation_project.language.code)
+    output_file.savefile(target_path)
 
 
 def get_translated_name_gnu(translation_project, store):
@@ -423,7 +347,7 @@ def get_translated_name_gnu(translation_project, store):
              translation_project.project.localfiletype
     # try loading file first
     try:
-        target_store = translation_project.stores.get(
+        target_store = translation_project.stores.live().get(
                 parent__pootle_path=pootle_path,
                 name__iexact=suffix,
         )
@@ -433,27 +357,28 @@ def get_translated_name_gnu(translation_project, store):
         target_store = None
 
     # is this GNU-style with prefix?
-    use_prefix = store.parent.child_stores.exclude(file="").count() > 1 or \
-                 translation_project.stores.exclude(name__iexact=suffix).exclude(file="").count()
+    use_prefix = (store.parent.child_stores.live().exclude(file="").count() > 1 or
+                  translation_project.stores.live().exclude(name__iexact=suffix,
+                                                            file='').count())
     if not use_prefix:
         # let's make sure
         for tp in translation_project.project.translationproject_set.exclude(language__code='templates').iterator():
             temp_suffix = tp.language.code + os.extsep + translation_project.project.localfiletype
-            if tp.stores.exclude(name__iexact=temp_suffix).exclude(file="").count():
+            if tp.stores.live().exclude(name__iexact=temp_suffix).exclude(file="").count():
                 use_prefix = True
                 break
 
     if use_prefix:
         if store.translation_project.language.code == 'templates':
             tprefix = os.path.splitext(store.name)[0]
-            #FIXME: we should detect seperator
+            #FIXME: we should detect separator
             prefix = tprefix + '-'
         else:
             prefix = os.path.splitext(store.name)[0][:-len(store.translation_project.language.code)]
             tprefix = prefix[:-1]
 
         try:
-            target_store = translation_project.stores.filter(
+            target_store = translation_project.stores.live().filter(
                     parent__pootle_path=pootle_path,
                     name__in=[
                         tprefix + '-' + suffix,
@@ -506,3 +431,16 @@ def get_translated_name(translation_project, store):
 
     return ('/'.join(pootle_path_parts),
             absolute_real_path(os.sep.join(path_parts)))
+
+
+def does_not_exist(path):
+    if os.path.exists(path):
+        return False
+
+    try:
+        os.stat(path)
+        # what the hell?
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            # explicit no such file or directory
+            return True

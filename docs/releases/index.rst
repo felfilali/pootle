@@ -14,10 +14,13 @@ If you are upgrading Pootle, you might want to see some tips to ensure your
 .. toctree::
    :maxdepth: 1
 
+   2.7.2 <2.7.2>
+   2.7.1 <2.7.1>
+   2.7.0 <2.7.0>
    2.6.1 <2.6.1>
    2.6.0 <2.6.0>
-   2.6.0-rc2 <2.6.0-rc2>
-   2.6.0-rc1 <2.6.0-rc1>
+   2.5.1.3 <2.5.1.3>
+   2.5.1.2 <2.5.1.2>
    2.5.1.1 <2.5.1.1>
    2.5.1 <2.5.1>
    2.5.1-rc1 <2.5.1-rc1>
@@ -29,5 +32,4 @@ If you are upgrading Pootle, you might want to see some tips to ensure your
    2.1.3 <2.1.3>
    2.1.2 <2.1.2>
    2.1.1 <2.1.1>
-
-Check the :doc:`Changelog </changelog>` for older releases.
+   Older releases (0.10 to 2.1) <old_releases>

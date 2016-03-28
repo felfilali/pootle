@@ -1,27 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import pytest
 
 
-def _require_permission_set(user, directory, permissions):
+def _require_permission_set(user, directory, positive_permissions=None,
+                            negative_permissions=None):
     """Helper to get/create a new PermissionSet."""
     from pootle_app.models.permissions import PermissionSet
 
@@ -30,15 +20,18 @@ def _require_permission_set(user, directory, permissions):
         'directory': directory,
     }
     permission_set, created = PermissionSet.objects.get_or_create(**criteria)
-    if created:
-        permission_set.positive_permissions = permissions
-        permission_set.save()
+    if positive_permissions is not None:
+        permission_set.positive_permissions = positive_permissions
+    if negative_permissions is not None:
+        permission_set.negative_permissions = negative_permissions
+
+    permission_set.save()
 
     return permission_set
 
 
 @pytest.fixture
-def nobody_ps(db, nobody, root, view, suggest):
+def nobody_ps(nobody, root, view, suggest):
     """Require permission sets at the root for the `nobody` user."""
     return _require_permission_set(nobody, root, [view, suggest])
 

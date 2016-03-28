@@ -3,8 +3,6 @@
 Machine Translation
 ===================
 
-.. versionadded:: 2.1
-
 Pootle has the ability to use online Machine Translation (MT) Services to give
 suggestions to translators. This feature has to be enabled by the server
 administrators.
@@ -36,7 +34,7 @@ Enabling Machine Translations
 
 To enable a certain Machine Translation Service, edit :ref:`your configuration
 file <settings#customizing>` and add the desired service within the
-:setting:`MT_BACKENDS` setting.
+:setting:`POOTLE_MT_BACKENDS` setting.
 
 Each line is a tuple which has the name of the service and an optional API key.
 Some services may not require API keys but others do, so please take care of
@@ -52,16 +50,24 @@ Supported Services:
 
 |icon:icon-google-translate| Google Translate
 
+|icon:icon-yandex-translate| Yandex.Translate
+
 |icon:icon-apertium| Apertium
+
+.. versionadded:: 2.7 Yandex.Translate
 
 Google Translate is widely used and supports a number of `languages`_.
 It is a `paid service`_ requiring an account and API key.
 
-.. _languages: https://developers.google.com/translate/v2/using_rest#language-params
-.. _paid service: https://developers.google.com/translate/v2/pricing
+.. _languages:  https://cloud.google.com/translate/v2/using_rest#language-params
+.. _paid service: https://cloud.google.com/translate/v2/pricing
+
+`Yandex.Translate`_ is the free alternative to Google.
+
+.. _Yandex.Translate: https://tech.yandex.com/translate/
 
 On the other hand, `Apertium`_ is best suited for
 close language pairs. Especially for those languages spoken in the Iberian
 Peninsula that are similar.
 
-.. _Apertium: http://www.apertium.org/?id=whatisapertium&lang=en
+.. _Apertium: https://www.apertium.org/index.eng.html?dir=oci-cat#translation

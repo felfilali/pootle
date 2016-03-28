@@ -1,125 +1,43 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2004-2013 Zuza Software Foundation
-# Copyright 2013-2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
-import json
-import logging
-from datetime import datetime
 from functools import wraps
+from importlib import import_module
 
 from django.conf import settings
-from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseBadRequest
 from django.utils import timezone
-from django.utils.encoding import force_unicode, iri_to_uri
-from django.utils.functional import Promise
 
-from pootle.core.markup import Markup
+from datetime import datetime, timedelta
 
 
-# Timezone aware minimum for datetime (if appropriate) (bug 2567)
-datetime_min = datetime.min
-if settings.USE_TZ:
-    datetime_min = timezone.make_aware(datetime_min, timezone.utc)
+def import_func(path):
+    i = path.rfind('.')
+    module, attr = path[:i], path[i+1:]
+    try:
+        mod = import_module(module)
+    except ImportError, e:
+        raise ImproperlyConfigured('Error importing module %s: "%s"'
+                                   % (module, e))
+    try:
+        func = getattr(mod, attr)
+    except AttributeError:
+        raise ImproperlyConfigured(
+            'Module "%s" does not define a "%s" callable function'
+            % (module, attr))
 
-
-def getfromcachebyname(function, timeout=settings.OBJECT_CACHE_TIMEOUT):
-    def _getfromcache(instance, *args, **kwargs):
-        key = iri_to_uri(instance.pootle_path + ":" + args[0] + function.__name__)
-        result = cache.get(key)
-        if result is None:
-            logging.debug(u"cache miss for %s", key)
-            result = function(instance, *args, **kwargs)
-            cache.set(key, result, timeout)
-        return result
-    return _getfromcache
-
-
-def get_cached_value(obj, fn):
-    key = iri_to_uri(obj.get_cachekey() + ":" + fn)
-    return cache.get(key)
-
-
-def set_cached_value(obj, fn, value, timeout=settings.OBJECT_CACHE_TIMEOUT):
-    key = iri_to_uri(obj.get_cachekey() + ":" + fn)
-    return cache.set(key, value, timeout)
-
-
-def getfromcache(function, timeout=settings.OBJECT_CACHE_TIMEOUT):
-    def _getfromcache(instance, *args, **kwargs):
-        key = iri_to_uri(instance.get_cachekey() + ":" + function.__name__)
-        result = cache.get(key)
-        if result is None:
-            logging.debug(u"cache miss for %s", key)
-            result = function(instance, *args, **kwargs)
-            cache.set(key, result, timeout)
-        return result
-    return _getfromcache
-
-
-
-def deletefromcache(sender, functions, **kwargs):
-    path = iri_to_uri(sender.pootle_path)
-    path_parts = path.split("/")
-
-    # Clean project cache.
-    if len(path_parts):
-        key = "/projects/%s/" % path_parts[2]
-        for func in functions:
-            cache.delete(key + ":" + func)
-
-    # Clean store and directory cache.
-    while path_parts:
-        for func in functions:
-            cache.delete(path + ":" + func)
-
-        path_parts = path_parts[:-1]
-        path = "/".join(path_parts) + "/"
+    return func
 
 
 def dictsum(x, y):
     return dict((n, x.get(n, 0)+y.get(n, 0)) for n in set(x) | set(y))
-
-
-class PootleJSONEncoder(json.JSONEncoder):
-    """Custom JSON encoder for Pootle.
-
-    This is mostly implemented to avoid calling `force_unicode` all the time on
-    certain types of objects.
-    https://docs.djangoproject.com/en/1.4/topics/serialization/#id2
-    """
-    def default(self, obj):
-        if isinstance(obj, Promise) or isinstance(obj, Markup):
-            return force_unicode(obj)
-
-        return super(PootleJSONEncoder, self).default(obj)
-
-
-def jsonify(obj):
-    """Serialize Python `obj` object into a JSON string."""
-    if settings.DEBUG:
-        indent = 4
-    else:
-        indent = None
-
-    return json.dumps(obj, indent=indent, cls=PootleJSONEncoder)
 
 
 def ajax_required(f):
@@ -151,3 +69,41 @@ def to_int(value):
         return int(value)
     except ValueError:
         return None
+
+
+def get_max_month_datetime(dt):
+    next_month = dt.replace(day=1) + timedelta(days=31)
+    if settings.USE_TZ:
+        tz = timezone.get_default_timezone()
+        next_month = timezone.localtime(next_month, tz)
+
+    return next_month.replace(day=1, hour=0, minute=0, second=0) - \
+        timedelta(microseconds=1)
+
+
+def get_date_interval(month):
+    from pootle.core.utils.timezone import make_aware
+
+    now = start = end = timezone.now()
+    default_month = start.strftime('%Y-%m')
+
+    if month is None:
+        month = default_month
+
+    try:
+        month_datetime = datetime.strptime(month, '%Y-%m')
+    except ValueError:
+        month_datetime = datetime.strptime(default_month, '%Y-%m')
+
+    start = make_aware(month_datetime)
+
+    if start < now:
+        if start.month != now.month or start.year != now.year:
+            end = get_max_month_datetime(start)
+    else:
+        end = start
+
+    start = start.replace(hour=0, minute=0, second=0)
+    end = end.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+    return [start, end]

@@ -1,32 +1,40 @@
-{% load common_tags %}
+{% load i18n common_tags %}
 {% if nav %}
 <li class="navigation">
-  <select id="js-select-navigation" data-initial-code="{{ page }}">
+  <select id="js-select-navigation" data-initial-code="{{ page }}"
+    style="visibility: hidden;">
     {% include nav %}
   </select>
 </li>
 {% endif %}
 <li>
-  <select id="js-select-language" data-initial-code="{{ language.code }}">
+  <select id="js-select-language" data-initial-code="{{ language.code }}"
+    style="visibility: hidden;">
     <option value=""></option>
-    {% for lang in ALL_LANGUAGES %}
-    <option value="{{ lang.code }}">{{ lang.name }}</option>
+    {% for lang_code, lang_name in ALL_LANGUAGES.items %}
+    <option value="{{ lang_code }}">{{ lang_name }}</option>
     {% endfor %}
   </select>
 </li>
 <li>
-  <select id="js-select-project" data-initial-code="{{ project.code }}">
+  <select id="js-select-project" data-initial-code="{{ project.code }}"
+    style="visibility: hidden;">
     <option value=""></option>
-    {% for proj in ALL_PROJECTS %}
-    <option value="{{ proj.code }}">{{ proj.name }}</option>
+    {% for proj_code, proj in ALL_PROJECTS.items %}
+    <option
+      value="{{ proj_code }}"
+      data-state="{{ proj.disabled|yesno:'disabled,enabled' }}">
+      {{ proj.fullname }}
+    </option>
     {% endfor %}
   </select>
 </li>
 {% if project %}
-{% if page == 'overview' or page == 'translate' %}
-<li>
+{% if page == 'browse' or page == 'translate' %}
+<li id="js-breadcrumb-resource">
   <select id="js-select-resource"
-    data-initial-code="{% if resource_path_parts %}ctx-{% endif %}{{ resource_path }}">
+    data-initial-code="{% if resource_path_parts %}ctx-{% endif %}{{ resource_path }}"
+    style="visibility: hidden;">
     <option value=""></option>
     {% if resource_path_parts %}
     {% for res in resource_path_parts %}

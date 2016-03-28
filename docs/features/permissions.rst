@@ -79,21 +79,10 @@ translate
   The right to supply a translation for a specific string or to replace the
   existing one. This implies the right to upload files using the merge method.
 
-archive
-  The right to download archives (ZIP files) of a project or directory.
-
-overwrite
-  The right to entirely overwrite a file at the time of upload (instead of the
-  default behaviour of merging translations)
-
 administrate
   The right to administrate the project or language including administer
   permissions and delegating rights to users (this is not the same as the site
   administrator)
-
-commit
-  The right to update or commit a file to the version control system (if the
-  files are configured for :doc:`version_control` integration)
 
 
 .. _permissions#permissions_interface:
@@ -153,25 +142,3 @@ the default rights.
 
     A user with administrative rights can remove his own administrative rights.
 
-
-.. _permissions#manage-permissions-with-management-commands:
-
-Manage permissions with management commands
--------------------------------------------
-
-.. versionadded:: 2.6.0
-
-The assignment of Pootle permissions can also be handled using management
-commands.
-
-
-.. _permissions#assign-permissions-with-management-command:
-
-Assign permissions with management command
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. versionadded:: 2.6.0
-
-It is also possible to assign permissions to a given user in a project,
-language or translation project using the :ref:`assign_permissions
-<commands#assign-permissions>` management command.

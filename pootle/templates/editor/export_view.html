@@ -3,12 +3,10 @@
 <html lang="{{ LANGUAGE_CODE }}" dir="{% locale_dir %}">
 <head>
   <meta charset="utf-8">
-  {% comment %}Translators: A view showing the export of strings in a flat form.
-  See http://staging.locamotion.org/he/birdfont/export-view/?filter=incomplete {% endcomment %}
   <title>{% trans "Export View" %} | 
     {% if project %}{{ project.name }}{% else %}{% trans "All Projects" %}{% endif %} | 
     {% if language %}{{ language.name }}{% else %}{% trans "All Languages" %}{% endif %} | 
-    {{ settings.TITLE }}</title>
+    {{ settings.POOTLE_TITLE }}</title>
   <style type="text/css">
     html {
       font-family: sans-serif;
@@ -119,7 +117,7 @@
         {% for i, source, title in unit|pluralize_source %}
           <div lang="{{ source_language.code }}"
             dir="{{ source_language.direction }}">
-            {{ source|highlight_placeables }}
+            {{ source|fancy_highlight }}
           </div>
         {% endfor %}
         {% if unit.getcontext %}
@@ -131,7 +129,7 @@
         <td>
         {% for i, target, title in unit|pluralize_target %}
           <div dir="{{ language.direction }}" lang="{{ language.code }}">
-            {{ target|highlight_placeables }}
+            {{ target|fancy_highlight }}
           </div>
         {% endfor %}
         <div class="unit-number">
@@ -145,6 +143,17 @@
         <td colspan="2">{% trans "No strings." %}</td>
       </tr>
     {% endfor %}
+    {% if unit_total_count %}
+      <tr class="empty">
+        <td colspan="2">
+          {% blocktrans with unit_count=displayed_unit_count count total_count=unit_total_count trimmed %}
+          We displayed the first unit out of {{total_count}}. Please refine your search.
+          {% plural %}
+          We displayed the first {{unit_count}} units out of {{total_count}}. Please refine your search.
+          {% endblocktrans %}
+        </td>
+      </tr>
+    {% endif %}
     </tbody>
   </table>
 </body>

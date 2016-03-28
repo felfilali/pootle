@@ -34,16 +34,16 @@ Setting up the development environment
 --------------------------------------
 
 The minimum software packages you need for setting up a development environment
-include `git <http://git-scm.org>`_ and a `Python interpreter
-<http://www.python.org>`_ along with the `pip installer
-<http://www.pip-installer.org/>`_. Consult the specifics for your operating
+include `git <http://git-scm.com/>`_ and a `Python interpreter
+<https://www.python.org>`_ along with the `pip installer
+<https://pip.pypa.io/en/stable/>`_. Consult the specifics for your operating
 system in order to get each package installed successfully.
 
 Once you have the basic requirements in place, you will need to install
 Pootle's dependencies, which come in shape of Python packages. Instead of
 installing them system-wide, we recommend using `virtualenv
-<http://www.virtualenv.org>`_ (and `virtualenvwrapper
-<http://www.doughellmann.com/projects/virtualenvwrapper/>`_ for easing the
+<https://virtualenv.pypa.io/en/latest/>`_ (and `virtualenvwrapper
+<https://bitbucket.org/dhellmann/virtualenvwrapper>`_ for easing the
 management of multiple virtualenvs). This way you can install all the
 dependencies at specific versions without interfering with system-wide
 packages. You can test on different Python/Django versions in parallel as well.
@@ -74,13 +74,13 @@ the created environments.
    $ source /usr/local/bin/virtualenvwrapper.sh  # Or /usr/bin/virtualenvwrapper.sh
 
 
-.. note:: You may want to add the above-mentioned commands in your
-   :file:`.bashrc` file (or whatever file your shell uses for initializing user
-   customizations).
+.. note:: You may want to add the above-mentioned commands and environment
+   variables to your :file:`.bashrc` file (or whatever file your shell uses for
+   initializing user customizations).
 
 
-Now the commands provided virtualenv and virtualenvwrapper are available, so we
-can start creating our virtual environment.
+Now that the commands provided by virtualenv and virtualenvwrapper are
+available, we can start creating our virtual environment.
 
 .. code-block:: bash
 
@@ -93,45 +93,36 @@ you are creating. :command:`mkvirtualenv` accepts any options that
 2.6 interpreter by passing the :option:`-p python2.6` option.
 
 .. note:: After running :command:`mkvirtualenv`, the newly created environment
-    is activated. To deactivate it just run:
+   is activated. To deactivate it just run:
 
-    .. code-block:: bash
+   .. code-block:: bash
 
       (env-name) $ deactivate
 
 
-    To activate a virtual environment again simply run:
+   To activate a virtual environment again simply run:
 
-    .. code-block:: bash
+   .. code-block:: bash
 
       $ workon <env-name>
 
 
 Time to clone Pootle's source code repository. The main repository lives under
-`translate/pootle in GitHub <https://github.com/translate/pootle/>`_. If you
-have a GitHub account, the best idea is to fork the main repository and to
-clone your own fork for hacking. Once you know which way you want to continue
-forward, just move to a directory where you want to keep the development files
-and run :command:`git clone` by passing the repository's URL.
+`translate/pootle in GitHub <https://github.com/translate/pootle/>`_.
+
+.. note:: If you have a GitHub account, fork the main ``translate/pootle``
+   repository and replace the repository URL with your own fork.
 
 .. code-block:: bash
 
     (env-name) $ git clone https://github.com/translate/pootle.git
 
 
-This will create a directory named :file:`pootle` where you will find all the
-files that constitute Pootle's source code.
+Next, install Pootle software dependencies using :command:`pip`.  The
+requirements are stored in the :file:`requirements` directory. The
+:file:`dev.txt` requirements will install some extra packages to aid
+development.
 
-.. note:: If you have a GitHub account, fork the main ``translate/pootle``
-   repository and replace the repository URL by your own fork.
-
-
-Before running the development server, it's necessary to install the software
-dependencies/requirements by using pip. For this matter there are some `pip
-requirements files <http://www.pip-installer.org/en/latest/requirements.html>`_
-within the :file:`requirements` directory. We will install the requirements
-defined in :file:`requirements/dev.txt`, which apart from the minimum will pull
-in some extras that will ease the development process.
 
 .. code-block:: bash
 
@@ -139,10 +130,16 @@ in some extras that will ease the development process.
     (env-name) $ pip install -r requirements/dev.txt
 
 
-.. note:: Some dependencies might need to build or compile source code in
-   languages other than Python. You may need to install extra packages on your
-   system in order to complete the build process and the installation of the
-   required packages.
+.. note:: Some requirements may depend on external packages.  For these you may
+   need to install extra packages on your system in order to complete their
+   installation.
+
+Install Pootle into your virtualenv.  This makes it easy to run Pootle locally
+and is needed for various development actitivies.
+
+.. code-block:: bash
+
+    (env-name) $ pip install -e .
 
 
 With all the dependencies installed within the virtual environment, Pootle is
@@ -158,8 +155,8 @@ this file and rename it by removing the *.sample* extension:
     (env-name) $ cp pootle/settings/90-dev-local.conf.sample pootle/settings/90-dev-local.conf
 
 
-.. note:: To learn more about how settings work in Pootle head over the
-  :ref:`settings` section in the documentation.
+.. note:: To learn more about how settings work in Pootle read the
+   :doc:`settings </server/settings>` documentation.
 
 
 Once the configuration is in place, you'll need to setup the database
@@ -167,12 +164,14 @@ schema and add initial data.
 
 .. code-block:: bash
 
-    (env-name) $ python manage.py syncdb --noinput
     (env-name) $ python manage.py migrate
     (env-name) $ python manage.py initdb
 
 
-Finally, just run the development server.
+Now ensure that you have built the assets by following the instructions for
+:doc:`frontend development </developers/frontend>`.
+
+Finally, run the development server.
 
 .. code-block:: bash
 
@@ -181,7 +180,8 @@ Finally, just run the development server.
 
 Once all is done, you can start the development server anytime by enabling the
 virtual environment (using the :command:`workon` command) and running the
-:command:`manage.py runserver` command.
+:djadmin:`manage.py runserver <runserver>` command.
+
 
 Happy hacking!!
 
@@ -206,7 +206,7 @@ for being incorporated upstream, either:
 
 - Create a patch against the ``HEAD`` of the ``master`` branch using
   :command:`git diff` or :command:`git format-patch` and attach it to the
-  affected bug.
+  affected issue.
 
 
 .. _hacking#committing:

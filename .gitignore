@@ -1,8 +1,3 @@
-# /deploy/*/
-/deploy/*/fabric.py
-/deploy/*/settings.conf
-/deploy/*/virtualhost.conf
-
 # /docs/
 /docs/_build/
 /docs/icons.rst.inc
@@ -16,21 +11,16 @@
 # /pootle/locale/*/LC_MESSAGES/
 /pootle/locale/*/LC_MESSAGES/
 
-# /pootle/po/
-/pootle/po/*/
-!/pootle/po/tutorial/
-!/pootle/po/templates/
-
-# /pootle/repos/
-/pootle/repos/*
-!/pootle/repos/README
+# /pootle/translations/
+/pootle/translations/*/
+!/pootle/translations/tutorial/
+!/pootle/translations/templates/
 
 # /pootle/settings/
 /pootle/settings/*-local.conf
 
-# Possible customizations
-/pootle/templates/custom
-/pootle/static/*/custom
+# TTK checks descriptions template
+/pootle/templates/help/_ttk_quality_checks.html
 
 # General
 *.bak
@@ -41,6 +31,10 @@
 *.pending
 *.po.tm
 .translation_index
+.DS_Store
+
+# Django cache
+*.djcache
 
 # npm
 node_modules/

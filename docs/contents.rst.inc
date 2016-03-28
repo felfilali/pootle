@@ -2,16 +2,20 @@ All you need to know
 --------------------
 
 The following pages cover the documentation of Pootle from a wide variety of
-perspectives, including user's, server administrator's, and developer's view.
+perspectives, server administrator's, and developer's view.
 
 .. toctree::
    :maxdepth: 2
 
-   users/index
    features/index
+
+.. toctree::
+   :maxdepth: 1
+
+   server/installation
+   server/upgrading
    server/index
    developers/index
-   api/index
 
 
 .. _notes:
@@ -23,6 +27,4 @@ Additional Notes
    :maxdepth: 1
 
    releases/index
-   changelog
-   external_docs
    license

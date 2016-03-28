@@ -1,7 +1,7 @@
 {% load i18n locale %}
+{% load common_tags %}
 
-<table class="sortable stats" id="{{ table.id }}" cellpadding="5"
-  cellspacing="0" width="100%" lang="{{ LANGUAGE_CODE }}"
+<table class="sortable stats" id="{{ table.id }}" lang="{{ LANGUAGE_CODE }}"
   dir="{% locale_dir %}" data-sort-cookie="browser-sorting-pref">
   <thead>
     <tr>
@@ -11,74 +11,77 @@
       </th>
       {% endfor %}
     </tr>
-    {% if table.parent %}
-      <tr class="item">
-        <td colspan="6" class="stats-name {{ table.parent.icon }}">
-          <a href="{{ table.parent.href }}"><i class="icon-{{ table.parent.icon }}"></i> <span>{{ table.parent.title }}</span></a>
-        </td>
-      </tr>
-    {% endif %}
   </thead>
   <tbody class="stats">
     {% for item in table.items %}
 
-    <tr class="item">
+    <tr class="item{% if item.is_disabled %} is-disabled{% endif %}{% if item.is_grayed %} is-grayed{% endif %}">
 
       {% if 'name' in table.fields %}
       <td class="stats-name {{ item.icon }}"{% if item.description %} title="{{ item.description|striptags }}"{% endif %}>
-        <a href="{{ item.href }}"><i class="icon-{{ item.icon }}"></i> <span>{{ item.title }}</span></a>
+        {% if item.href %}<a href="{{ item.href }}">{% endif %}
+          <i class="icon-{{ item.icon }}"></i> <span>{{ item.title }}</span>
+        {% if item.href %}</a>{% endif %}
       </td>
       {% endif %}
 
       {% if 'priority' in table.fields %}
-      <td class="stats-number">
-        <span class="zero muted">{{ item.priority }}</span>
+      <td id="priority-{{ item.code|cssid }}" class="stats-number">
+        {{ item.priority }}
       </td>
       {% endif %}
 
       {% if 'progress' in table.fields %}
       <td class="stats-graph">
-        <div id="translated-ratio-{{ item.code }}" class="sortkey"></div>
-        <div id="progressbar-{{ item.code }}">
+        <div id="translated-ratio-{{ item.code|cssid }}" class="sortkey"></div>
+        <div id="progressbar-{{ item.code|cssid }}">
           {% include "browser/_progressbar.html" %}
         </div>
       </td>
       {% endif %}
 
       {% if 'total' in table.fields %}
-      <td id="total-words-{{ item.code }}" class="stats-number total js-total">
+      <td id="total-words-{{ item.code|cssid }}" class="stats-number total js-total not-inited">
         <a class="non-zero" href="{{ item.href_all }}"></a>
         <span class="zero muted">0</span>
-      </td>
-      {% endif %}
-
-      {% if 'need-translation' in table.fields %}
-      <td id="need-translation-{{ item.code }}" class="stats-number need-translation js-need-translation">
-        <a class="non-zero" href="{{ item.href_todo }}"></a>
-        <span class="zero muted">0</span>
-      </td>
-      {% endif %}
-
-      {% if 'suggestions' in table.fields %}
-      <td id="suggestions-{{ item.code }}" class="stats-number suggestions js-suggestions">
-        <a class="non-zero" href="{{ item.href_sugg }}"></a>
-        <span class="zero muted">0</span>
-      </td>
-      {% endif %}
-
-      {% if 'critical' in table.fields %}
-      <td id="critical-{{ item.code }}" class="stats-number critical js-critical">
-        <a class="non-zero" href="{{ item.href_critical }}"></a>
-        <span class="zero muted">0</span>
+        <span class="not-inited muted">—</span>
       </td>
       {% endif %}
 
       {% if 'last-updated' in table.fields %}
-      <td id="last-updated-{{ item.code }}" class="last-updated"></td>
+      <td id="last-updated-{{ item.code|cssid }}" class="stats last-updated not-inited">
+        <span class="not-inited muted">—</span>
+      </td>
+      {% endif %}
+
+      {% if 'need-translation' in table.fields %}
+      <td id="need-translation-{{ item.code|cssid }}" class="stats-number need-translation js-need-translation not-inited">
+        <a class="non-zero" href="{{ item.href_todo }}"></a>
+        <span class="zero muted">0</span>
+        <span class="not-inited muted">—</span>
+      </td>
+      {% endif %}
+
+      {% if 'suggestions' in table.fields %}
+      <td id="suggestions-{{ item.code|cssid }}" class="stats-number suggestions js-suggestions not-inited">
+        <a class="non-zero" href="{{ item.href_sugg }}"></a>
+        <span class="zero muted">0</span>
+        <span class="not-inited muted">—</span>
+      </td>
+      {% endif %}
+
+      {% if 'critical' in table.fields %}
+      <td id="critical-{{ item.code|cssid }}" class="stats-number critical js-critical not-inited">
+        <a class="non-zero" href="{{ item.href_critical }}"></a>
+        <span class="zero muted">0</span>
+        <span class="not-inited muted">—</span>
+      </td>
       {% endif %}
 
       {% if 'activity' in table.fields %}
-      <td id="last-activity-{{ item.code }}" class="last-activity"></td>
+      <td id="last-activity-{{ item.code|cssid }}" class="last-activity not-inited">
+        <span class="not-inited muted">—</span>
+      </td>
       {% endif %}
     </tr>
 

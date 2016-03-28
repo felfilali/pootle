@@ -11,9 +11,10 @@ Installation
 .. toctree::
    :maxdepth: 2
 
+   requirements
    installation
-   fabric_deployment
-   fabric_commands
+   mysql_installation
+   postgresql_installation
    web
 
 
@@ -38,7 +39,10 @@ Performance tuning and managing the server
    :maxdepth: 2
 
    settings
+   logging
    optimization
    cache
-   indexing
+   auth
    commands
+   rq
+   backup

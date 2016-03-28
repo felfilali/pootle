@@ -1,39 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Zuza Software Foundation
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# Pootle; if not, see <http://www.gnu.org/licenses/>.
-
-from translate.__version__ import build as CODE_TTK_BUILD_VERSION
-from translate.lang import data, factory
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_noop as _
 
-from pootle.__version__ import build as CODE_PTL_BUILD_VERSION
-from pootle_app.models import Directory, PootleConfig
+from pootle.core.models import Revision
+from pootle_app.models import Directory
 from pootle_app.models.permissions import PermissionSet, get_pootle_permission
 from pootle_language.models import Language
 from pootle_project.models import Project
-
-
-User = get_user_model()
+from staticpages.models import StaticPage as Announcement
 
 
 def initdb():
@@ -41,29 +25,28 @@ def initdb():
 
     This creates the default database to get a working Pootle installation.
     """
-    create_root_directories()
+    create_revision()
     create_essential_users()
+    create_root_directories()
     create_template_languages()
     create_terminology_project()
     create_pootle_permissions()
     create_pootle_permission_sets()
-
     create_default_projects()
     create_default_languages()
-    create_default_admin()
 
-    save_build_versions()
+
+def create_revision():
+    Revision.initialize()
 
 
 def create_essential_users():
-    """Create the 'default', 'nobody' and 'system' User instances.
+    """Create the 'default' and 'nobody' User instances.
 
-    The 'default' and 'nobody' users are required for Pootle's permission
-    system.
-
-    The 'system' user is required for logging the actions performed by the
-    management commands.
+    These users are required for Pootle's permission system.
     """
+    User = get_user_model()
+
     # The nobody user is used to represent an anonymous user in cases where
     # we need to associate model information with such a user. An example is
     # in the permission system: we need a way to store rights for anonymous
@@ -95,16 +78,8 @@ def create_essential_users():
         default.set_unusable_password()
         default.save()
 
-    # Now create the 'system' user.
-    create_system_user()
-
-
-def create_system_user():
-    """Create the 'system' User instance.
-
-    The 'system' user represents a system, and is used to associate updates
-    done by bulk commands as update_stores.
-    """
+    # The system user represents a system, and is used to
+    # associate updates done by bulk commands as update_stores.
     criteria = {
         'username': u"system",
         'full_name': u"system user",
@@ -146,24 +121,12 @@ def create_pootle_permissions():
             'codename': "translate",
         },
         {
-            'name': _("Can overwrite translations on uploading files"),
-            'codename': "overwrite",
-        },
-        {
-            'name': _("Can review translations"),
+            'name': _("Can review suggestions"),
             'codename': "review",
-        },
-        {
-            'name': _("Can download archives of translation projects"),
-            'codename': "archive",
         },
         {
             'name': _("Can administrate a translation project"),
             'codename': "administrate",
-        },
-        {
-            'name': _("Can commit to version control"),
-            'codename': "commit",
         },
     ]
 
@@ -182,13 +145,14 @@ def create_pootle_permission_sets():
     'nobody' is the anonymous (non-logged in) user, and 'default' is the logged
     in user.
     """
-    nobody = User.objects.get(username="nobody")
-    default = User.objects.get(username="default")
+    User = get_user_model()
+
+    nobody = User.objects.get(username='nobody')
+    default = User.objects.get(username='default')
 
     view = get_pootle_permission('view')
     suggest = get_pootle_permission('suggest')
     translate = get_pootle_permission('translate')
-    archive = get_pootle_permission('archive')
 
     # Default permissions for tree root.
     criteria = {
@@ -200,11 +164,10 @@ def create_pootle_permission_sets():
         permission_set.positive_permissions = [view, suggest]
         permission_set.save()
 
-    criteria["user"] = default
+    criteria['user'] = default
     permission_set, created = PermissionSet.objects.get_or_create(**criteria)
     if created:
-        permission_set.positive_permissions = [view, suggest, translate,
-                                               archive]
+        permission_set.positive_permissions = [view, suggest, translate]
         permission_set.save()
 
     # Default permissions for templates language.
@@ -218,7 +181,7 @@ def create_pootle_permission_sets():
         permission_set.positive_permissions = []
         permission_set.save()
 
-    criteria["user"] = default
+    criteria['user'] = default
     permission_set, created = PermissionSet.objects.get_or_create(**criteria)
     if created:
         permission_set.positive_permissions = []
@@ -276,18 +239,9 @@ def create_default_projects():
     You might want to add your projects here, although you can also add things
     through the web interface later.
     """
-    en = require_english()
+    from pootle_project.models import Project
 
-    #criteria = {
-    #    'code': u"pootle",
-    #    'source_language': en,
-    #    'fullname': u"Pootle",
-    #    'checkstyle': "standard",
-    #    'localfiletype': "po",
-    #    'treestyle': "auto",
-    #}
-    #pootle = Project(**criteria)
-    #pootle.save()
+    en = require_english()
 
     criteria = {
         'code': u"tutorial",
@@ -300,11 +254,28 @@ def create_default_projects():
     tutorial = Project(**criteria)
     tutorial.save()
 
+    criteria = {
+        'active': True,
+        'title': "Project instructions",
+        'body': ('<div dir="ltr" lang="en">Tutorial project where users can '
+                 'play with Pootle and learn more about translation and '
+                 'localisation.<br />For more help on localisation, visit the '
+                 '<a href="http://docs.translatehouse.org/projects/'
+                 'localization-guide/en/latest/guide/start.html">localisation '
+                 'guide</a>.</div>'),
+        'virtual_path': "announcements/projects/"+tutorial.code,
+    }
+    ann = Announcement(**criteria)
+    ann.save()
+
 
 def create_default_languages():
     """Create the default languages."""
+    from translate.lang import data, factory
 
-    # Import languages from toolkit.
+    from pootle_language.models import Language
+
+    # import languages from toolkit
     for code in data.languages.keys():
         try:
             tk_lang = factory.getlanguage(code)
@@ -319,36 +290,5 @@ def create_default_languages():
             except AttributeError:
                 pass
             lang, created = Language.objects.get_or_create(**criteria)
-        except Exception:
+        except:
             pass
-
-
-def create_default_admin():
-    """Create the default admin user for Pootle.
-
-    You definitely want to change the admin account so that your default
-    install is not accessible with the default credentials. The users 'noboby'
-    and 'default' should be left as is.
-    """
-    criteria = {
-        'username': u"admin",
-        'full_name': u"Administrator",
-        'is_active': True,
-        'is_superuser': True,
-    }
-    admin = User(**criteria)
-    admin.set_password("admin")
-    admin.save()
-
-
-
-def save_build_versions():
-    """Save the Pootle and Translate Toolkit build versions on the database.
-
-    The build versions are used to upgrade only what has to be upgraded.
-    """
-    pootle_config = PootleConfig(
-        ptl_build=CODE_PTL_BUILD_VERSION,
-        ttk_build=CODE_TTK_BUILD_VERSION
-    )
-    pootle_config.save()

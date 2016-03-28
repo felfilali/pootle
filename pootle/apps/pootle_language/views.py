@@ -1,118 +1,55 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2004-2010,2012 Zuza Software Foundation
-# Copyright 2013-2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse
 from django.shortcuts import render
-from django.template import loader, RequestContext
-from django.utils.translation import ugettext as _
 
-from pootle.core.browser import get_table_headings, make_project_item
+from pootle.core.browser import (make_project_item,
+                                 get_table_headings)
 from pootle.core.decorators import get_path_obj, permission_required
-from pootle.core.helpers import (get_export_view_context, get_overview_context,
+from pootle.core.helpers import (get_export_view_context,
+                                 get_browser_context,
                                  get_translation_context)
+from pootle.core.utils.json import jsonify
 from pootle.i18n.gettext import tr_lang
-from pootle_app.models.permissions import check_permission
 from pootle_app.views.admin.permissions import admin_permissions
-from pootle_misc.util import jsonify, ajax_required
 
 
 @get_path_obj
 @permission_required('view')
-def overview(request, language):
-    can_edit = check_permission('administrate', request)
-
-    translation_projects = language.get_children() \
-                                   .order_by('project__fullname')
-    user_tps = filter(lambda x: x.is_accessible_by(request.user),
-                      translation_projects)
+def browse(request, language):
+    user_tps = language.get_children_for_user(request.user)
     items = (make_project_item(tp) for tp in user_tps)
 
     table_fields = ['name', 'progress', 'total', 'need-translation',
                     'suggestions', 'critical', 'last-updated', 'activity']
-    table = {
-        'id': 'language',
-        'fields': table_fields,
-        'headings': get_table_headings(table_fields),
-        'items': items,
-    }
 
-    ctx = get_overview_context(request)
+    ctx = get_browser_context(request)
     ctx.update({
         'language': {
           'code': language.code,
           'name': tr_lang(language.fullname),
         },
-        'feed_path': '%s/' % language.code,
-        'can_edit': can_edit,
-        'table': table,
+        'table': {
+            'id': 'language',
+            'fields': table_fields,
+            'headings': get_table_headings(table_fields),
+            'items': items,
+        },
+        'stats': jsonify(request.resource_obj.get_stats_for_user(request.user)),
 
         'browser_extends': 'languages/base.html',
     })
 
-    if can_edit:
-        from pootle_language.forms import DescriptionForm
-        ctx.update({
-            'form': DescriptionForm(instance=language),
-            'form_action': reverse('pootle-language-admin-settings',
-                                   args=[language.code]),
-        })
-
-    response = render(request, 'browser/overview.html', ctx)
+    response = render(request, 'browser/index.html', ctx)
     response.set_cookie('pootle-language', language.code)
 
     return response
-
-
-@ajax_required
-@get_path_obj
-@permission_required('administrate')
-def language_settings_edit(request, language):
-    from pootle_language.forms import DescriptionForm
-    form = DescriptionForm(request.POST, instance=language)
-
-    response = {}
-    rcode = 400
-
-    if form.is_valid():
-        form.save()
-        rcode = 200
-
-        response["description"] = u"".join([
-            u'<p class="placeholder muted">',
-            _(u"No description yet."),
-            u"</p>"
-        ])
-
-    context = {
-        "form": form,
-        "form_action": reverse('pootle-language-admin-settings',
-                               args=[language.code]),
-    }
-    t = loader.get_template('admin/_settings_form.html')
-    c = RequestContext(request, context)
-    response['form'] = t.render(c)
-
-    return HttpResponse(jsonify(response), status=rcode,
-                        content_type="application/json")
 
 
 @get_path_obj
@@ -168,7 +105,6 @@ def language_admin(request, language):
 
         'language': language,
         'directory': language.directory,
-        'feed_path': '%s/' % language.code,
     }
     return admin_permissions(request, language.directory,
                              'languages/admin/permissions.html', ctx)

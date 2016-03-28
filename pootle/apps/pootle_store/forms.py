@@ -1,23 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009-2012 Zuza Software Foundation
-# Copyright 2013-2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 """Form fields required for handling translation files."""
 import re
@@ -28,17 +16,16 @@ from django.utils.translation import get_language, ugettext as _
 
 from translate.misc.multistring import multistring
 
-from pootle.core.log import (TRANSLATION_ADDED, TRANSLATION_CHANGED,
-                             TRANSLATION_DELETED)
+from pootle.core.log import (TRANSLATION_ADDED,
+                             TRANSLATION_CHANGED, TRANSLATION_DELETED)
 from pootle.core.mixins import CachedMethods
 from pootle_app.models.permissions import check_permission
 from pootle_statistics.models import (Submission, SubmissionFields,
                                       SubmissionTypes)
 
-from .fields import to_db
 from .models import Unit
-from .util import FUZZY, TRANSLATED, UNTRANSLATED
-
+from .fields import to_db
+from .util import UNTRANSLATED, FUZZY, TRANSLATED, OBSOLETE
 
 ############## text cleanup and highlighting #########################
 
@@ -59,9 +46,7 @@ def highlight_whitespace(text):
 
     return FORM_RE.sub(replace, text)
 
-
 FORM_UNRE = re.compile('\r|\n|\t|\\\\r|\\\\n|\\\\t|\\\\\\\\')
-
 def unhighlight_whitespace(text):
     """Replace visible whitespace with proper whitespace."""
 
@@ -78,7 +63,6 @@ def unhighlight_whitespace(text):
         return submap[match.group()]
 
     return FORM_UNRE.sub(replace, text)
-
 
 class MultiStringWidget(forms.MultiWidget):
     """Custom Widget for editing multistrings, expands number of text
@@ -118,7 +102,6 @@ class MultiStringWidget(forms.MultiWidget):
             return [highlight_whitespace(value)]
         else:
             raise ValueError
-
 
 class HiddenMultiStringWidget(MultiStringWidget):
     """Uses hidden input instead of textareas."""
@@ -198,7 +181,7 @@ def unit_form_factory(language, snplurals=None, request=None):
         'lang': language.code,
         'dir': language.direction,
         'class': 'translation expanding focusthis js-translation-area',
-        'rows': 5,
+        'rows': 2,
         'tabindex': 10,
     }
 
@@ -231,11 +214,16 @@ def unit_form_factory(language, snplurals=None, request=None):
                 check_test=lambda x: x == FUZZY,
             ),
         )
+        similarity = forms.FloatField(required=False)
+        mt_similarity = forms.FloatField(required=False)
 
         def __init__(self, *args, **kwargs):
             self.request = kwargs.pop('request', None)
             super(UnitForm, self).__init__(*args, **kwargs)
             self.updated_fields = []
+
+            self.fields['target_f'].widget.attrs['data-translation-aid'] = \
+                self['target_f'].value()
 
         def clean_target_f(self):
             value = self.cleaned_data['target_f']
@@ -256,13 +244,12 @@ def unit_form_factory(language, snplurals=None, request=None):
             if (self.request is not None and
                 not check_permission('administrate', self.request) and
                 is_fuzzy):
-                raise forms.ValidationError(_('Fuzzy flag must be cleared'))
+                raise forms.ValidationError(_('Needs work flag must be cleared'))
 
             if new_target:
                 if old_state == UNTRANSLATED:
                     self.instance._save_action = TRANSLATION_ADDED
-                    self.instance.store \
-                                 .flag_for_deletion(CachedMethods.TRANSLATED)
+                    self.instance.store.mark_dirty(CachedMethods.WORDCOUNT_STATS)
                 else:
                     self.instance._save_action = TRANSLATION_CHANGED
 
@@ -274,24 +261,45 @@ def unit_form_factory(language, snplurals=None, request=None):
                 new_state = UNTRANSLATED
                 if old_state > FUZZY:
                     self.instance._save_action = TRANSLATION_DELETED
-                    self.instance.store \
-                                 .flag_for_deletion(CachedMethods.TRANSLATED)
+                    self.instance.store.mark_dirty(CachedMethods.WORDCOUNT_STATS)
 
             if is_fuzzy != (old_state == FUZZY):
                 # when Unit toggles its FUZZY state the number of translated words
                 # also changes
-                self.instance.store.flag_for_deletion(CachedMethods.FUZZY,
-                                                      CachedMethods.TRANSLATED,
-                                                      CachedMethods.LAST_ACTION)
+                self.instance.store.mark_dirty(CachedMethods.WORDCOUNT_STATS,
+                                               CachedMethods.LAST_ACTION)
 
-            if old_state != new_state:
+            if old_state != new_state and old_state != OBSOLETE:
                 self.instance._state_updated = True
                 self.updated_fields.append((SubmissionFields.STATE,
                                             old_state, new_state))
-            else:
-                self.instance._state_updated = False
 
-            return new_state
+                return new_state
+
+            self.instance._state_updated = False
+
+            return old_state
+
+        def clean_similarity(self):
+            value = self.cleaned_data['similarity']
+
+            if 0 <= value <= 1 or value is None:
+                return value
+
+            raise forms.ValidationError(
+                _('Value of `similarity` should be in in the [0..1] range')
+            )
+
+        def clean_mt_similarity(self):
+            value = self.cleaned_data['mt_similarity']
+
+            if 0 <= value <= 1 or value is None:
+                return value
+
+            raise forms.ValidationError(
+                _('Value of `mt_similarity` should be in in the [0..1] range')
+            )
+
 
     return UnitForm
 
@@ -302,7 +310,7 @@ def unit_comment_form_factory(language):
         'lang': language.code,
         'dir': language.direction,
         'class': 'comments expanding focusthis',
-        'rows': 2,
+        'rows': 1,
         'tabindex': 15,
     }
 
@@ -320,26 +328,42 @@ def unit_comment_form_factory(language):
 
         def __init__(self, *args, **kwargs):
             self.request = kwargs.pop('request', None)
+            self.previous_value = ''
+
             super(UnitCommentForm, self).__init__(*args, **kwargs)
 
-        def save(self):
+            if self.request.method == 'DELETE':
+                self.fields['translator_comment'].required = False
+
+        def clean_translator_comment(self):
+            # HACKISH: Setting empty string when `DELETE` is being used
+            if self.request.method == 'DELETE':
+                self.previous_value = self.instance.translator_comment
+                return ''
+
+            return self.cleaned_data['translator_comment']
+
+        def save(self, **kwargs):
             """Register the submission and save the comment."""
             if self.has_changed():
+                self.instance._comment_updated = True
                 creation_time = timezone.now()
                 translation_project = self.request.translation_project
 
                 sub = Submission(
                     creation_time=creation_time,
                     translation_project=translation_project,
-                    submitter=self.request.user,
+                    submitter=self.request.profile,
                     unit=self.instance,
+                    store=self.instance.store,
                     field=SubmissionFields.COMMENT,
                     type=SubmissionTypes.NORMAL,
-                    old_value=u"",
+                    old_value=self.previous_value,
                     new_value=self.cleaned_data['translator_comment']
                 )
                 sub.save()
 
-            super(UnitCommentForm, self).save()
+            super(UnitCommentForm, self).save(**kwargs)
+
 
     return UnitCommentForm

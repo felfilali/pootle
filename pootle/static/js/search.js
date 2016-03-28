@@ -1,163 +1,187 @@
-(function ($) {
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
 
-  window.PTL = window.PTL || {};
+'use strict';
 
-  PTL.search = {
+import $ from 'jquery';
+import 'jquery-cookie';
+import assign from 'object-assign';
+import 'shortcut';
 
-    init: function (options) {
-      /* Reusable selectors */
-      this.$form = $("#search-form");
-      this.$container = $(".js-search-container");
-      this.$fields = $(".js-search-fields");
-      this.$options = $(".js-search-options");
-      this.$input = $("#id_search");
 
-      /* Default settings */
-      this.defaultEnv = "editor";
-      this.settings = {
-        environment: this.defaultEnv,
-        onSubmit: this.onSubmit
-      };
-      /* Merge given options with default settings */
-      if (options) {
-        $.extend(this.settings, options);
-      }
+let search = {
 
-      /* Shortcuts */
-      shortcut.add('ctrl+shift+s', function () {
-        PTL.search.$input.focus();
-      });
-      shortcut.add('escape', function (e) {
-        if (PTL.search.$form.hasClass('focused')) {
-          PTL.search.$input.blur();
-          toggleFields(e);
-        }
-      });
+  init(options) {
+    var that = this;
 
-      /* Search input text */
-      $('.js-input-hint').each(function () {
-        var initial,
-            search = false,
-            $label = $(this),
-            input = $('#' + $label.attr('for'));
+    this.state = {
+      searchText: '',
+      searchFields: ['source', 'target'],
+      searchOptions: [],
+    };
 
-        if (input.prop("defaultValue")) {
-          initial = input.prop("defaultValue");
-          search = true;
-        } else {
-          initial = $label.hide().text().replace(':', '');
-        }
+    /* Reusable selectors */
+    this.$form = $("#search-form");
+    this.$container = $(".js-search-container");
+    this.$fields = $(".js-search-fields");
+    this.$options = $(".js-search-options");
+    this.$input = $("#id_search");
 
-        input.mouseup(function (e) {
-          e.preventDefault();
-        }).focus(function () {
-          if (input.val() === initial && !search) {
-            input.val('');
-          }
-          input.select();
-          PTL.search.$form.addClass('focused');
-        }).blur(function () {
-          if (input.val() === '') {
-            input.val(initial);
-          }
-          PTL.search.$form.removeClass('focused');
-        }).val(initial);
-      });
+    this.settings = assign({
+      onSearch: this.onSearch,
+    }, options);
 
-      /* Dropdown toggling */
-      var toggleFields = function (event) {
-        event.preventDefault();
-        PTL.search.$container.toggle();
-      };
-
-      /* Event handlers */
-      PTL.search.$input.click(function (e) {
-        if (PTL.search.isOpen()) {
-          return;
-        }
+    /* Shortcuts */
+    shortcut.add('ctrl+shift+s', () => {
+      this.$input.focus();
+    });
+    shortcut.add('escape', (e) => {
+      if (this.$form.hasClass('focused')) {
+        this.$input.blur();
         toggleFields(e);
-      });
-
-      this.$input.on('keypress', function (e) {
-        if (e.which === 13) {
-          PTL.search.$form.trigger('submit');
-        }
-      });
-      this.$form.on('submit', this.settings.onSubmit);
-
-      /* Necessary to detect clicks out of PTL.search.$container */
-      $(document).mouseup(function (e) {
-        if (PTL.search.isOpen() &&
-            e.target !== PTL.search.$input.get(0) &&
-            !PTL.search.$container.find(e.target).length) {
-          toggleFields(e);
-        }
-      });
-    },
-
-    /* Returns true if the search drop-down is open */
-    isOpen: function () {
-      return this.$container.is(':visible');
-    },
-
-    /* Builds search query hash string */
-    buildSearchQuery: function (text, remember) {
-      var searchFields = [],
-          searchOptions = [],
-          query = encodeURIComponent(text),
-          // Won't remember field choices unless explicitely told so
-          remember = remember === undefined ? false : remember;
-
-      // There were no fields specified within the text so we use the dropdown
-      PTL.search.$fields.find("input:checked").each(function () {
-        searchFields.push($(this).val());
-      });
-      PTL.search.$options.find("input:checked").each(function () {
-        searchOptions.push($(this).val());
-      });
-
-      // If any options have been chosen, append them to the resulting URL
-      if (remember) {
-        if (searchFields.length) {
-          query += "&sfields=" + searchFields.join(',');
-        }
-        if (searchOptions.length) {
-          query += "&soptions=" + searchOptions.join(',');
-        }
       }
+    });
 
-      if (searchFields.length || searchOptions.length) {
-        // Remember field selection in a cookie
-        var cookieName = "search-" + this.settings.environment,
-            cookieData = {};
-        if (searchFields.length) {
-          cookieData.sfields = searchFields;
-        }
-        if (searchOptions.length) {
-          cookieData.soptions = searchOptions;
-        }
-
-        $.cookie(cookieName, JSON.stringify(cookieData), {path: '/'});
-      }
-
-      return query;
-    },
-
-    onSubmit: function (e) {
+    this.$input.mouseup((e) => {
       e.preventDefault();
+    }).focus(() => {
+      this.$input.select();
+      this.$form.addClass('focused');
+    }).blur(() => {
+      if (this.$input.val() === '') {
+        this.$input.val(this.state.searchText);
+      }
+      this.$form.removeClass('focused');
+    });
 
-      var s = PTL.search.$input.val();
+    /* Dropdown toggling */
+    var toggleFields = function (event) {
+      event.preventDefault();
+      that.$container.toggle();
+    };
 
-      if (!s) {
-        return false;
+    /* Event handlers */
+    this.$input.click(function (e) {
+      if (search.isOpen()) {
+        return;
+      }
+      toggleFields(e);
+    });
+
+    this.$input.on('keypress', (e) => {
+      if (e.which === 13) {
+        this.$form.trigger('submit');
+      }
+    });
+    this.$form.on('submit', this.handleSearch.bind(this));
+
+    /* Necessary to detect clicks out of search.$container */
+    $(document).mouseup((e) => {
+      if (this.isOpen() &&
+          e.target !== that.$input.get(0) &&
+          !this.$container.find(e.target).length) {
+        toggleFields(e);
+      }
+    });
+  },
+
+  setState(newState) {
+    this.state = assign({}, this.state, newState);
+    this.updateUI();
+  },
+
+  /* Returns true if the search drop-down is open */
+  isOpen() {
+    return this.$container.is(':visible');
+  },
+
+  /* Builds search query hash string */
+  buildSearchQuery() {
+    let {searchText, searchFields, searchOptions } = this.state;
+    let query = encodeURIComponent(searchText);
+
+    // If any options have been chosen, append them to the resulting URL
+    if (searchFields.length) {
+      query += "&sfields=" + searchFields.join(',');
+    }
+    if (searchOptions.length) {
+      query += "&soptions=" + searchOptions.join(',');
+    }
+
+    if (searchFields.length || searchOptions.length) {
+      // Remember field selection in a cookie
+      var cookieName = 'pootle-search',
+          cookieData = {};
+      if (searchFields.length) {
+        cookieData.sfields = searchFields;
+      }
+      if (searchOptions.length) {
+        cookieData.soptions = searchOptions;
       }
 
-      var remember = true,
-          hash = "#search=" + PTL.search.buildSearchQuery(s, remember);
-      window.location = this.action + hash;
+      $.cookie(cookieName, JSON.stringify(cookieData), {path: '/'});
+    }
 
+    return query;
+  },
+
+  handleSearch(e) {
+    e.preventDefault();
+
+    let searchText = this.$input.val();
+    let searchFields = [];
+    let searchOptions = [];
+
+    this.$fields.find('input:checked').each(function () {
+      searchFields.push($(this).val());
+    });
+    this.$options.find('input:checked').each(function () {
+      searchOptions.push($(this).val());
+    });
+
+    if (!searchFields.length) {
+      searchFields = ['source', 'target'];
+    }
+
+    this.setState({
+      searchText: searchText,
+      searchFields: searchFields,
+      searchOptions: searchOptions,
+    });
+
+    this.settings.onSearch.call(this, this.state.searchText);
+  },
+
+  onSearch(searchText) {
+    if (!searchText) {
       return false;
     }
-  };
 
-}(jQuery));
+    let hash = "#search=" + this.buildSearchQuery();
+    window.location = this.$form[0].action + hash;
+
+    return false;
+  },
+
+  updateUI() {
+    this.$input.val(this.state.searchText).focus();
+    let { searchFields, searchOptions } = this.state;
+
+    this.$fields.find('input').each(function () {
+      $(this).prop('checked', searchFields.indexOf(this.value) !== -1);
+    });
+
+    this.$options.find('input').each(function () {
+      $(this).prop('checked', searchOptions.indexOf(this.value) !== -1);
+    });
+  }
+
+};
+
+
+export default search;

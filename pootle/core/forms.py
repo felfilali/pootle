@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010-2014 Zuza Software Foundation
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# Pootle; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import base64
 import json
@@ -31,7 +20,7 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
-from pootle_misc.util import jsonify
+from .utils.json import jsonify
 
 
 # MathCaptchaForm Copyright (c) 2007, Dima Dogadaylo (www.mysoftparade.com)
@@ -51,39 +40,32 @@ class MathCaptchaForm(forms.Form):
     For more info see:
     http://www.mysoftparade.com/blog/improved-mathematical-captcha/
     """
-    captcha_answer = forms.CharField(
-        max_length=2,
-        required=True,
-        widget=forms.TextInput(attrs={'size': '2'}),
-        label='',
-    )
-    captcha_token = forms.CharField(
-        max_length=200,
-        required=True,
-        widget=forms.HiddenInput(),
-    )
-
     A_RE = re.compile("^(\d+)$")
 
+    captcha_answer = forms.CharField(max_length=2, required=True,
+                                     widget=forms.TextInput(attrs={'size': '2'}),
+                                     label='')
+    captcha_token = forms.CharField(max_length=200, required=True,
+                                    widget=forms.HiddenInput())
+
     def __init__(self, *args, **kwargs):
-        """Initialize captcha_question and captcha_token for the form."""
+        """Initalise captcha_question and captcha_token for the form."""
         super(MathCaptchaForm, self).__init__(*args, **kwargs)
 
-        # Reset captcha for unbound forms.
+        # reset captcha for unbound forms
         if not self.data:
             self.reset_captcha()
 
     def reset_captcha(self):
-        """Generate new question and valid token for it, reset previous answer
-        if any.
-        """
+        """Generate new question and valid token
+        for it, reset previous answer if any."""
         q, a = self._generate_captcha()
-        expires = time.time() + getattr(settings, 'CAPTCHA_EXPIRES_SECONDS',
-                                        60*60)
+        expires = time.time() + \
+            getattr(settings, 'CAPTCHA_EXPIRES_SECONDS', 60*60)
         token = self._make_token(q, a, expires)
         self.initial['captcha_token'] = token
         self._plain_question = q
-        # Reset captcha fields for bound form.
+        # reset captcha fields for bound form
         if self.data:
             def _reset():
                 self.data['captcha_token'] = token
@@ -98,7 +80,8 @@ class MathCaptchaForm(forms.Form):
         self.fields['captcha_answer'].label = mark_safe(self.knotty_question)
 
     def _generate_captcha(self):
-        """Generate question and return it along with correct answer."""
+        """Generate question and return it along with correct
+        answer."""
         a, b = randint(1, 9), randint(1, 9)
         return ("%s+%s" % (a, b), a+b)
 
@@ -120,8 +103,7 @@ class MathCaptchaForm(forms.Form):
     def knotty_question(self):
         """Wrap plain_question in some invisibe for humans markup with random
         nonexisted classes, that makes life of spambots a bit harder because
-        form of question is vary from request to request.
-        """
+        form of question is vary from request to request."""
         digits = self._plain_question.split('+')
         return "+".join(['<span class="captcha-random-%s">%s</span>' %
                          (randint(1, 9), d) for d in digits])
@@ -137,14 +119,12 @@ class MathCaptchaForm(forms.Form):
         try:
             sign, data = t[:40], t[40:]
             data = json.loads(base64.urlsafe_b64decode(str(data)))
-            return {
-                'q': data['q'],
-                'expires': float(data['expires']),
-                'sign': sign,
-            }
+            return {'q': data['q'],
+                    'expires': float(data['expires']),
+                    'sign': sign}
         except Exception as e:
             logging.info("Captcha error: %r" % e)
-            # l10n for bots? Rather not.
+            # l10n for bots? Rather not
             raise forms.ValidationError("Invalid captcha!")
 
     def clean_captcha_answer(self):
@@ -156,7 +136,7 @@ class MathCaptchaForm(forms.Form):
     def clean(self):
         """Check captcha answer."""
         cd = self.cleaned_data
-        # Don't check captcha if no answer.
+        # don't check captcha if no answer
         if 'captcha_answer' not in cd:
             return cd
 

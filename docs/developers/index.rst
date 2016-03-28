@@ -10,14 +10,14 @@ other way, make sure to read through this part.
    :maxdepth: 2
 
    contributing
-   design_principles
    roadmap
    hacking
+   frontend
    customization
    browsers
    testing
-   initial_data_and_upgrade
    release
    glossary
    styleguide
+   deprecation
    releasing

@@ -1,26 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Zuza Software Foundation
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# translate is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with translate; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
-from django.db.models import F, Manager, Q
+from django.db.models import Manager
 
 
 class PageManager(Manager):
@@ -32,18 +19,29 @@ class PageManager(Manager):
             have administration privileges, only active pages will be
             returned.
         """
-        if user and user.is_superuser:
+        if user is not None and user.is_superuser:
             return self.get_queryset()
-        else:
-            return self.get_queryset().filter(active=True)
+
+        return self.get_queryset().filter(active=True)
+
+    def has_pending_agreement(self, user):
+        agreements = self.pending_user_agreement(user)
+        return len(list(agreements)) > 0
 
     def pending_user_agreement(self, user, **kwargs):
         """Filters active pages where the given `user` has pending
         agreements.
         """
         # FIXME: This should be a method exclusive to a LegalPage manager
-        return self.live().filter(
-            Q(agreement__user=user,
-              modified_on__gt=F('agreement__agreed_on')) |
-            ~Q(agreement__user=user)
-        )
+        return self.raw('''
+            SELECT DISTINCT staticpages_legalpage.id
+            FROM staticpages_legalpage
+            WHERE (staticpages_legalpage.active = %s
+                   AND NOT (staticpages_legalpage.id IN
+                            (SELECT A.document_id
+                             FROM staticpages_legalpage AS LP
+                             INNER JOIN staticpages_agreement AS A
+                                        ON LP.id = A.document_id
+                             WHERE A.user_id = %s AND
+                             A.agreed_on > LP.modified_on)))
+        ''', [True, user.id])

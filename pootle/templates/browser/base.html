@@ -1,10 +1,15 @@
 {% extends 'layout.html' %}
-{% load search %}
+{% load search store_tags %}
+
+{% block body_class %}browser{% endblock %}
 
 {% block actions_block %}
-{% if page == 'overview' or page == 'translate' %}
+{% if page == 'browse' or page == 'translate' %}
 <div id="actions" class="header">
-  {% block search %}{% render_search %}{% endblock %}
+  <div id="translate-filters">
+    {% block search %}{% render_search %}{% endblock %}
+    {% block filters %}{% endblock %}
+  </div>
   <div id="translate-actions">{% block actions %}{% endblock %}</div>
 </div>
 {% endif %}

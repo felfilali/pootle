@@ -1,35 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import pytest
 
 
-def _require_user(username, fullname, password=None,
-                  is_superuser=False):
+def _require_user(username, fullname, password=None, is_superuser=False):
     """Helper to get/create a new user."""
     from django.contrib.auth import get_user_model
-
     User = get_user_model()
+
     criteria = {
         'username': username,
-        'first_name': fullname,
+        'full_name': fullname,
         'is_active': True,
         'is_superuser': is_superuser,
     }
@@ -51,7 +39,13 @@ def nobody(db):
 
 
 @pytest.fixture
-def default(db):
+def trans_nobody(transactional_db):
+    """Require the default anonymous user for use in a transactional test."""
+    return _require_user('nobody', 'any anonymous user')
+
+
+@pytest.fixture
+def default(transactional_db):
     """Require the default authenticated user."""
     return _require_user('default', 'any authenticated user',
                          password='')
@@ -64,7 +58,40 @@ def system(db):
 
 
 @pytest.fixture
-def admin(db):
+def admin(transactional_db):
     """Require the admin user."""
     return _require_user('admin', 'Administrator', password='admin',
                          is_superuser=True)
+
+
+@pytest.fixture
+def member(db):
+    """Require a member user."""
+    return _require_user('member', 'Member')
+
+
+@pytest.fixture
+def trans_member(transactional_db):
+    """Require a member user."""
+    return _require_user('trans_member', 'Transactional member')
+
+
+@pytest.fixture
+def member_with_email(transactional_db):
+    """Require a member user."""
+    user = _require_user('member_with_email', 'Member with email')
+    user.email = "member_with_email@this.test"
+    user.save()
+    return user
+
+
+@pytest.fixture
+def member2(db):
+    """Require a member2 user."""
+    return _require_user('member2', 'Member2')
+
+
+@pytest.fixture
+def evil_member(transactional_db):
+    """Require a evil_member user."""
+    return _require_user('evil_member', 'Evil member')

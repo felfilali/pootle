@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import pytest
 
@@ -50,3 +39,21 @@ def tutorial_disabled(projects, english):
     """Require `tutorial-disabled` test project in a disabled state."""
     return _require_project('tutorial-disabled', 'Tutorial', english,
                             disabled=True)
+
+
+@pytest.fixture
+def project_foo(projects, english):
+    """Require `foo` test project."""
+    return _require_project('foo', 'Foo Project', english)
+
+
+@pytest.fixture
+def project_bar(projects, english):
+    """Require `bar` test project."""
+    return _require_project('bar', 'Bar Project', english)
+
+
+@pytest.fixture
+def vfolder_test(projects, english):
+    """Require `vfolder_test` test project."""
+    return _require_project('vfolder_test', 'Virtual Folder Test', english)

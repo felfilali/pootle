@@ -77,12 +77,6 @@ sorttable = {
       delete sortbottomrows;
     }
 
-    // Remove stalled items in case we are working on an already makeSortable'd
-    // table.
-    $(table).find("tr.tags-row").remove();
-    $(table).find("th").removeClass("sorttable_sorted");
-    $(table).find("th").removeClass("sorttable_sorted_reverse");
-
     // work through each column and calculate its type
     headrow = table.tHead.rows[0].cells;
     for (var i=0; i<headrow.length; i++) {
@@ -100,27 +94,19 @@ sorttable = {
         headrow[i].sorttable_columnindex = i;
         headrow[i].sorttable_tbody = table.tBodies[0];
 
-        if ($(headrow[i]).find(".icon-ascdesc, .icon-asc, .icon-desc").length == 0) {
-          // Add unsorted icon
-          unsorted = document.createElement('i');
-          unsorted.className = "sorttable_unsorted icon-ascdesc";
-          headrow[i].appendChild(unsorted);
-        }
+        // Add unsorted icon
+        unsorted = document.createElement('i');
+        unsorted.className = "sorttable_unsorted icon-ascdesc";
+        headrow[i].appendChild(unsorted);
 
         dean_addEvent(headrow[i],"click", function(e) {
 
           var cookieId = $(table).data('sort-cookie');
 
-          // Remove any tr of class "tags-row", as we will insert them with
-          // insertTagsRows() after sorting, so that they don't interfere with
-          // the sorting.
-          $(this).parents("table").find("tr.tags-row").remove();
-
           if (this.className.search(/\bsorttable_sorted\b/) != -1) {
             // if we're already sorted by this column, just
             // reverse the table, which is quicker
             sorttable.reverse(this.sorttable_tbody);
-            sorttable.insertTagsRows(this.sorttable_tbody);
             this.className = this.className.replace('sorttable_sorted',
                                                     'sorttable_sorted_reverse');
             this.removeChild(document.getElementById('sorttable_sortfwdind'));
@@ -139,7 +125,6 @@ sorttable = {
             // if we're already sorted by this column in reverse, just
             // re-reverse the table, which is quicker
             sorttable.reverse(this.sorttable_tbody);
-            sorttable.insertTagsRows(this.sorttable_tbody);
             this.className = this.className.replace('sorttable_sorted_reverse',
                                                     'sorttable_sorted');
             this.removeChild(document.getElementById('sorttable_sortrevind'));
@@ -155,7 +140,6 @@ sorttable = {
           }
 
           sorttable.doSort(this);
-          sorttable.insertTagsRows(this.sorttable_tbody);
 
           // Store current sorting criteria in a cookie
           sorttable.setSortCookie(cookieId, this.id, "asc");
@@ -163,8 +147,6 @@ sorttable = {
         });
       }
     }
-
-    sorttable.insertTagsRows(table.tBodies[0]);
   },
 
   doSort: function(th) {
@@ -296,44 +278,6 @@ sorttable = {
       }
     }
   },
-
-  insertTagsRows: function(tbody) {
-    // Inserts a tags tr after each tr that contains a td of class
-    // "tags-cell". We use this to insert the tags rows after sorting the
-    // table, so that they don't interfere with the sorting process.
-    newrows = [];
-    for (var i=0; i<tbody.rows.length; i++) {
-      newrows[newrows.length] = tbody.rows[i];
-    }
-    var width = 0;
-    if (newrows.length > 0)
-      width = $(newrows[0]).outerWidth() - $(newrows[0]).children().first().outerWidth();
-
-    for (var i=0; i<newrows.length; i++) {
-       if ($(newrows[i]).children('.tags-cell').length == 1) {
-          var $td = $(newrows[i]).children('.tags-cell').first().clone();
-          $td.children().addClass('js-tags');
-          $td.attr('id', $td.attr('id').replace('-hidden', ''));
-          $td.width(width);
-          $td.show();
-
-          var $tr = $('<tr></tr>');
-          $tr.addClass(newrows[i].className).addClass('tags-row');
-          $tr.append('<td></td>');
-          $tr.append($td);
-          $tr.insertAfter(newrows[i]);
-       }
-    }
-    delete newrows;
-
-    if ($.cookie('showtags') == 'true') {
-      $('.js-tags').show();
-      $("#js-toggle-tags-text").text(gettext("Hide tags"));
-    } else {
-      $('.js-tags').hide();
-    }
-  },
-
   reverse: function(tbody) {
     // reverse the rows in a tbody
     newrows = [];

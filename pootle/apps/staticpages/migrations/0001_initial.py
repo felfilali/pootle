@@ -1,44 +1,66 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import pootle.core.markup.fields
+import pootle.core.mixins.dirtyfields
+import django.utils.timezone
+from django.conf import settings
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'LegalPage'
-        db.create_table('staticpages_legalpage', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('active', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('display_on_register', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('url', self.gf('django.db.models.fields.URLField')(max_length=200, blank=True)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=50)),
-            ('body', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('body_html', self.gf('django.db.models.fields.TextField')(blank=True)),
-        ))
-        db.send_create_signal('staticpages', ['LegalPage'])
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
 
-
-    def backwards(self, orm):
-        # Deleting model 'LegalPage'
-        db.delete_table('staticpages_legalpage')
-
-
-    models = {
-        'staticpages.legalpage': {
-            'Meta': {'object_name': 'LegalPage'},
-            'active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'body': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'body_html': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'display_on_register': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '50'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'})
-        }
-    }
-
-    complete_apps = ['staticpages']
+    operations = [
+        migrations.CreateModel(
+            name='LegalPage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('active', models.BooleanField(default=False, help_text='Whether this page is active or not.', verbose_name='Active')),
+                ('virtual_path', models.CharField(default=b'', help_text=b'/pages/', unique=True, max_length=100, verbose_name='Virtual Path')),
+                ('title', models.CharField(max_length=100, verbose_name='Title')),
+                ('body', pootle.core.markup.fields.MarkupField(help_text='Allowed markup: HTML', verbose_name='Display Content', blank=True)),
+                ('url', models.URLField(help_text='If set, any references to this page will redirect to this URL', verbose_name='Redirect to URL', blank=True)),
+                ('modified_on', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=(pootle.core.mixins.dirtyfields.DirtyFieldsMixin, models.Model),
+        ),
+        migrations.CreateModel(
+            name='StaticPage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('active', models.BooleanField(default=False, help_text='Whether this page is active or not.', verbose_name='Active')),
+                ('virtual_path', models.CharField(default=b'', help_text=b'/pages/', unique=True, max_length=100, verbose_name='Virtual Path')),
+                ('title', models.CharField(max_length=100, verbose_name='Title')),
+                ('body', pootle.core.markup.fields.MarkupField(help_text='Allowed markup: HTML', verbose_name='Display Content', blank=True)),
+                ('url', models.URLField(help_text='If set, any references to this page will redirect to this URL', verbose_name='Redirect to URL', blank=True)),
+                ('modified_on', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
+            ],
+            options={
+                'abstract': False,
+            },
+            bases=(pootle.core.mixins.dirtyfields.DirtyFieldsMixin, models.Model),
+        ),
+        migrations.CreateModel(
+            name='Agreement',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('agreed_on', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
+                ('document', models.ForeignKey(to='staticpages.LegalPage')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='agreement',
+            unique_together=set([('user', 'document')]),
+        ),
+    ]

@@ -1,13 +1,9 @@
 -r base.txt
 
 # Databases
-MySQL-python>=1.2.3
+MySQL-python
 # Uncomment for PostgreSQL
-# psycopg2>=2.5.3
-
-# Libraries
-python-Levenshtein>=0.11.2
-python-memcached>=1.53
+# psycopg2
 
 # Logging
-raven>=5.0.0
+raven

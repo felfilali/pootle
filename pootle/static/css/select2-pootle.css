@@ -1,4 +1,12 @@
 /*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
+
+/*
     Pootle customizations for Select2 styles.
 */
 
@@ -10,6 +18,11 @@
     top: -2px; /* needed because of the border */
 }
 
+.unit-sort .select2-container
+{
+    top: 0;
+}
+
 .select2-container .select2-choice
 {
     border: 1px solid #d9d9d9;
@@ -19,7 +32,8 @@
     background-image: linear-gradient(to bottom, #fcfcfc 0%, #eeeeee 50%);
 }
 
-.breadcrumb .select2-container .select2-choice
+.breadcrumb .select2-container .select2-choice,
+.unit-sort .select2-container .select2-choice
 {
     border: 1px solid transparent;
     background-color: transparent;
@@ -49,7 +63,7 @@
     border-top: 1px solid #d9d9d9;
 }
 
-.select2-container .select2-choice .select2-arrow
+.select2-container .select2-choice div
 {
     border-left: 1px solid #d9d9d9;
     border-radius: 0 2px 2px 0;
@@ -58,7 +72,8 @@
     background-image: linear-gradient(to top, #dddddd 0%, #eeeeee 60%);
 }
 
-.breadcrumb .select2-container .select2-choice .select2-arrow
+.breadcrumb .select2-container .select2-choice div,
+.unit-sort .select2-container .select2-choice div
 {
     border-left: 1px solid transparent;
     background-color: transparent;
@@ -78,13 +93,15 @@
 }
 
 .breadcrumb .select2-dropdown-open .select2-choice,
+.unit-sort .select2-dropdown-open .select2-choice,
 .select2-dropdown-open .select2-choice
 {
     border: 1px solid #d9d9d9;
     border-bottom-color: transparent;
 }
 
-.breadcrumb .select2-dropdown-open .select2-choice
+.breadcrumb .select2-dropdown-open .select2-choice,
+.unit-sort .select2-dropdown-open .select2-choice
 {
     background-color: #eee;
     background-image: linear-gradient(to bottom, #ffffff 0%,#eeeeee 50%);
@@ -163,27 +180,9 @@
     max-width: 30em;
 }
 
-.select2-username,
-.select2-filter-status
+.select2-username
 {
     width: 20em;
     min-width: 20em;
     max-width: 20em;
-}
-
-.select2-filter-checks
-{
-    width: 24em;
-    min-width: 24em;
-    max-width: 30em;
-}
-
-@media only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-resolution: 144dpi)  {
-  .select2-search input,
-  .select2-search-choice-close,
-  .select2-container .select2-choice abbr,
-  .select2-container .select2-choice .select2-arrow b
-  {
-      background-image: url('../images/select2x2.png') !important;
-  }
 }

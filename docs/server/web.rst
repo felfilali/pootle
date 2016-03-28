@@ -3,9 +3,21 @@
 Running under a Web Server
 ==========================
 
-Running Pootle under a proper web server will improve performance, give you more
-flexibility, and might be better for security. It is strongly recommended to
-run Pootle under Apache, Nginx, or a similar web server.
+Running Pootle with a front end web server will improve performance, give you
+more flexibility, and might be better for security. It is strongly recommended
+to run Pootle under Apache, Nginx, or a similar web server.
+
+
+.. _pootle#running_as_a_service:
+
+Running Pootle and RQ workers as a Service
+------------------------------------------
+
+If you plan to run Pootle and/or RQ workers as system services, you can use
+whatever software you are familiar with for that purpose. For example
+`Supervisor <http://supervisord.org/>`_, `Circus
+<http://circus.readthedocs.org/en/latest/>`_ or `daemontools
+<http://cr.yp.to/daemontools.html>`_ might fit your needs.
 
 
 .. _apache:
@@ -24,9 +36,6 @@ Proxying with Apache
 If you want to reverse proxy through Apache, you will need to have `mod_proxy
 <https://httpd.apache.org/docs/current/mod/mod_proxy.html>`_ installed for
 forwarding requests and configure it accordingly.
-
-You also need to add the front/outside hostname (the hostname of the proxying
-Apache server) to the ALLOWED_HOSTS in ~/.pootle/pootle.conf file
 
 .. code-block:: apache
 
@@ -48,11 +57,11 @@ the number of users you expect to have. A moderate server with 1GB memory might
 set ``MaxClients`` to something like ``20``, for example.
 
 Make sure Apache has read access to all of Pootle's files and write access to
-the :setting:`PODIRECTORY` directory.
+the :setting:`POOTLE_TRANSLATION_DIRECTORY` directory.
 
 .. note:: Most of the paths present in the examples in this section are the
    result of deploying Pootle using a Python virtualenv as told in the
-   :ref:`Setting up the Environment <installation#setup_environment>` section
+   :ref:`Setting up the Environment <installation#setup-environment>` section
    from the :ref:`Quickstart installation <installation>` instructions.
 
    If for any reason you have different paths, you will have to adjust the

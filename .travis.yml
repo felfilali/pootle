@@ -2,46 +2,57 @@
 sudo: false
 language: python
 python:
-  - 2.6
   - 2.7
 env:
   matrix:
-    - DJANGO_VERSION=1.6.2 DATABASE_BACKEND=sqlite
-    - DJANGO_VERSION=1.6.2 DATABASE_BACKEND=postgres
-    - DJANGO_VERSION=1.6.2 DATABASE_BACKEND=mysql
-  global:
-    - PIP_DOWNLOAD_CACHE=".pip_download_cache"
+    - DJANGO_VERSION=1.7.10 DATABASE_BACKEND=sqlite
+    - DJANGO_VERSION=1.7.10 DATABASE_BACKEND=postgres
+    - DJANGO_VERSION=1.7.10 DATABASE_BACKEND=mysql_innodb
 cache:
   apt: true
   directories:
-    - .pip_download_cache
+    - pootle/assets/js/node_modules
+    - $HOME/.cache/pip
     - docs/_build
 install:
-  - CFLAGS="-O0" travis_retry pip install -r requirements/travis.txt --timeout=240
-  - travis_retry pip install "Django>=$DJANGO_VERSION,<"$(echo $(echo $DJANGO_VERSION | cut -d"." -f1).$(( $(echo $DJANGO_VERSION | cut -d"." -f2) + 1 )) ) --timeout=240
+  - pip install --upgrade pip # FIXME remove once Travis support pip7 by default
+  - CFLAGS="-O0" pip install -r requirements/travis.txt
+  - pip install "Django>=$DJANGO_VERSION,<"$(echo $(echo $DJANGO_VERSION | cut -d"." -f1).$(( $(echo $DJANGO_VERSION | cut -d"." -f2) + 1 )) )
+  - pip install .
   - pip freeze  # Print all installed versions for reference.
 before_script:
   - if [[ $DATABASE_BACKEND == 'postgres' ]]; then psql -c 'create database pootle;' -U postgres; fi
-  - if [[ $DATABASE_BACKEND == 'mysql' ]]; then mysql -e 'create database pootle;'; fi
+  - if [[ $DATABASE_BACKEND == 'mysql_innodb' ]]; then mysql -e 'create database pootle CHARACTER SET utf8 COLLATE utf8_general_ci;'; fi
 script:
   - python -m compileall -q -f .
   - make docs
-  - make build SHELL=/bin/bash TAIL='|tail -40; exit $$PIPESTATUS'
-  - coverage run --parallel-mode manage.py syncdb --noinput --traceback
-  - coverage run --parallel-mode manage.py migrate --traceback
-  - coverage run --parallel-mode manage.py initdb --traceback
-  - coverage run --parallel-mode ./manage.py runserver --traceback &
+  # FIXME revert breakdown of 'make build' after core merge
+  #- make build SHELL=/bin/bash TAIL='|tail -40; exit $$PIPESTATUS'
+  - make assets
+  - make mo
+  - DJANGO_SETTINGS_MODULE=pootle.settings ./setup.py build_checks_templates
+  - ./manage.py migrate --noinput --traceback
+  - ./manage.py initdb --traceback
+  - ./manage.py runserver --traceback &
   - TESTPID=$!
-  - sleep 20
+  - sleep 10
   - kill -2 $TESTPID
-  - tests/version-migration/migrate.sh
+  # FIXME reenable migration testing
+  #- tests/version-migration/migrate.sh
   - make pep8
-after_success:
-  - coverage combine
-  - coveralls
+  - py.test
 notifications:
   email:
     on_failure: always
     on_success: change
+  irc:
+    on_failure: always
+    on_success: change
+    channels:
+      - "chat.freenode.net#pootle-dev"
+    use_notice: true
+    skip_join: true
+    template:
+      - "(%{branch} @ %{commit} : %{author}): %{message} %{build_url}"
 services:
-  - memcached
+  - redis-server

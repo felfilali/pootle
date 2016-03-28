@@ -1,129 +1,75 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008-2013 Zuza Software Foundation
-# Copyright 2013-2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import locale
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
 from django.shortcuts import render
-from django.template import loader, RequestContext
-from django.utils.translation import ugettext as _
-from django.views.decorators.http import require_POST
 
-from pootle.core.browser import (get_table_headings, make_language_item,
-                                 make_project_list_item, make_xlanguage_item)
+from pootle.core.browser import (make_language_item,
+                                 make_xlanguage_item,
+                                 make_project_list_item,
+                                 get_table_headings)
 from pootle.core.decorators import (get_path_obj, get_resource,
                                     permission_required)
-from pootle.core.helpers import (get_export_view_context, get_overview_context,
+from pootle.core.helpers import (get_export_view_context,
+                                 get_browser_context,
                                  get_translation_context)
 from pootle.core.url_helpers import split_pootle_path
-from pootle_app.models.permissions import check_permission
+from pootle.core.utils.json import jsonify
 from pootle_app.views.admin import util
 from pootle_app.views.admin.permissions import admin_permissions
-from pootle_misc.util import ajax_required, jsonify
-from pootle_project.forms import (TranslationProjectFormSet,
-                                  tp_form_factory)
-from pootle_project.models import Project
+from pootle_project.forms import tp_form_factory
 from pootle_translationproject.models import TranslationProject
 
 
 @get_path_obj
 @permission_required('view')
 @get_resource
-def overview(request, project, dir_path, filename):
-    """Languages overview for a given project."""
+def browse(request, project, dir_path, filename):
+    """Languages browser for a given project."""
     item_func = (make_xlanguage_item if dir_path or filename
                                      else make_language_item)
-    items = [item_func(item) for item in request.resource_obj.get_children()]
+    items = [item_func(item) for item in
+             request.resource_obj.get_children_for_user(request.profile)]
     items.sort(lambda x, y: locale.strcoll(x['title'], y['title']))
 
     table_fields = ['name', 'progress', 'total', 'need-translation',
                     'suggestions', 'critical', 'last-updated', 'activity']
+    table = {
+        'id': 'project',
+        'fields': table_fields,
+        'headings': get_table_headings(table_fields),
+        'items': items,
+    }
 
-    ctx = get_overview_context(request)
+    ctx = get_browser_context(request)
     ctx.update({
         'project': project,
-        'can_edit': check_permission("administrate", request),
-        'table': {
-            'id': 'project',
-            'fields': table_fields,
-            'headings': get_table_headings(table_fields),
-            'items': items,
-        },
+        'table': table,
+        'stats': jsonify(request.resource_obj.get_stats_for_user(request.user)),
 
         'browser_extends': 'projects/base.html',
     })
 
-    if ctx['can_edit']:
-        from pootle_project.forms import DescriptionForm
-        ctx.update({
-            'form': DescriptionForm(instance=project),
-            'form_action': reverse('pootle-project-admin-settings',
-                                   args=[project.code]),
-        })
-
-    return render(request, 'browser/overview.html', ctx)
-
-
-@require_POST
-@ajax_required
-@get_path_obj
-@permission_required('administrate')
-def project_settings_edit(request, project):
-    from pootle_project.forms import DescriptionForm
-    form = DescriptionForm(request.POST, instance=project)
-
-    response = {}
-    status = 400
-
-    if form.is_valid():
-        form.save()
-        status = 200
-
-        response["description"] = u"".join([
-            u'<p class="placeholder muted">',
-            _(u"No description yet."),
-            u"</p>",
-        ])
-
-    ctx = {
-        "form": form,
-        "form_action": reverse('pootle-project-admin-settings',
-                               args=[project.code]),
-    }
-
-    template = loader.get_template('admin/_settings_form.html')
-    response['form'] = template.render(RequestContext(request, ctx))
-
-    return HttpResponse(jsonify(response), status=status,
-                        content_type="application/json")
+    return render(request, 'browser/index.html', ctx)
 
 
 @get_path_obj
 @permission_required('view')
 @get_resource
 def translate(request, project, dir_path, filename):
+    language = None
+
     ctx = get_translation_context(request)
     ctx.update({
-        'language': None,
+        'language': language,
         'project': project,
 
         'editor_extends': 'projects/base.html',
@@ -169,13 +115,15 @@ def project_admin(request, current_project):
     def generate_link(tp):
         path_args = split_pootle_path(tp.pootle_path)[:2]
         perms_url = reverse('pootle-tp-admin-permissions', args=path_args)
-        return '<a href="%s">%s</a>' % (perms_url, tp.language)
+        return u'<a href="%s">%s</a>' % (perms_url, tp.language)
+
+    extra = (1 if current_project.get_template_translationproject() is not None
+               else 0)
 
     return util.edit(request, 'projects/admin/languages.html',
                      TranslationProject, ctx, generate_link,
                      linkfield="language", queryset=queryset,
-                     can_delete=True, form=tp_form_class,
-                     formset=TranslationProjectFormSet)
+                     can_delete=True, extra=extra, form=tp_form_class)
 
 
 @get_path_obj
@@ -186,35 +134,38 @@ def project_admin_permissions(request, project):
 
         'project': project,
         'directory': project.directory,
-        'feed_path': project.pootle_path[1:],
     }
+
     return admin_permissions(request, project.directory,
                              'projects/admin/permissions.html', ctx)
 
 
 @get_path_obj
 @permission_required('view')
-def projects_overview(request, project_set):
-    """Page listing all projects."""
+def projects_browse(request, project_set):
+    """Page listing all projects"""
     items = [make_project_list_item(project)
-             for project in project_set.get_children()]
+             for project in project_set.children]
+    items.sort(lambda x, y: locale.strcoll(x['title'], y['title']))
 
     table_fields = ['name', 'progress', 'total', 'need-translation',
                     'suggestions', 'critical', 'last-updated', 'activity']
+    table = {
+        'id': 'projects',
+        'fields': table_fields,
+        'headings': get_table_headings(table_fields),
+        'items': items,
+    }
 
-    ctx = get_overview_context(request)
+    ctx = get_browser_context(request)
     ctx.update({
-        'table': {
-            'id': 'projects',
-            'fields': table_fields,
-            'headings': get_table_headings(table_fields),
-            'items': items,
-        },
+        'table': table,
+        'stats': jsonify(request.resource_obj.get_stats()),
 
         'browser_extends': 'projects/all/base.html',
     })
 
-    response = render(request, 'browser/overview.html', ctx)
+    response = render(request, 'browser/index.html', ctx)
     response.set_cookie('pootle-language', 'projects')
 
     return response
