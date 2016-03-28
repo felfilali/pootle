@@ -60,17 +60,12 @@ In the editor:
 
 In the overview page:
 
-- Several features from translation projects have been merged into the
-  *Overview* tab, including quality check failures and directory- and
-  file-level actions. As a consequence the *Review* tab has been dropped and
-  the *Translate* tab serves solely to display the actual translation
-  editor.
 - The overview page allows you to drill down into certain types of units
   matching a translation state or with an error.
 - It is now easier to see what work needs attentions, as we highlight next
   actions for your project.
 - With editable project and language descriptions you can supply description
-  for projects. These are editable using Markdown, reStructuredText or HTML.
+  for projects. These are editable using Markdown, reStructured or HTML.
 - News alerts can now be sent via email to project participants.
 - The overview page provides an expanded checks page that highlights all
   failing checks.

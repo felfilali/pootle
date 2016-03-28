@@ -159,6 +159,9 @@ def process_modelformset(request, model_class, queryset, **kwargs):
             return formset, _("There are errors in the form. Please review "
                               "the problems below."), objects
 
+        # Hack to force reevaluation of same query
+        queryset = queryset.filter()
+
     objects = paginate(request, queryset)
 
     return formset_class(queryset=objects.object_list), None, objects

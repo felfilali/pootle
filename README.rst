@@ -9,26 +9,18 @@ Pootle
 localization tool.  It works to lower the barrier of entry, providing tools to
 enable teams to work towards higher quality while welcoming newcomers.
 
-.. image:: https://pypip.in/status/Pootle/badge.png
-    :alt: Development Status
-    :target: https://pypi.python.org/pypi/Pootle/
 
-.. image:: https://pypip.in/license/Pootle/badge.svg
-    :target: https://pypi.python.org/pypi/Pootle/
-    :alt: License
+Pootle is a Server
+------------------
 
-`Pootle <http://pootle.translatehouse.org/>`_ is an online translation and
-localization tool.  It works to lower the barrier of entry, providing tools to
-enable teams to work towards higher quality while welcoming newcomers.
-
+Pootle is written in Python using the Django framework and therefore can be
+installed on any web server that supports serving WSGI applications.
 
 A number of translation projects for a number of languages can be hosted on
 Pootle.  Teams can manage their files, permissions, projects, and translate
 on-line.  Files can be downloaded for offline translation.
 
-**Pootle 2.6.x is not meant to be installed for new deployments. Pootle 2.6.x
-is provided only to be used as an intermediate step for upgrading older Pootle
-deployments to newer Pootle releases like 2.7.x or later.**
+Installation can be done via pip::
 
   pip install Pootle
 

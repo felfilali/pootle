@@ -16,7 +16,6 @@ other way, make sure to read through this part.
    customization
    browsers
    testing
-   initial_data_and_upgrade
    release
    glossary
    styleguide

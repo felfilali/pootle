@@ -1670,8 +1670,6 @@ msgstr ""
 #, python-format
 msgid "Report for %(user)s"
 msgstr ""
-"Dịch Toolkit phiên bản% (cài đặt) được cài đặt. Pootle đòi hỏi ít nhất phiên "
-"bản% (bắt buộc) s."
 
 #: templates/admin/detailed_reports.html:133
 #: templates/admin/reports/header.html:11 templates/user/detailed_stats.html:7
@@ -1690,8 +1688,6 @@ msgstr ""
 #: templates/admin/detailed_reports.html:143
 msgid "Action"
 msgstr ""
-"phiên bản lxml %(installed)s đã được cài đặt. Pootle yêu cầu cần có ít nhất "
-"là phiên bản %(required)s."
 
 #: templates/admin/detailed_reports.html:144
 msgid "Unit"
@@ -1718,8 +1714,6 @@ msgstr ""
 #: templates/admin/detailed_reports.html:265
 msgid "registered tasks"
 msgstr ""
-"Không tìm thấy gói cài đặt python-levenshtein. Cập nhật các mẫu sẽ nhanh hơn "
-"khi dùng python-levenshtein."
 
 #: templates/admin/detailed_reports.html:217
 msgid "No activity recorded in a given period"
@@ -1886,8 +1880,6 @@ msgstr ""
 #: templates/admin/staticpages/page_list.html:25
 msgid "Add Announcement"
 msgstr ""
-"Có một phần mô tả về ngôn ngữ này. Phần này cực kỳ hữu ích khi cung cấp các "
-"thông tin bổ sung hay những chỉ dẫn. Cho phép đánh dấu: %s"
 
 #: templates/browser/_actions.html:5
 #, fuzzy
@@ -3775,191 +3767,6 @@ msgstr ""
 
 #~ msgid "Quick Links"
 #~ msgstr "Liên kết nhanh"
-
-#~ msgid "No languages or projects selected. Choose yours now."
-#~ msgstr "Chưa chọn ngôn ngữ hay dự án nào. Chọn nhé."
-
-#~ msgid "This user has not selected languages or projects yet."
-#~ msgstr "Người dùng này chưa chọn ngôn ngữ hay dự án nào."
-
-#~ msgid "User Statistics"
-#~ msgstr "Thống kê Người dùng"
-
-#~ msgid "URL"
-#~ msgstr "Đường dẫn liên kết"
-
-#~ msgid "If set, any references to this legal page will redirect to this URL"
-#~ msgstr ""
-#~ "Nếu được chỉnh sửa, bất kỳ tham chiếu nào đến trang pháp lý này sẽ được "
-#~ "chuyển tiếp sang đường dẫn liên kết này"
-
-#~ msgid "Slug"
-#~ msgstr "Dãy chữ"
-
-#~ msgid "The page will be available at /about/<slug>/"
-#~ msgstr "Trang này hiện có tại /about/<slug>/"
-
-#~ msgid "Content"
-#~ msgstr "Nội dung"
-
-#~ msgid "Legal page created."
-#~ msgstr "Đã tạo trang vấn đề pháp lý."
-
-#~ msgid "Edit Legal Page"
-#~ msgstr "Chỉnh sửa trang Vấn Đề Pháp Lý"
-
-#, fuzzy
-#~ msgid "Inactive"
-#~ msgstr "hoạt động"
-
-#~ msgid "Project Members"
-#~ msgstr "Thành viên Dự án"
-
-#~ msgid "Language Members"
-#~ msgstr "Thành viên nhóm Ngôn ngữ"
-
-#, python-format
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Bạn không có quyền quản trị %s."
-
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Bạn không có quyền truy cập đến dự án thông dịch này."
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Bạn không có quyền chuyển/gửi tập tin vào đây."
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Bạn không có quyền cập nhật tập tin ở đây."
-
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Bạn không có quyền quản trị ngôn ngữ này."
-
-#~ msgid "Pootle: Install"
-#~ msgstr "Pootle: Cài đặt"
-
-#, python-format
-#~ msgid ""
-#~ "Error: \"%s\" while attempting to access the Pootle database, will try to "
-#~ "initialize database."
-#~ msgstr ""
-#~ "Lỗi: « %s » trong khi thử truy cập đến cơ sở dữ liệu Pootle, sẽ thử sơ khởi "
-#~ "cơ sở dữ liệu."
-
-#~ msgid "Creating database tables..."
-#~ msgstr "Đang tạo các bảng cơ sở dữ liệu..."
-
-#~ msgid "Creating default languages, projects and admin user"
-#~ msgstr "Đang tạo các ngôn ngữ mặc định, các dự án và người dùng quản trị"
-
-#~ msgid "Calculating translation statistics, this will take a few minutes"
-#~ msgstr "Đang tạo thống kê thông dịch (có thể mất vài phút)"
-
-#, python-format
-#~ msgid "%(language)s is %(percent)d%% complete"
-#~ msgstr "%(language)s được dịch %(percent)d%%"
-
-#, python-format
-#~ msgid "Project %(project)s is %(percent)d%% complete"
-#~ msgstr "Dự án %(project)s được dịch %(percent)d%%"
-
-#~ msgid "Done calculating statistics for default languages and projects"
-#~ msgstr "Hoàn tất tính thống kê về các ngôn ngữ và dự án mặc định"
-
-#~ msgid ""
-#~ "Initialized database, you will be redirected to the front page in 10 seconds"
-#~ msgstr ""
-#~ "Đã sơ khởi cơ sở dữ liệu ; bạn sẽ được chuyển tiếp tới trang chính trong "
-#~ "khoảng 10 giây"
-
-#~ msgid "Pootle: Update"
-#~ msgstr "Pootle: Cập nhật"
-
-#, python-format
-#~ msgid ""
-#~ "Database tables are currently at build version %d. Pootle will now update "
-#~ "the database."
-#~ msgstr ""
-#~ "Các bảng cơ sở dữ liệu hiện thời có phiên bản xây dựng %d. Pootle sắp cập "
-#~ "nhật cơ sở dữ liệu."
-
-#~ msgid "Creating missing database tables..."
-#~ msgstr "Đang tạo các bảng cơ sở dữ liệu còn thiếu..."
-
-#~ msgid "Fixing permission table..."
-#~ msgstr "Đang sửa chữa bảng quyền truy cập..."
-
-#~ msgid "Updating existing database tables..."
-#~ msgstr "Đang cập nhật các bảng cơ sở dữ liệu đã có..."
-
-#~ msgid ""
-#~ "Pootle will now import all the translations into the database. It could take "
-#~ "a long time."
-#~ msgstr ""
-#~ "Pootle sắp nhập vào cơ sở dữ liệu tất cả các bản dịch. Thao tác này có thể "
-#~ "sẽ mất nhiều thời gian."
-
-#, python-format
-#~ msgid "Imported %(count)d suggestion from %(store)s"
-#~ msgid_plural "Imported %(count)d suggestions from %(store)s"
-#~ msgstr[0] "Đã nhập %(count)d sự góp ý từ %(store)s"
-
-#, python-format
-#~ msgid "Failed to import suggestions from %s"
-#~ msgstr "Đã không nhập được các sự góp ý từ %s"
-
-#, fuzzy, python-format
-#~ msgid "Imported %(count)d string from %(store)s"
-#~ msgid_plural "Imported %(count)d strings from %(store)s"
-#~ msgstr[0] "Đã nhập %(count)d đơn vị từ %(store)s"
-
-#, fuzzy, python-format
-#~ msgid "Failed to import strings from %s"
-#~ msgstr "Đã không nhập được các đơn vị từ %s"
-
-#~ msgid "All translations are now imported."
-#~ msgstr "Tất cả các bản dịch đã được nhập vào cơ sở dữ liệu."
-
-#~ msgid ""
-#~ "Pootle initialized the database. You will be redirected to the front page in "
-#~ "10 seconds."
-#~ msgstr ""
-#~ "Pootle đã sơ khởi cơ sở dữ liệu. Bạn sẽ được chuyển tiếp tới trang chính "
-#~ "trong khoảng 10 giây"
-
-#~ msgid "Advanced search"
-#~ msgstr "Tìm kiếm cấp cao"
-
-#~ msgid "Suggestions Accepted"
-#~ msgstr "Sự góp ý được chấp nhận"
-
-#~ msgid "Suggestions Reviewed"
-#~ msgstr "Sự góp ý được xem lại"
-
-#~ msgid "Submissions Made"
-#~ msgstr "Chuỗi dịch được đệ trình"
-
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Bạn không có quyền quản trị dự án này."
-
-#, fuzzy
-#~ msgid "File:"
-#~ msgstr "Tập tin"
-
-#~ msgid "You do not have the right to create ZIP archives."
-#~ msgstr "Bạn không có quyền tạo kho nén ZIP."
-
-#, fuzzy
-#~ msgid "Update from Version Control"
-#~ msgstr "Cập nhật tất cả từ kho điều khiển phiên bản"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Thao diễn Pootle"
-
-#~ msgid "Quick Links"
-#~ msgstr "Liên kết nhanh"
-
-#~ msgid "Admin"
-#~ msgstr "Quản trị"
 
 #~ msgid "No languages or projects selected. Choose yours now."
 #~ msgstr "Chưa chọn ngôn ngữ hay dự án nào. Chọn nhé."

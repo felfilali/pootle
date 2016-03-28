@@ -37,7 +37,6 @@ CATEGORY_NAMES = {
     Category.NO_CATEGORY: _("Other"),
 }
 
-
 check_names = {
     'accelerators': _(u"Accelerators"),  # fixme duplicated
     'acronyms': _(u"Acronyms"),

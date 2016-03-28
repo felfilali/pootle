@@ -446,7 +446,7 @@ msgstr "Nenhum resultado."
 
 #: static/js/editor/app.js:1043
 msgid "Error while connecting to the server"
-msgstr "Ocorreu um erro ao ligar ao servidor"
+msgstr "Ocorreu um erro ao ligar ao servidor."
 
 #: static/js/editor/app.js:1047
 msgid "Not found"

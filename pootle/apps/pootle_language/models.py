@@ -97,8 +97,8 @@ class Language(models.Model, TreeItem):
     pluralequation = models.CharField(max_length=255, blank=True,
             verbose_name=_("Plural Equation"), help_text=plurals_help_text)
 
-    def __unicode__(self):
-        return u"%s - %s" % (self.name, self.code)
+    directory = models.OneToOneField('pootle_app.Directory', db_index=True,
+            editable=False)
 
     objects = LanguageManager()
     live = LiveLanguageManager()

@@ -7,8 +7,10 @@
 # or later license. See the LICENSE file for a copy of the license and the
 # AUTHORS file for copyright and authorship information.
 
-from pootle_app.models.directory import Directory
-from pootle_app.models.permissions import PermissionSet
+from django import template
 
+register = template.Library()
 
-__all__ = ["Directory", "PermissionSet"]
+@register.filter
+def gravatar(profile, size):
+    return profile.gravatar_url(size)

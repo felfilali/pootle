@@ -8,6 +8,7 @@
 # AUTHORS file for copyright and authorship information.
 
 import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
 from optparse import make_option
 
 from pootle_app.management.commands import PootleCommand

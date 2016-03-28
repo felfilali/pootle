@@ -166,7 +166,7 @@
             {% endif %}
             {% if cansuggest and cantranslate %}
             <div class="switch-suggest-mode tiny" lang="{{ LANGUAGE_CODE }}">
-              <div class="suggest"><a href="#" title="{% trans 'Switch to translation mode (Ctrl+Shift+Space)' %}">&harr; {% trans "Submit" %}</a></div>
+                <div class="suggest"><a href="#" title="{% trans 'Switch to translation mode (Ctrl+Shift+Space)' %}">&harr; {% trans "Submit" %}</a></div>
               <div class="submit"><a href="#" title="{% trans 'Switch to suggestion mode (Ctrl+Shift+Space)' %}">&harr; {% trans "Suggest" %}</a></div>
             </div>
             {% endif %}
@@ -201,7 +201,7 @@
               {% with reviewer=unit.reviewed_by %}
               {% if reviewer %}
               <br>
-              <span>({% blocktrans with url=reviewer.get_absolute_url%}reviewed by <a href="{{ url }}">{{ reviewer }}</a>{% endblocktrans %})</span>
+              <span>({% blocktrans with profile_url=reviewer.get_absolute_url%}reviewed by <a href="{{ profile_url }}">{{ reviewer }}</a>{% endblocktrans %})</span>
               {% endif %}
               {% endwith %}
             </div>
@@ -305,7 +305,7 @@
                     title="{% trans 'Reject suggestion' %}"></i>
                 </a>
                 {% else %}
-                {% if user.is_authenticated and user == sugg.user %}
+                {% if user.is_authenticated and profile == sugg.user %}
                 <a accesskey="r" class="suggestion-action js-suggestion-reject"
                   data-sugg-id="{{ sugg.id }}">
                   <i class="icon-reject" dir="{% locale_dir %}"

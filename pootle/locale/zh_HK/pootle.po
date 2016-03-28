@@ -2732,43 +2732,6 @@ msgstr ""
 #~ msgid "Quick Links"
 #~ msgstr "捷徑鏈結"
 
-#, python-format
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "你沒有足夠權限管理 %s 。"
-
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "你沒有足夠權限更改翻譯"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "你沒有足夠權限提交檔案"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "你沒有足夠權限更新檔案"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "你沒有足夠權限管理這個計劃。"
-
-#~ msgid "Pootle: Install"
-#~ msgstr "Pootle: 安裝"
-
-#, fuzzy
-#~ msgid "Suggestions Accepted"
-#~ msgstr "建議已接受"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "你沒有足夠權限管理這個計劃。"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Pootle 示範"
-
-#~ msgid "Quick Links"
-#~ msgstr "捷徑鏈結"
-
-#~ msgid "Admin"
-#~ msgstr "管理"
-
 #, fuzzy
 #~ msgid "To activation your account, follow this link:"
 #~ msgstr "要啟用戶口，請瀏覽這個鏈結："

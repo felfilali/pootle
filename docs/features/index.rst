@@ -33,7 +33,6 @@ Online translation editor
    searching
    shortcuts
    suggestions
-   placeables
    terminology
    virtual_folders
    offline

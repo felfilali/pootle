@@ -62,7 +62,6 @@ Otherwise you can install ``virtualenv`` using :command:`pip`:
   $ sudo pip install virtualenv
 
 
-
 Now create a virtual environment on your location of choice by issuing the
 ``virtualenv`` command:
 

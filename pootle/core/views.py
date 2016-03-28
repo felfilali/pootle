@@ -25,8 +25,6 @@ from django.views.generic import View
 from .http import JsonResponse, JsonResponseBadRequest
 from .utils.json import PootleJSONEncoder
 
-from pootle_misc.util import ajax_required, jsonify
-
 
 class SuperuserRequiredMixin(object):
     """Require users to have the `is_superuser` bit set."""

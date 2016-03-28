@@ -39,7 +39,6 @@ msgstr "Jina la mtumiaji"
 msgid ""
 "Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters"
 msgstr ""
-"Hakikisha thamani hii na angalau herufi %(max)d (ina urefu wa %(length)d)."
 
 #: apps/accounts/models.py:66
 msgid "Enter a valid username."

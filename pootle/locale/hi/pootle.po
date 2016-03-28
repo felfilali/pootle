@@ -2652,18 +2652,6 @@ msgstr ""
 #~ msgstr "आपको यहाँ सूझाव देने की अनुमति नहीं हैं"
 
 #, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "आपको यहाँ अनुवाद बदलने की अनुमति नहीं हैं"
-
-#, fuzzy
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "आपको यहाँ सूझाव देने की अनुमति नहीं हैं"
-
-#, fuzzy
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "आपको यहाँ सूझाव देने की अनुमति नहीं हैं"
-
-#, fuzzy
 #~ msgid "Translated percentage"
 #~ msgstr "अ-अनुवादित दिखाये"
 

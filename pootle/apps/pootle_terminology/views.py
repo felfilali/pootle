@@ -16,7 +16,6 @@ from pootle_store.models import Store, Unit
 from .forms import term_unit_form_factory
 
 
-
 def get_terminology_filename(translation_project):
     try:
         # See if a terminology store already exists

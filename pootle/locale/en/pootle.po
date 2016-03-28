@@ -39,8 +39,6 @@ msgstr "Username"
 msgid ""
 "Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters"
 msgstr ""
-"That e-mail address doesn't have an associated user account. Are you sure "
-"you've registered?"
 
 #: apps/accounts/models.py:66
 msgid "Enter a valid username."
@@ -96,8 +94,6 @@ msgstr ""
 #: apps/accounts/models.py:91 apps/reports/forms.py:32
 msgid "Review Rate"
 msgstr ""
-"Please enter a correct username and password. Note that both fields are "
-"case-sensitive."
 
 #: apps/accounts/models.py:92 apps/reports/forms.py:37
 msgid "Hourly Rate"
@@ -764,8 +760,6 @@ msgstr "Ignore Files"
 #: apps/pootle_project/models.py:180
 msgid "Errors Report Email"
 msgstr ""
-"Here you can add, edit, and delete all the available users in this Pootle "
-"server."
 
 #: apps/pootle_project/models.py:181
 #, fuzzy
@@ -819,9 +813,6 @@ msgstr ""
 #: apps/pootle_store/decorators.py:30
 msgid "Insufficient rights to access suggestion mode."
 msgstr ""
-"Pootle is developed by Translate.org.za and a community of passionate "
-"localization experts. We want Pootle to help your localization work reach "
-"its full potential."
 
 #: apps/pootle_store/decorators.py:31
 #, fuzzy
@@ -1017,8 +1008,6 @@ msgid ""
 "I have read and accept: <a href=\"%(url)s\" class=\"%(classes)s\">%(title)s</"
 "a>"
 msgstr ""
-"Translate Toolkit version %(installed)s installed. Pootle requires at least "
-"version %(required)s."
 
 #: apps/staticpages/models.py:30
 msgid "Whether this page is active or not."
@@ -1036,7 +1025,6 @@ msgstr "Title"
 #: apps/staticpages/models.py:43
 msgid "Display Content"
 msgstr ""
-"Django version %s is installed, but a higher version is highly recommended."
 
 #: apps/staticpages/models.py:45
 #, python-format
@@ -1060,8 +1048,6 @@ msgstr "URL or content must be provided."
 #: apps/staticpages/models.py:104
 msgid "Virtual path already in use."
 msgstr ""
-"lxml version %(installed)s is installed. Pootle requires at least version %"
-"(required)s."
 
 #: apps/staticpages/models.py:113
 #, fuzzy
@@ -1075,16 +1061,12 @@ msgstr ""
 #: apps/staticpages/views.py:121 templates/admin/staticpages/_table.html:8
 msgid "Page Title"
 msgstr ""
-"Can't find the unzip command. Uploading archives is faster if \"unzip\" is "
-"available."
 
 #. Translators: 'projects' must not be translated.
 #: apps/staticpages/views.py:138
 msgid ""
 "projects/<project_code> or <language_code> or <language_code>/<project_code>"
 msgstr ""
-"Can't find the ISO codes package. Pootle uses ISO codes to translate "
-"language names."
 
 #: apps/virtualfolder/models.py:34
 #, fuzzy
@@ -1094,8 +1076,6 @@ msgstr "Locations"
 #: apps/virtualfolder/models.py:37
 msgid "Root path where this virtual folder is applied."
 msgstr ""
-"Can't find the aeidon package. Pootle requires Gaupol or aeidon to support "
-"subtitle formats."
 
 #. Translators: This is a noun.
 #: apps/virtualfolder/models.py:41
@@ -1106,29 +1086,19 @@ msgstr "Filter by:"
 #: apps/virtualfolder/models.py:43
 msgid "Filtering rules that tell which stores this virtual folder comprises."
 msgstr ""
-"Can't find python-levenshtein package. Updating against templates is faster "
-"with python-levenshtein."
 
 #: apps/virtualfolder/models.py:47 core/browser.py:22
 msgid "Priority"
 msgstr ""
-"No text indexing engine found. Searching is faster if an indexing engine "
-"like Xapian or Lucene is installed."
 
 #: apps/virtualfolder/models.py:49
 msgid ""
 "Number specifying importance. Greater priority means it is more important."
 msgstr ""
-"Using the default sqlite3 database engine. SQLite is only suitable for small "
-"installations with a small number of users. Pootle will perform better with "
-"the MySQL database engine."
 
 #: apps/virtualfolder/models.py:53
 msgid "Is public?"
 msgstr ""
-"Using the default sqlite3 database engine. SQLite is only suitable for small "
-"installations with a small number of users. Pootle will perform better with "
-"the MySQL database engine, but you need to install python-MySQLdb first."
 
 #: apps/virtualfolder/models.py:55
 #, fuzzy
@@ -1148,8 +1118,6 @@ msgid ""
 "There are user accounts with duplicate emails. This will not be allowed in "
 "Pootle 2.8."
 msgstr ""
-"For optimal performance, use django.contrib.sessions.backends.cached_db as "
-"the session engine."
 
 #: checks.py:58
 msgid ""
@@ -1157,8 +1125,6 @@ msgid ""
 "'pootle update_user_email username email'. You might also want to consider "
 "using pootle merge_user or purge_user commands"
 msgstr ""
-"Pootle is configured to use memcached as caching backend, but Python support "
-"for memcached is not installed. Caching is currently disabled."
 
 #: checks.py:82
 msgid "Your version of Django is too old."
@@ -1172,26 +1138,18 @@ msgstr ""
 #: checks.py:90
 msgid "Your version of lxml is too old."
 msgstr ""
-"The \"from\" address used to send registration emails is not specified. Also "
-"review the mail server settings."
 
 #: checks.py:91
 msgid "Try pip install --upgrade lxml"
 msgstr ""
-"No contact address is specified. The contact form will allow users to "
-"contact the server administrators."
 
 #: checks.py:97
 msgid "Your version of Translate Toolkit is too old."
 msgstr ""
-"Running in debug mode. Debug mode is only needed when developing Pootle. For "
-"optimal performance, disable debugging mode."
 
 #: checks.py:98
 msgid "Try pip install --upgrade translate-toolkit"
 msgstr ""
-"Running in live translation mode. Live translation is useful as a tool to "
-"learn about Pootle and localization, but has high impact on performance."
 
 #: checks.py:117
 #, python-format
@@ -1287,10 +1245,6 @@ msgid ""
 "POOTLE_CONTACT_EMAIL is the address that will receive messages sent by the "
 "contact form."
 msgstr ""
-"ISO 639 language code for the language, possibly followed by an underscore "
-"(_) and an ISO 3166 country code. <a "
-"href=\"http://www.w3.org/International/articles/language-tags/\">More "
-"information</a>"
 
 #: checks.py:211
 msgid "DEFAULT_FROM_EMAIL is not set."
@@ -1306,8 +1260,6 @@ msgstr ""
 #, python-format
 msgid "DEFAULT_FROM_EMAIL is using the following default setting %r."
 msgstr ""
-"A description of this language. This is useful to give more information or "
-"instructions. Allowed markup: %s"
 
 #: checks.py:231
 msgid "POOTLE_MARKUP_FILTER is missing."
@@ -1320,9 +1272,6 @@ msgstr ""
 #: checks.py:237
 msgid "Invalid value in POOTLE_MARKUP_FILTER."
 msgstr ""
-"For more information, visit <a "
-"href=\"http://translate.sourceforge.net/wiki/l10n/pluralforms\">our wiki "
-"page</a> on plural forms."
 
 #: checks.py:238
 msgid "Set a valid value for POOTLE_MARKUP_FILTER."
@@ -2209,8 +2158,6 @@ msgstr "Add Comment"
 #: templates/editor/units/edit.html:194
 msgid "Raw View"
 msgstr ""
-"A short code for the project. This should only contain ASCII characters, "
-"numbers, and the underscore (_) character."
 
 #: templates/editor/units/edit.html:204
 #, python-format
@@ -2312,7 +2259,6 @@ msgstr ""
 #: templates/editor/units/xhr_comment.html:15
 msgid "Remove comment"
 msgstr ""
-"A URL or an email address where issues with the source text can be reported."
 
 #: templates/editor/units/xhr_comment.html:18
 msgid "Last comment:"

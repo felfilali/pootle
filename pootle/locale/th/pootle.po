@@ -2873,40 +2873,6 @@ msgstr ""
 #~ msgid "Quick Links"
 #~ msgstr "ลิงค์ด่วน"
 
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "คุณไม่มีสิทธิ์ที่จะจัดการโครงงานนี้ค่ะ"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "คุณไม่มีสิทธิเปลี่ยนคำแปลที่นี่"
-
-#, fuzzy
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "คุณไม่มีสิทธิอัปโหลดไฟล์ที่นี่"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "คุณไม่มีสิทธิอัปเดตไฟล์ที่นี่"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "คุณไม่มีสิทธิ์ที่จะจัดการโครงงานนี้ค่ะ"
-
-#, fuzzy
-#~ msgid "Advanced search"
-#~ msgstr "ค้นหาอย่างละเอียด"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "คุณไม่มีสิทธิ์ที่จะจัดการโครงงานนี้ค่ะ"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "ตัวอย่าง Pootle"
-
-#~ msgid "Quick Links"
-#~ msgstr "ลิงค์ด่วน"
-
 #~ msgid "Translated percentage"
 #~ msgstr "เปอร์เซนต์การแปล"
 

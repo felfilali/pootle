@@ -16,7 +16,6 @@ from django.shortcuts import render
 
 from pootle.core.forms import MathCaptchaForm
 
-URL_RE = re.compile("https?://", re.I)
 
 URL_RE = re.compile("https?://", re.I)
 

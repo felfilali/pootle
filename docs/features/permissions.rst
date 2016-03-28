@@ -142,25 +142,3 @@ the default rights.
 
     A user with administrative rights can remove his own administrative rights.
 
-
-.. _permissions#manage-permissions-with-management-commands:
-
-Manage permissions with management commands
--------------------------------------------
-
-.. versionadded:: 2.6.0
-
-The assignment of Pootle permissions can also be handled using management
-commands.
-
-
-.. _permissions#assign-permissions-with-management-command:
-
-Assign permissions with management command
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. versionadded:: 2.6.0
-
-It is also possible to assign permissions to a given user in a project,
-language or translation project using the :ref:`assign_permissions
-<commands#assign-permissions>` management command.

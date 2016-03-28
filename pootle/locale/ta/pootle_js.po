@@ -434,7 +434,7 @@ msgstr ""
 
 #: static/js/editor/app.js:1049
 msgid "Server error"
-msgstr "வழங்கியில் பிழை"
+msgstr "செயலியில் பிழை"
 
 #: static/js/editor/app.js:1051
 msgid "The server seems down. Try again later."
@@ -466,7 +466,7 @@ msgstr ""
 
 #: static/js/editor/app.js:2115 static/js/editor/app.js:2164
 msgid "Similar translations"
-msgstr "ஒத்த மொழிபெயர்ப்புக்கள்"
+msgstr "ஒத்த மொழிபெயர்ப்புக்கள்."
 
 #: static/js/shared/models/project.js:59
 msgid "disabled"

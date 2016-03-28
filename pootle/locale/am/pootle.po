@@ -2715,41 +2715,6 @@ msgstr ""
 #~ msgid "Pootle Demo"
 #~ msgstr "ፑትል መለማመጃ"
 
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "ለአብዛኛው ጥጥር አካል እዚህ ጋ ምንም ዝርዝር መስጠት አያስፈልግዎትም።"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "ለአብዛኛው ጥጥር አካል እዚህ ጋ ምንም ዝርዝር መስጠት አያስፈልግዎትም።"
-
-#, fuzzy
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "ለአብዛኛው ጥጥር አካል እዚህ ጋ ምንም ዝርዝር መስጠት አያስፈልግዎትም።"
-
-#, fuzzy
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "ለአብዛኛው ጥጥር አካል እዚህ ጋ ምንም ዝርዝር መስጠት አያስፈልግዎትም።"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr ""
-#~ "በመርሃ-ግብሩ ውስጥ ያሉ ሁሉንም መዝገቦች\n"
-#~ "ለማሻሻል እንደሚፈልጉ ርግጠኛ ነዎት?"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr ""
-#~ "በመርሃ-ግብሩ ውስጥ ያሉ ሁሉንም መዝገቦች\n"
-#~ "ለማሻሻል እንደሚፈልጉ ርግጠኛ ነዎት?"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "ፑትል መለማመጃ"
-
-#~ msgid "Admin"
-#~ msgstr "አስተዳዳሪ"
-
 #~ msgid "Translated percentage"
 #~ msgstr "የተተረጎመው ፐርሰንት"
 

@@ -2702,38 +2702,6 @@ msgstr ""
 #~ msgstr "Unxulumelwano olukhawulezileyo"
 
 #, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Awunamalungelo okusebenzisa lo msebenzi"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Awunako ukuqulungqa ifayile apha"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Awuvumelekenga ukuhlaziya iifayile apha"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Awunamalungelo okusebenzisa lo msebenzi"
-
-#, fuzzy
-#~ msgid "Advanced search"
-#~ msgstr "Ufuno oluphambili"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Awunamalungelo okusebenzisa lo msebenzi"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Umzekelo wokuqala ka Pootle"
-
-#~ msgid "Quick Links"
-#~ msgstr "Unxulumelwano olukhawulezileyo"
-
-#~ msgid "Admin"
-#~ msgstr "Ulawulo"
-
-#, python-format
-#, fuzzy
 #~ msgid "%d file"
 #~ msgid_plural "%d files"
 #~ msgstr[0] "Ifayili eyi-%d"

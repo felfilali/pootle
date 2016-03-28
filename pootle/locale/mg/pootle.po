@@ -2660,35 +2660,6 @@ msgstr ""
 #~ msgid "Pootle Demo"
 #~ msgstr "Seho Pootle"
 
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Tsy mahazo mandrindra io sahanasa io ianao."
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Tsy mahazo manova ny dikan-teny ianao eto"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Tsy mahazo manamafy ireo rakitra eto ianao"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Tsy mahazo manavao rakitra eto ianao"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Tsy mahazo mandrindra io sahanasa io ianao."
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Tsy mahazo mandrindra io sahanasa io ianao."
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Seho Pootle"
-
-#~ msgid "Admin"
-#~ msgstr "Mpandrindra"
-
 #~ msgid "Update from templates"
 #~ msgstr "Havaozy avy amin'ny lasitra"
 

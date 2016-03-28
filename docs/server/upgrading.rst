@@ -6,9 +6,6 @@ Upgrading
 These are the instructions for upgrading Pootle from an older version to the
 current release.
 
-.. warning::
-
-  Upgrading Pootle to a newer version can be a dangerous endeavour, so please:
 
 .. _upgrading#stop-pootle:
 
@@ -60,12 +57,7 @@ You should check that you have all of the necessary :ref:`Pootle requirements
 <requirements>` and have installed all required :ref:`system packages
 <requirements#packages>`.
 
-  - the entire **database**
-  - all the **settings**
-  - all your **translation files**
-  - any **code customizations**
-  - any **templates customizations**
-  - any **styling customizations**
+.. warning::
 
    Pootle 2.7.0 or newer requires **Python 2.7**
 
@@ -89,7 +81,7 @@ Update pip
 
 You should now upgrade Pip to the latest version:
 
-  .. code-block:: bash
+.. code-block:: bash
 
    (env) $ pip install --upgrade pip
 
@@ -124,7 +116,7 @@ You should remove any stale Python bytecode files before upgrading.
 
 Assuming you are in the root of your virtualenv folder you can run:
 
-  .. note::
+.. code-block:: bash
 
    (env) $ pyclean .
 
@@ -136,11 +128,10 @@ Upgrading from version 2.6.x or later
 
 Upgrade to the latest Pootle version:
 
-* Perform the database schema and data upgrade by running:
+.. code-block:: bash
 
    (env) $ pip install --upgrade Pootle
 
-    (env)$ pootle setup
 
 .. _upgrading#check-settings:
 

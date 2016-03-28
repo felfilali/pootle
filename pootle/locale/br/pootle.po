@@ -2910,61 +2910,6 @@ msgstr ""
 #~ msgid "Quick Links"
 #~ msgstr "Liammoù Prim"
 
-#~ msgid "Display on registration"
-#~ msgstr "Diskouez p'en em enskriver"
-
-#~ msgid "Content"
-#~ msgstr "Endalc'had"
-
-#~ msgid "Existing Legal Pages"
-#~ msgstr "Pajennoù menegoù lezennel a zo anezho"
-
-#~ msgid "Inactive"
-#~ msgstr "Dioberiant"
-
-#~ msgid "New Legal Page"
-#~ msgstr "Pajenn venegoù lezennel nevez"
-
-#~ msgid "Project Members"
-#~ msgstr "Izili ar raktres"
-
-#~ msgid "Language Members"
-#~ msgstr "Izili evit ar yezh-mañ"
-
-#, python-format
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "N'hoc'h eus ket gwirioù evit merañ %s."
-
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "N'oc'h ket aotreet da sellet ouzh ar raktres treiñ-mañ."
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "N'oc'h ket aotreet da embann restroù amañ"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "N'oc'h ket aotreet da hizivaat restroù amañ"
-
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "N'oc'h ket aotreet da verañ ar yezh-mañ."
-
-#~ msgid "Pootle: Install"
-#~ msgstr "Pootle: Staliañ"
-
-#~ msgid "Advanced search"
-#~ msgstr "Klask araokaet"
-
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "N'oc'h ket aotreet da verañ ar raktres-mañ."
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Diskouez petra eo pootle"
-
-#~ msgid "Quick Links"
-#~ msgstr "Liammoù Prim"
-
-#~ msgid "Admin"
-#~ msgstr "Merer"
-
 #~ msgid "To activation your account, follow this link:"
 #~ msgstr "Da weredekaat ho kont, klikit war al liamm-mañ :"
 

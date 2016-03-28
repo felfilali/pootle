@@ -8,6 +8,8 @@
 # AUTHORS file for copyright and authorship information.
 
 import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
+
 from optparse import make_option
 
 from django.core.management.base import NoArgsCommand

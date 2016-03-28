@@ -7,7 +7,6 @@
 # or later license. See the LICENSE file for a copy of the license and the
 # AUTHORS file for copyright and authorship information.
 
-from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.db.models.aggregates import Max

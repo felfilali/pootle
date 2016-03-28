@@ -24,7 +24,7 @@ from redis.exceptions import ConnectionError
 from pootle.core.decorators import admin_required
 from pootle_misc.aggregate import sum_column
 from pootle_statistics.models import Submission
-from pootle_store.models import Suggestion, Unit
+from pootle_store.models import Unit, Suggestion
 from pootle_store.util import TRANSLATED
 
 

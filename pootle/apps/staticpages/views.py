@@ -85,22 +85,6 @@ class AdminCtxMixin(object):
         })
         return ctx
 
-    def get_form(self, form_class):
-        form = super(PageModelMixin, self).get_form(form_class)
-
-        if self.page_type == ANN_TYPE:
-            form.fields['virtual_path'].help_text = u'/pages/' + ANN_VPATH
-
-        return form
-
-    def form_valid(self, form):
-        if (self.page_type == ANN_TYPE and not
-            form.cleaned_data['virtual_path'].startswith(ANN_VPATH)):
-            orig_vpath = form.cleaned_data['virtual_path']
-            form.instance.virtual_path = ANN_VPATH + orig_vpath
-
-        return super(PageModelMixin, self).form_valid(form)
-
 
 class AdminTemplateView(SuperuserRequiredMixin, AdminCtxMixin, TemplateView):
 

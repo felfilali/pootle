@@ -77,12 +77,6 @@ sorttable = {
       delete sortbottomrows;
     }
 
-    // Remove stalled items in case we are working on an already makeSortable'd
-    // table.
-    $(table).find("tr.tags-row").remove();
-    $(table).find("th").removeClass("sorttable_sorted");
-    $(table).find("th").removeClass("sorttable_sorted_reverse");
-
     // work through each column and calculate its type
     headrow = table.tHead.rows[0].cells;
     for (var i=0; i<headrow.length; i++) {
@@ -100,12 +94,10 @@ sorttable = {
         headrow[i].sorttable_columnindex = i;
         headrow[i].sorttable_tbody = table.tBodies[0];
 
-        if ($(headrow[i]).find(".icon-ascdesc, .icon-asc, .icon-desc").length == 0) {
-          // Add unsorted icon
-          unsorted = document.createElement('i');
-          unsorted.className = "sorttable_unsorted icon-ascdesc";
-          headrow[i].appendChild(unsorted);
-        }
+        // Add unsorted icon
+        unsorted = document.createElement('i');
+        unsorted.className = "sorttable_unsorted icon-ascdesc";
+        headrow[i].appendChild(unsorted);
 
         dean_addEvent(headrow[i],"click", function(e) {
 
@@ -115,7 +107,6 @@ sorttable = {
             // if we're already sorted by this column, just
             // reverse the table, which is quicker
             sorttable.reverse(this.sorttable_tbody);
-            sorttable.insertTagsRows(this.sorttable_tbody);
             this.className = this.className.replace('sorttable_sorted',
                                                     'sorttable_sorted_reverse');
             this.removeChild(document.getElementById('sorttable_sortfwdind'));
@@ -134,7 +125,6 @@ sorttable = {
             // if we're already sorted by this column in reverse, just
             // re-reverse the table, which is quicker
             sorttable.reverse(this.sorttable_tbody);
-            sorttable.insertTagsRows(this.sorttable_tbody);
             this.className = this.className.replace('sorttable_sorted_reverse',
                                                     'sorttable_sorted');
             this.removeChild(document.getElementById('sorttable_sortrevind'));
@@ -150,7 +140,6 @@ sorttable = {
           }
 
           sorttable.doSort(this);
-          sorttable.insertTagsRows(this.sorttable_tbody);
 
           // Store current sorting criteria in a cookie
           sorttable.setSortCookie(cookieId, this.id, "asc");

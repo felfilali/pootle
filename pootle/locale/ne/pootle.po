@@ -30,8 +30,6 @@ msgstr ""
 msgid ""
 "Your user seems to have disappeared. Please report this to the site owners."
 msgstr ""
-"त्यो इमेल ठेगाना संबद्ध प्रयोगकर्ता खाता छैन। के तपाईं दर्ता क्लिक निश्चित "
-"हुनुहुन्छ?"
 
 #: apps/accounts/models.py:61 apps/pootle_app/views/admin/permissions.py:86
 #, fuzzy
@@ -42,7 +40,6 @@ msgstr "प्रयोगकर्ताको नाम"
 msgid ""
 "Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters"
 msgstr ""
-"यो मूल्य (यो (लम्बाइ) घ% छ) भन्दा% (अधिकतम) d क्यारेक्टरहरू मा छ सुनिश्चित।"
 
 #: apps/accounts/models.py:66
 msgid "Enter a valid username."
@@ -68,8 +65,6 @@ msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
 msgstr ""
-"एक सही प्रयोगकर्ता नाम र पासवर्ड प्रविष्ट गर्नुहोस्। दुवै क्षेत्रहरु केस "
-"संवेदनशिल हुन्छन् ।"
 
 #: apps/accounts/models.py:76
 #, fuzzy
@@ -387,8 +382,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:47
 msgid "Dialog sizes"
 msgstr ""
-"यहाँ, थप्न, सम्पादन, र यो अपडेट सर्भर मा सबै उपलब्ध प्रयोगकर्ताहरू नष्ट गर्न "
-"सक्छन्।"
 
 #: apps/pootle_misc/checks.py:48 apps/pootle_misc/checks.py:115
 msgid "Double quotes"

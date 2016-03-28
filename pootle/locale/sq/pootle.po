@@ -2425,61 +2425,6 @@ msgid ""
 "This static page is inactive and visible to administrators only. You can "
 "activate it by <a href=\"%(edit_url)s\">editing its properties</a>"
 msgstr ""
-"%(përdoruesi)s konvertoj përkthimin për shtringë <i><a href=\"%(url)s\""
-">%(burimi)s</a></i>"
-
-#: apps/pootle_statistics/models.py:155
-#, python-format
-msgid ""
-"%(user)s accepted suggestion for string <i><a href=\"%(url)s\">%(source)s</"
-"a></i>"
-msgstr ""
-"%(përdoruesi)s pranoj sygjerimin për stringë <i><a href=\"%(url)s\""
-">%(burimi)s</a></i>"
-
-#: apps/pootle_statistics/models.py:158
-#, python-format
-msgid "%(user)s uploaded a file"
-msgstr "%(përdoruesi)s upload-oj një skedarë"
-
-#: apps/pootle_statistics/models.py:173
-#, python-format
-msgid ""
-"%(user)s submitted translation for string <i><a href=\"%(url)s\">%(source)s</"
-"a></i>"
-msgstr ""
-"%(përdoruesi)s parashtroj përkthimin për stringë <i><a href=\"%(url)s\""
-">%(burimi)s</a></i>"
-
-#: apps/pootle_statistics/models.py:176
-#, python-format
-msgid ""
-"%(user)s submitted \"needs work\" translation for string <i><a href=\"%(url)s"
-"\">%(source)s</a></i>"
-msgstr ""
-"%(përdoruesi)s parashtroj \"ka nevoj për punë\" përkthim për stringë <i><a "
-"href=\"%(url)s\">%(burimi)s</a></i>"
-
-#: apps/pootle_statistics/models.py:179
-#, python-format
-msgid ""
-"%(user)s removed translation for string <i><a href=\"%(url)s\">%(source)s</"
-"a></i>"
-msgstr ""
-"%(përdoruesi)s hoqi përkthimin për stringë <i><a href=\"%(url)s\""
-">%(burimi)s</a></i>"
-
-#: apps/pootle_store/decorators.py:63
-msgid "Insufficient rights to access this directory."
-msgstr "Të drejtat janë të pa mjaftueshme për të aksesuar kët direktori."
-
-#: apps/pootle_store/decorators.py:135 apps/pootle_store/views.py:531
-msgid "Arguments missing."
-msgstr "Argumentet mungojnë."
-
-#: apps/pootle_store/decorators.py:147
-msgid "File does not exist."
-msgstr "Skedari nuk ekziston."
 
 #: templates/staticpages/agreement.html:3
 msgid "Action Required"

@@ -13,7 +13,7 @@ from django.db.models.signals import post_save
 
 
 class DirtyFieldsMixin(object):
-    """Track dirty fields in a model.
+    """Tracks dirty fields in a model.
 
     Initial code borrowed from django-dirtyfields, which is
     Copyright (c) Praekelt Foundation and individual contributors
@@ -40,7 +40,7 @@ class DirtyFieldsMixin(object):
     def is_dirty(self):
         # In order to be dirty we need to have been saved at least once,
         # so we check for a primary key and we need our dirty fields to
-        # not be empty.
+        # not be empty
         if not self.pk:
             return True
 

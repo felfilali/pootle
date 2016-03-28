@@ -100,23 +100,6 @@ Backend and caching settings.
   logs of events on store/unit changes and manage.py commands executed
 
 
-.. setting:: POOTLE_TOP_STATS_CACHE_TIMEOUT
-
-``POOTLE_TOP_STATS_CACHE_TIMEOUT``
-  Default: ``86400``
-
-  Time in seconds the Pootle's top statistics cache will last.
-
-
-.. setting:: POOTLE_LOG_DIRECTORY
-
-``POOTLE_LOG_DIRECTORY``
-  Default: ``/var/log/pootle/``
-
-  The directory where Pootle writes event logs to. These are high-level
-  logs of events on store/unit changes and manage.py commands executed
-
-
 30-site.conf
 ^^^^^^^^^^^^
 
@@ -147,16 +130,6 @@ Site-specific settings.
   Default: ``POOTLE_CONTACT_EMAIL``
 
   .. versionadded:: 2.7
-
-  Email address to report errors on strings.
-
-
-.. setting:: POOTLE_REPORT_STRING_ERRORS_EMAIL
-
-``POOTLE_REPORT_STRING_ERRORS_EMAIL``
-  Default: ``string_errors_manager@YOUR_DOMAIN.com``
-
-  .. versionadded:: 2.6
 
   Email address to report errors on strings.
 

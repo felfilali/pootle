@@ -3044,42 +3044,6 @@ msgstr "Заслужили преводачи този месец"
 #~ msgid "Quick Links"
 #~ msgstr "Бързи връзки"
 
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Нямате правата да управлявате този проект"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Нямате право да променяте превода"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Нямате права да качвате файлове тука"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Нямате право да обновявате файлове"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Нямате правата да управлявате този проект"
-
-#, fuzzy
-#~ msgid "Advanced search"
-#~ msgstr "Широко търсене"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Нямате правата да управлявате този проект"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Pootle Демонстрация"
-
-#~ msgid "Quick Links"
-#~ msgstr "Бързи връзки"
-
-#~ msgid "Admin"
-#~ msgstr "Администратор"
-
 #, fuzzy
 #~ msgid "To activation your account, follow this link:"
 #~ msgstr "За да активирате профила, щракнете на тази препратка:\n"

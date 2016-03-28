@@ -43,7 +43,7 @@ def agreement_form_factory(pages, user):
                 agreement.save()
 
         def legal_fields(self):
-            """Return any fields added by legal pages."""
+            """Returns any fields added by legal pages."""
             return [field for field in self
                     if field.name.startswith('legal_')]
 

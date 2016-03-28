@@ -39,7 +39,6 @@ js_user_app = Bundle(
     output='js/user/app.min.%(version)s.js')
 register('js_user_app', js_user_app)
 
-
 js_editor = Bundle(
     'js/editor/app.bundle.js',
     output='js/editor/app.min.%(version)s.js')
@@ -81,15 +80,12 @@ css_common = Bundle(
     filters='cssmin', output='css/common.min.%(version)s.css')
 register('css_common', css_common)
 
-
 css_admin = Bundle(
     'css/admin.css',
     filters='cssmin', output='css/admin.min.%(version)s.css')
 register('css_admin', css_admin)
 
-
 css_editor = Bundle(
     'css/editor.css',
-    'css/jquery.textcomplete.css',
     filters='cssmin', output='css/editor.min.%(version)s.css')
 register('css_editor', css_editor)

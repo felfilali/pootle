@@ -26,8 +26,6 @@ msgid ""
 "Some problem happened when tried to send the confirmation email. Please try "
 "again later."
 msgstr ""
-"Turiet piespiestu “Ctrl” vai komandas taustiņu uz Mac datoriem, lai "
-"izvēlētos vairāk kā vienu."
 
 #: apps/accounts/forms.py:43
 msgid ""
@@ -42,8 +40,6 @@ msgstr "Lietotājvārds"
 msgid ""
 "Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters"
 msgstr ""
-"Lūdzu, ievadiet pareizu lietotājvārdu un paroli. Ņemiet vērā, ka abi lauki "
-"ir reģistrjutīgi."
 
 #: apps/accounts/models.py:66
 msgid "Enter a valid username."
@@ -365,8 +361,6 @@ msgstr "Izvilkšana"
 #: apps/pootle_misc/checks.py:37
 msgid "Other"
 msgstr ""
-"Šeit jūs varat pievienot, mainīt vai dzēst visus Pootle serverī pieejamos "
-"lietotājus."
 
 #: apps/pootle_misc/checks.py:41 apps/pootle_misc/checks.py:111
 msgid "Accelerators"
@@ -551,8 +545,6 @@ msgstr "Vietturi"
 #: apps/pootle_misc/checks.py:86
 msgid "Valid XML"
 msgstr ""
-"Nevar atrast ISO kodu pakotni. Pootle izmanto ISO kodus, lai tulkotu valodu "
-"nosaukumus."
 
 #: apps/pootle_misc/checks.py:87
 msgid "XML tags"
@@ -561,53 +553,34 @@ msgstr "XML cilnes"
 #: apps/pootle_misc/checks.py:89
 msgid "Broken HTML Entities"
 msgstr ""
-"Nevar atrast aeidon pakotni. Pootle ir nepieciešams Gaupol vai aeidon, lai "
-"atbalstītu subtitru formātus."
 
 #: apps/pootle_misc/checks.py:90
 msgid "Java format"
 msgstr ""
-"Nevar atrast pakotni python-levenshtein. Atjaunināšana attiecībā pret "
-"veidnēm ir ātrāka, ja izmanto python-levenshtein."
 
 #: apps/pootle_misc/checks.py:91
 msgid "Template format"
 msgstr ""
-"Nav atrastu teksta indeksēšanas dziņu. Meklēšana ir ātrāka, ka ir instalēti "
-"teksta indeksēšanas dziņi, piemēram Xapian vai Lucene."
 
 #: apps/pootle_misc/checks.py:92
 msgid "Mustache placeholders"
 msgstr ""
-"Izmanto noklusējuma sqlite3 datubāzes dzini. SQLite ir piemērots tikai mazām "
-"instalācijām ar mazu lietotāju skaitu. Pootle darbosies labāk, ar MySQL "
-"datubāžu dzini."
 
 #: apps/pootle_misc/checks.py:93
 msgid "Mustache placeholder pairs"
 msgstr ""
-"Izmanto noklusējuma sqlite3 datubāzes dzini. SQLite ir piemērots tikai mazām "
-"instalācijām ar mazu lietotāju skaitu. Pootle darbosies labāk, ar MySQL "
-"datubāžu dzini, bet jums vispirms ir jāuzinstalē python-MySQLdb."
 
 #: apps/pootle_misc/checks.py:94
 msgid "Mustache like placeholder pairs"
 msgstr ""
-"Pootle ir konfigurēta, lai izmantotu memcached kā kešatmiņas aizmuguri, bet "
-"tā nevar sazināties ar memcached serveri. Kešatmiņa pašlaik ir deaktivēta."
 
 #: apps/pootle_misc/checks.py:95
 msgid "C format placeholders"
 msgstr ""
-"Optimālai veiktspējai, izmantojiet "
-"django.contrib.sessions.backends.cached_db kā sesijas dzini."
 
 #: apps/pootle_misc/checks.py:96
 msgid "Non printable"
 msgstr ""
-"Pootle ir konfigurēta, lai izmantotu memcached kā kešatmiņas aizmuguri, bet "
-"Python nav instalēts Python memcached atbalsts. Kešatmiņa pašlaik ir "
-"deaktivēta."
 
 #: apps/pootle_misc/checks.py:97
 msgid "Unbalanced tag braces"
@@ -620,26 +593,18 @@ msgstr ""
 #: apps/pootle_misc/checks.py:99
 msgid "Unescaped ampersands"
 msgstr ""
-"Nav norādīta “No” adrese, ko izmantot, lai sūtītu reģistrēšanās e-pastu. "
-"Pārskatiet pasta servera iestatījumus."
 
 #: apps/pootle_misc/checks.py:100
 msgid "Incorrectly escaped ampersands"
 msgstr ""
-"Nav norādīta kontakta adrese. Kontakta forma ļaus lietotājiem sazināties ar "
-"servera administratoriem."
 
 #: apps/pootle_misc/checks.py:101
 msgid "Whitespaces"
 msgstr ""
-"Darbojas atkļūdošanas režīmā. Atkļūdošanas režīms ir vajadzīgs tikai Pootle "
-"izstrādes laikā. Lai uzlabotu veiktspēju, deaktivējiet atkļūdošanas režīmu."
 
 #: apps/pootle_misc/checks.py:102
 msgid "Date format"
 msgstr ""
-"Darbojas dzīvās tulkošanas režīmā. Dzīvā tulkošana ir noderīgs rīks, lai "
-"uzzinātu par Pootle un lokalizēšanu, bet tas ļoti ietekmē veiktspēju."
 
 #: apps/pootle_misc/checks.py:103
 msgid "Uppercase placeholders"

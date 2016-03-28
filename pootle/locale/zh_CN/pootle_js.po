@@ -521,31 +521,31 @@ msgstr "尚有未保存的更改。您要舍弃它们吗？"
 #, javascript-format
 msgid "A year ago"
 msgid_plural "%s years ago"
-msgstr[0] "%1 年前"
+msgstr[0] "%s 年前"
 
 #: static/js/utils.js:154
 #, javascript-format
 msgid "A week ago"
 msgid_plural "%s weeks ago"
-msgstr[0] "%1 周前"
+msgstr[0] "%s 周前"
 
 #: static/js/utils.js:157
 #, javascript-format
 msgid "Yesterday"
 msgid_plural "%s days ago"
-msgstr[0] "%1 天前"
+msgstr[0] "%s 天前"
 
 #: static/js/utils.js:160
 #, javascript-format
 msgid "An hour ago"
 msgid_plural "%s hours ago"
-msgstr[0] "%1 小时前"
+msgstr[0] "%s 小时前"
 
 #: static/js/utils.js:163
 #, javascript-format
 msgid "A minute ago"
 msgid_plural "%s minutes ago"
-msgstr[0] "%1 分钟前"
+msgstr[0] "%s 分钟前"
 
 #: static/js/utils.js:171
 msgid "A few seconds ago"

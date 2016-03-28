@@ -2640,29 +2640,6 @@ msgstr ""
 #~ msgid "You do not have rights to administer this project."
 #~ msgstr "kuena ye luve mu soba ngindu yoyo ko."
 
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "kuena ye luve mu lunda potele ko"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Eku ukondolo luve mu soba nsekoki"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Eku ukondolo luve mu tambula nsobolo"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Eku ukondolo luve mu soba vekaya "
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "kuena ye luve mu soba ngindu yoyo ko."
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "kuena ye luve mu soba ngindu yoyo ko."
-
 #~ msgid "Update from templates"
 #~ msgstr "soba landila konso fuani"
 

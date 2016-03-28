@@ -34,7 +34,6 @@ SIMILARITY_THRESHOLD = 0.5
 
 #: These are the values for the 'type' field of Submission
 class SubmissionTypes(object):
-    """Values for the 'type' field of Submission."""
     # None/0 = no information
     NORMAL = 1  # Interactive web editing
     REVERT = 2  # Revert action on the web
@@ -57,6 +56,7 @@ class SubmissionTypes(object):
     EDITING_TYPES = [NORMAL, SYSTEM, UNIT_CREATE, UPLOAD]
 
 
+#: Values for the 'field' field of Submission
 class SubmissionFields(object):
     NONE = 0  # non-field submission
     SOURCE = 1  # pootle_store.models.Unit.source
@@ -188,31 +188,7 @@ class Submission(models.Model):
 
     creation_time = models.DateTimeField(db_index=True)
     translation_project = models.ForeignKey(
-        'pootle_translationproject.TranslationProject',
-        db_index=True,
-    )
-    submitter = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        db_index=True,
-    )
-    suggestion = models.ForeignKey(
-        'pootle_store.Suggestion',
-        blank=True,
-        null=True,
-        db_index=True,
-    )
-    unit = models.ForeignKey(
-        'pootle_store.Unit',
-        blank=True,
-        null=True,
-        db_index=True,
-    )
-    quality_check = models.ForeignKey(
-        'pootle_store.QualityCheck',
-        blank=True,
-        null=True,
-        db_index=True,
+            'pootle_translationproject.TranslationProject', db_index=True
     )
     submitter = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
             db_index=True)
@@ -227,10 +203,8 @@ class Submission(models.Model):
 
     #: The field in the unit that changed
     field = models.IntegerField(null=True, blank=True, db_index=True)
-
-    # How did this submission come about? (one of the constants above).
+    # how did this submission come about? (one of the constants above)
     type = models.IntegerField(null=True, blank=True, db_index=True)
-
     # old_value and new_value can store string representations of multistrings
     # in the case where they store values for a unit's source or target. In
     # such cases, the strings might not be usable as is. Use the two helper

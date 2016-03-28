@@ -140,18 +140,17 @@ class ProjectURLMixin(object):
 
 class Project(models.Model, CachedTreeItem, ProjectURLMixin):
 
-class ProjectURLMixin(object):
-    """Mixin class providing URL methods to be shared across
-    project-related classes.
-    """
+    code_help_text = _('A short code for the project. This should only contain '
+            'ASCII characters, numbers, and the underscore (_) character.')
+    code = models.CharField(max_length=255, null=False, unique=True,
+            db_index=True, verbose_name=_('Code'), help_text=code_help_text)
 
-    def get_absolute_url(self):
-        return reverse('pootle-project-overview', args=[self.code, ''])
+    fullname = models.CharField(max_length=255, null=False,
+            verbose_name=_("Full Name"))
 
     checker_choices = [('standard', 'standard')]
     checkers = list(checks.projectcheckers.keys())
     checkers.sort()
-    checker_choices = [('standard', 'standard')]
     checker_choices.extend([(checker, checker) for checker in checkers])
     checkstyle = models.CharField(max_length=50, default='standard',
             null=False, choices=checker_choices,
@@ -160,250 +159,20 @@ class ProjectURLMixin(object):
     localfiletype = models.CharField(max_length=50, default="po",
             choices=filetype_choices, verbose_name=_('File Type'))
 
-    localfiletype = models.CharField(
-        max_length=50,
-        default="po",
-        choices=filetype_choices,
-        verbose_name=_('File Type'),
-    )
-    treestyle = models.CharField(
-        max_length=20,
-        default='auto',
-        choices=(
+    treestyle_choices = (
             # TODO: check that the None is stored and handled correctly
             ('auto', _('Automatic detection (slower)')),
             ('gnu', _('GNU style: files named by language code')),
             ('nongnu', _('Non-GNU: Each language in its own directory')),
-        ),
-        verbose_name=_('Project Tree Style'),
     )
-    source_language = models.ForeignKey(
-        'pootle_language.Language',
-        db_index=True,
-        verbose_name=_('Source Language'),
-    )
-    ignoredfiles = models.CharField(
-        max_length=255,
-        blank=True,
-        null=False,
-        default="",
-        verbose_name=_('Ignore Files'),
-    )
-    directory = models.OneToOneField(
-        'pootle_app.Directory',
-        db_index=True,
-        editable=False,
-    )
-    report_email = models.EmailField(
-        max_length=254,
-        blank=True,
-        verbose_name=_("Errors Report Email"),
-        help_text=_('An email address where issues with the source text can '
-                    'be reported.'),
-    )
-    screenshot_search_prefix = models.URLField(
-        blank=True,
-        null=True,
-        verbose_name=_('Screenshot Search Prefix'),
-    )
-    creation_time = models.DateTimeField(
-        auto_now_add=True,
-        db_index=True,
-        editable=False,
-        null=True,
-    )
-    disabled = models.BooleanField(verbose_name=_('Disabled'), default=False)
+    treestyle = models.CharField(max_length=20, default='auto',
+            choices=treestyle_choices, verbose_name=_('Project Tree Style'))
 
-    objects = ProjectManager()
+    source_language = models.ForeignKey('pootle_language.Language',
+            db_index=True, verbose_name=_('Source Language'))
 
-    class Meta:
-        ordering = ['code']
-        db_table = 'pootle_app_project'
-
-    ############################ Properties ###################################
-
-    @property
-    def name(self):
-        return self.fullname
-
-    @property
-    def pootle_path(self):
-        return "/projects/" + self.code + "/"
-
-    @property
-    def is_terminology(self):
-        """Returns ``True`` if this project is a terminology project."""
-        return self.checkstyle == 'terminology'
-
-    @property
-    def is_monolingual(self):
-        """Return ``True`` if this project is monolingual."""
-        return is_monolingual(self.get_file_class())
-
-    ############################ Cached properties ############################
-
-    @cached_property
-    def languages(self):
-        """Returns a list of active :cls:`~pootle_languages.models.Language`
-        objects for this :cls:`~pootle_project.models.Project`.
-        """
-        from pootle_language.models import Language
-        # FIXME: we should better have a way to automatically cache models with
-        # built-in invalidation -- did I hear django-cache-machine?
-        return Language.objects.filter(Q(translationproject__project=self),
-                                       ~Q(code='templates'))
-
-    @cached_property
-    def resources(self):
-        """Returns a list of :cls:`~pootle_app.models.Directory` and
-        :cls:`~pootle_store.models.Store` resource paths available for
-        this :cls:`~pootle_project.models.Project` across all languages.
-        """
-        cache_key = make_method_key(self, 'resources', self.code)
-
-        resources = cache.get(cache_key, None)
-        if resources is not None:
-            return resources
-
-        logging.debug(u'Cache miss for %s', cache_key)
-
-        resources_path = ''.join(['/%/', self.code, '/%'])
-
-        if connection.vendor == 'mysql':
-            sql_query = '''
-            SELECT DISTINCT
-                REPLACE(pootle_path,
-                        CONCAT(SUBSTRING_INDEX(pootle_path, '/', 3), '/'),
-                        '')
-            FROM (
-                SELECT pootle_path
-                FROM pootle_store_store
-                WHERE pootle_path LIKE %s
-              UNION
-                SELECT pootle_path FROM pootle_app_directory
-                WHERE pootle_path LIKE %s
-            ) AS t;
-            '''
-        elif connection.vendor == 'postgresql':
-            sql_query = '''
-            SELECT DISTINCT
-                REPLACE(pootle_path,
-                        ARRAY_TO_STRING((
-                                         STRING_TO_ARRAY(pootle_path,'/')
-                                        )[1:3], '/')
-                        || '/',
-                        '')
-            FROM (
-                SELECT pootle_path
-                FROM pootle_store_store
-                WHERE pootle_path LIKE %s
-              UNION
-                SELECT pootle_path FROM pootle_app_directory
-                WHERE pootle_path LIKE %s
-            ) AS t;
-            '''
-        elif connection.vendor == 'sqlite':
-            # Due to the limitations of SQLite there is no way to do this just
-            # using raw SQL.
-            from pootle_store.models import Store
-
-            store_objs = Store.objects.extra(
-                where=[
-                    'pootle_store_store.pootle_path LIKE %s',
-                    'pootle_store_store.pootle_path NOT LIKE %s',
-                ], params=[resources_path, '/templates/%']
-            ).select_related('parent').distinct()
-
-            # Populate with stores and their parent directories, avoiding any
-            # duplicates
-            resources = []
-            for store in store_objs.iterator():
-                directory = store.parent
-                if (not directory.is_translationproject() and
-                    all(directory.path != path for path in resources)):
-                    resources.append(directory.path)
-
-                if all(store.path != path for path in resources):
-                    resources.append(store.path)
-
-            resources.sort(key=get_path_sortkey)
-
-            cache.set(cache_key, resources, settings.OBJECT_CACHE_TIMEOUT)
-            return resources
-
-        cursor = connection.cursor()
-        cursor.execute(sql_query, [resources_path, resources_path])
-
-        results = cursor.fetchall()
-
-        # Flatten tuple and sort in a list
-        resources = list(reduce(lambda x,y: x+y, results))
-        resources.sort(key=get_path_sortkey)
-
-        cache.set(cache_key, resources, settings.OBJECT_CACHE_TIMEOUT)
-
-        return resources
-
-    ############################ Methods ######################################
-
-    @classmethod
-    def accessible_by_user(cls, user):
-        """Returns a list of project codes accessible by `user`.
-
-        Checks for explicit `view` permissions for `user`, and extends
-        them with the `default` (if logged-in) and `nobody` users' `view`
-        permissions.
-
-        Negative `hide` permissions are also taken into account and
-        they'll forbid project access as far as there's no `view`
-        permission set at the same level for the same user.
-
-        :param user: The ``User`` instance to get accessible projects for.
-        """
-        username = 'nobody' if user.is_anonymous() else user.username
-        key = iri_to_uri('projects:accessible:%s' % username)
-        user_projects = cache.get(key, None)
-
-        if user_projects is not None:
-            return user_projects
-
-        logging.debug(u'Cache miss for %s', key)
-
-        if user.is_anonymous():
-            allow_usernames = [username]
-            forbid_usernames = [username, 'default']
-        else:
-            allow_usernames = list(set([username, 'default', 'nobody']))
-            forbid_usernames = list(set([username, 'default']))
-
-        # FIXME: use `cls.objects.cached_dict().keys()`, but that needs
-        # to use the `LiveProjectManager` first, as it only considers
-        # `enabled()` projects
-        ALL_PROJECTS = cls.objects.values_list('code', flat=True)
-
-        if user.is_superuser:
-            user_projects = ALL_PROJECTS
-        else:
-            ALL_PROJECTS = set(ALL_PROJECTS)
-
-            # Check root for `view` permissions
-
-            root_permissions = PermissionSet.objects.filter(
-                directory__pootle_path='/',
-                user__username__in=allow_usernames,
-                positive_permissions__codename='view',
-            )
-            if root_permissions.count():
-                user_projects = ALL_PROJECTS
-            else:
-                user_projects = set()
-
-            # Check specific permissions at the project level
-
-            accessible_projects = cls.objects.filter(
-                directory__permission_sets__positive_permissions__codename='view',
-                directory__permission_sets__user__username__in=allow_usernames,
-            ).values_list('code', flat=True)
+    ignoredfiles = models.CharField(max_length=255, blank=True, null=False,
+            default="", verbose_name=_('Ignore Files'))
 
     directory = models.OneToOneField('pootle_app.Directory', db_index=True,
             editable=False)

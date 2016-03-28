@@ -2712,34 +2712,6 @@ msgstr ""
 #~ msgstr "Lenk rapid yo"
 
 #, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Ou pa gen privilèj pou administre poutòl"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Ou pakapab chanje tradiksyon yo la"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Ou pakapab chanje fichye yo la"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Ou pakapab mete fichye yo ajou la"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Ou gen privilèj pou administre pwojè sa"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Demonstrasyon Pootle"
-
-#~ msgid "Quick Links"
-#~ msgstr "Lenk rapid yo"
-
-#~ msgid "Admin"
-#~ msgstr "Administratè"
-
-#, python-format
-#, fuzzy
 #~ msgid "%d file"
 #~ msgid_plural "%d files"
 #~ msgstr[0] "Sengilye %d fichye"

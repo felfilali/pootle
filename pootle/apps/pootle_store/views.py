@@ -9,10 +9,6 @@
 
 from itertools import groupby
 
-from translate.filters.decorators import Category
-from translate.lang import data
-from translate.search.lshtein import LevenshteinComparer
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -43,7 +39,6 @@ from pootle_misc.forms import make_search_form
 from pootle_misc.util import ajax_required, to_int, get_date_interval
 from pootle_statistics.models import (Submission, SubmissionFields,
                                       SubmissionTypes)
-from pootle_translationproject.models import TranslationProject
 
 from .decorators import get_unit_context
 from .fields import to_python
@@ -427,7 +422,6 @@ def _build_units_list(units, reverse=False):
 
     return return_units
 
-    return return_units
 
 def _get_critical_checks_snippet(request, unit):
     """Retrieves the critical checks snippet.
@@ -685,7 +679,6 @@ def timeline(request, unit):
     return JsonResponse(json)
 
 
-@require_POST
 @ajax_required
 @require_http_methods(['POST', 'DELETE'])
 @get_unit_context('translate')
@@ -835,13 +828,13 @@ def get_edit_unit(request, unit):
     json['is_obsolete'] = unit.isobsolete()
 
     # Return context rows if filtering is applied but
-    # don't return any if the user has asked not to have it.
+    # don't return any if the user has asked not to have it
     current_filter = request.GET.get('filter', 'all')
     show_ctx = request.COOKIES.get('ctxShow', 'true')
 
     if ((_is_filtered(request) or current_filter not in ('all',)) and
         show_ctx == 'true'):
-        # TODO: review if this first 'if' branch makes sense.
+        # TODO: review if this first 'if' branch makes sense
         if translation_project.project.is_terminology or store.is_terminology:
             json['ctx'] = _filter_ctx_units(store.units, unit, 0)
         else:
@@ -884,7 +877,6 @@ def get_stats(request, *args, **kwargs):
     return JsonResponse(stats)
 
 
-@require_POST
 @ajax_required
 @get_unit_context('translate')
 def submit(request, unit):
@@ -897,7 +889,6 @@ def submit(request, unit):
 
     translation_project = request.translation_project
     language = translation_project.language
-    user = request.user
 
     if unit.hasplural():
         snplurals = len(unit.source.strings)
@@ -916,7 +907,7 @@ def submit(request, unit):
                 sub = Submission(
                         creation_time=current_time,
                         translation_project=translation_project,
-                        submitter=request.user,
+                        submitter=request.profile,
                         unit=unit,
                         store=unit.store,
                         field=field,
@@ -950,7 +941,6 @@ def submit(request, unit):
     return JsonResponseBadRequest({'msg': _("Failed to process submission.")})
 
 
-@require_POST
 @ajax_required
 @get_unit_context('suggest')
 def suggest(request, unit):

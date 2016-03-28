@@ -1314,8 +1314,6 @@ msgstr ""
 #: checks.py:301
 msgid "Database connection does not implement on_commit."
 msgstr ""
-"Non riesco a trovare python-levenshtein package. Un ulteriore aggiornamento "
-"dei templates è più veloce con python-levenshtein"
 
 #: checks.py:302
 msgid ""
@@ -2366,8 +2364,6 @@ msgid ""
 "installation and upgrade instructions. Contact the server administrator if "
 "you feel this is a mistake."
 msgstr ""
-"Una descrizione di questo progetto. Utile per dare maggiori informazioni o "
-"istruzioni. Markup consentito: %s"
 
 #: templates/errors/db.html:26
 msgid "The reported error was:"
@@ -2401,8 +2397,6 @@ msgstr "vai alla navigazione"
 #: templates/layout.html:111
 msgid "Public Profile"
 msgstr ""
-"Un URL o un indirizzo email al quale possono essere riportati problemi "
-"relativi al testo sorgente."
 
 #: templates/layout.html:113 templates/user/stats.html:46
 #: templates/user/stats.html.py:50
@@ -3886,161 +3880,6 @@ msgstr ""
 
 #~ msgid "Quick Links"
 #~ msgstr "Collegamenti veloci"
-
-#~ msgid "No languages or projects selected. Choose yours now."
-#~ msgstr "Nessuna lingua o progetto selezionato. Scegli i tuoi ora."
-
-#~ msgid "This user has not selected languages or projects yet."
-#~ msgstr "Questo utente non ha selezionato lingue o progetti attualmente."
-
-#~ msgid "User Statistics"
-#~ msgstr "Statistiche utente"
-
-#~ msgid "Display on registration"
-#~ msgstr "Mostra alla registrazione"
-
-#~ msgid "Whether this page should be displayed on registration."
-#~ msgstr ""
-#~ "Se questa pagina dovrebbe essere visualizzata al momento della "
-#~ "registrazione."
-
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgid "Content"
-#~ msgstr "Contenuto"
-
-#~ msgid "Inactive"
-#~ msgstr "Inattivo"
-
-#~ msgid "New Legal Page"
-#~ msgstr "Nuova pagina legale"
-
-#~ msgid "Project Members"
-#~ msgstr "Membri del progetto"
-
-#~ msgid "Language Members"
-#~ msgstr "Membri della lingua"
-
-#, python-format
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Non hai i permessi per amministrare %s."
-
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Non hai i permessi per accedere a questo progetto di traduzione."
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr ""
-#~ "Non si dispone dei permessi per eseguire il commit di file in questa sezione"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Non disponete dei permessi per aggiornare file in questa sezione"
-
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Non si possiedono i permessi per amministrare questa lingua."
-
-#~ msgid "Pootle: Install"
-#~ msgstr "Pootle: Installa"
-
-#, python-format
-#~ msgid ""
-#~ "Error: \"%s\" while attempting to access the Pootle database, will try to "
-#~ "initialize database."
-#~ msgstr ""
-#~ "Errore: \"%s\" durante il tentativo di accesso al database di Pootle, provo a "
-#~ "inizializzare il database."
-
-#~ msgid "Creating database tables..."
-#~ msgstr "Creazione delle tabelle del database..."
-
-#~ msgid "Creating default languages, projects and admin user"
-#~ msgstr ""
-#~ "Creazione delle lingue predefinite, dei progetti e dell'utente "
-#~ "amministratore"
-
-#~ msgid "Calculating translation statistics, this will take a few minutes"
-#~ msgstr "Calcolo delle statistiche di traduzione, richiederà alcuni minuti"
-
-#, python-format
-#~ msgid "%(language)s is %(percent)d%% complete"
-#~ msgstr "%(language)s completo al %(percent)d%%"
-
-#, python-format
-#~ msgid "Project %(project)s is %(percent)d%% complete"
-#~ msgstr "Il progetto %(project)s è completo al %(percent)d%%"
-
-#~ msgid "Done calculating statistics for default languages and projects"
-#~ msgstr ""
-#~ "Calcolo delle statistiche completato per le lingue e i progetti predefiniti"
-
-#~ msgid ""
-#~ "Initialized database, you will be redirected to the front page in 10 seconds"
-#~ msgstr ""
-#~ "Database inizializzato, sarete rediretti alla pagina iniziale tra 10 secondi"
-
-#~ msgid "Pootle: Update"
-#~ msgstr "Pootle: Aggiornamento"
-
-#, fuzzy
-#~ msgid "Creating missing database tables..."
-#~ msgstr "Creazione delle tabelle del database..."
-
-#, fuzzy
-#~ msgid "Updating existing database tables..."
-#~ msgstr "Creazione delle tabelle del database..."
-
-#~ msgid ""
-#~ "Pootle will now import all the translations into the database. It could take "
-#~ "a long time."
-#~ msgstr ""
-#~ "Pootle sta importando tutte le traduzioni nel database. Potrebbe richiedere "
-#~ "parecchio tempo."
-
-#~ msgid "All translations are now imported."
-#~ msgstr "Tutte le traduzioni sono state importate."
-
-#, fuzzy
-#~ msgid ""
-#~ "Pootle initialized the database. You will be redirected to the front page in "
-#~ "10 seconds."
-#~ msgstr ""
-#~ "Database inizializzato, sarete rediretti alla pagina iniziale tra 10 secondi"
-
-#, fuzzy
-#~ msgid "Advanced search"
-#~ msgstr "Ricerca avanzata"
-
-#~ msgid "Suggestions Accepted"
-#~ msgstr "Suggerimenti accettati"
-
-#~ msgid "Suggestions Reviewed"
-#~ msgstr "Suggerimenti rivisti"
-
-#~ msgid "Submissions Made"
-#~ msgstr "Inserimenti fatti"
-
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Non si possiedono i permessi per amministrare questo progetto."
-
-#, fuzzy
-#~ msgid "File:"
-#~ msgstr "File"
-
-#~ msgid "You do not have the right to create ZIP archives."
-#~ msgstr "Non disponete dei permessi necessari per creare achivi ZIP."
-
-#, fuzzy
-#~ msgid "Update from Version Control"
-#~ msgstr "Aggiorna tutto dal controllo versione"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Dimostrazione di Pootle"
-
-#~ msgid "Quick Links"
-#~ msgstr "Collegamenti veloci"
-
-#~ msgid "Admin"
-#~ msgstr "Amministra"
 
 #~ msgid "No languages or projects selected. Choose yours now."
 #~ msgstr "Nessuna lingua o progetto selezionato. Scegli i tuoi ora."

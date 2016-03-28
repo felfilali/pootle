@@ -99,6 +99,7 @@ DATABASES = {
 # The directory where Pootle writes its logs
 POOTLE_LOG_DIRECTORY = working_path('log')
 
+
 #
 # Site
 #
@@ -123,10 +124,6 @@ POOTLE_CONTACT_ENABLED = True
 # Use this as a way to forward string error reports to an address
 # different from the general contact address.
 POOTLE_CONTACT_REPORT_EMAIL = 'string_errors_manager@YOUR_DOMAIN.com'
-
-# Email address to report string errors to, unless a report email was set for
-# the project for which the string error is being reported.
-POOTLE_REPORT_STRING_ERRORS_EMAIL = 'string_errors_manager@YOUR_DOMAIN.com'
 
 # Mail server settings
 

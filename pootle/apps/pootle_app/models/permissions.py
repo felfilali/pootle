@@ -108,7 +108,8 @@ def check_user_permission(user, permission_codename, directory,
 
     permissions = get_matching_permissions(user, directory, check_default)
 
-    return ("administrate" in permissions or perm_code in permissions)
+    return ("administrate" in permissions or
+            permission_codename in permissions)
 
 
 def check_permission(permission_codename, request):
@@ -135,8 +136,6 @@ def check_permission(permission_codename, request):
     return ("administrate" in request.permissions or
             permission_codename in request.permissions)
 
-        if path_obj is None:
-            return True  # Always allow to view language pages
 
 class PermissionSetManager(models.Manager):
 

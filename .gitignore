@@ -47,17 +47,6 @@ node_modules/
 # Temporary/local files
 ~*
 
-# npm
-node_modules/
-
-# webpack
-.module-cache
-*.bundle.js
-*.bundle.js.map
-
-# Temporary/local files
-~*
-
 # ViM-generated
 *.swn
 *.swo

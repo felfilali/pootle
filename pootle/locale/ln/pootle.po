@@ -2719,38 +2719,6 @@ msgstr ""
 #~ msgid "Quick Links"
 #~ msgstr "Mpo na kokende na mbangu"
 
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Oza na lotomo mpo na koyangela Pootle te."
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Oza na lotomo ya kobongola mabongoli awa te"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Oza na lotomo ya kopesa kásá awa te"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Oza na lotomo ya kokɔngɔ kásá awa te"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Oza na lotomo ya koyangela mwango oyo te"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Oza na lotomo ya koyangela mwango oyo te"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Elakiseli ya Pootle"
-
-#~ msgid "Quick Links"
-#~ msgstr "Mpo na kokende na mbangu"
-
-#~ msgid "Admin"
-#~ msgstr "Mokonzi"
-
 #~ msgid "Translated percentage"
 #~ msgstr "Oyo ebongolami na mokámá (%)"
 

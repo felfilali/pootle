@@ -484,7 +484,7 @@ msgstr "rhywun"
 
 #: static/js/editor/app.js:2115 static/js/editor/app.js:2164
 msgid "Similar translations"
-msgstr "Obdobné překlady"
+msgstr "Cyfieithiadau tebyg"
 
 #: static/js/shared/models/project.js:59
 msgid "disabled"
@@ -540,25 +540,22 @@ msgstr[1] "%s blwyddyn yn ôl"
 #, javascript-format
 msgid "A week ago"
 msgid_plural "%s weeks ago"
-msgstr[0] "Před týdnem"
-msgstr[1] "Před %s týdny"
-msgstr[2] "Před %s týdny"
+msgstr[0] "Wythnos yn ôl"
+msgstr[1] "%s wythnos yn ôl"
 
 #: static/js/utils.js:157
 #, javascript-format
 msgid "Yesterday"
 msgid_plural "%s days ago"
-msgstr[0] "Včera"
-msgstr[1] "Před %s dny"
-msgstr[2] "Před %s dny"
+msgstr[0] "Ddoe"
+msgstr[1] "%s diwrnod yn ôl"
 
 #: static/js/utils.js:160
 #, javascript-format
 msgid "An hour ago"
 msgid_plural "%s hours ago"
-msgstr[0] "Před hodinou"
-msgstr[1] "Před %s hodinami"
-msgstr[2] "Před %s hodinami"
+msgstr[0] "Awr yn ôl"
+msgstr[1] "%s awr yn ôl"
 
 #: static/js/utils.js:163
 #, javascript-format
@@ -569,14 +566,7 @@ msgstr[1] "%s munud yn ôl"
 
 #: static/js/utils.js:171
 msgid "A few seconds ago"
-msgstr "Před pár sekundami"
-
-#, c-format
-#~ msgid "<a href=\"%s\">String %s</a>"
-#~ msgstr "<a href=\"%s\">Řetězec %s</a>"
-
-#~ msgid "Congratulations, you walked through all strings."
-#~ msgstr "Gratulujeme, prošli jste všechny položky."
+msgstr "Ychydig eiliadau yn ôl"
 
 #: static/js/auth/components/RequestPasswordResetForm.js:95
 msgid "Email Address"

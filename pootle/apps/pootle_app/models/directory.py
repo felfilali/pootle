@@ -194,10 +194,8 @@ class Directory(models.Model, CachedTreeItem):
         to this directory, recurse the path and return the object
         (either a Directory or a Store) named 'c'.
 
-        This does not currently deal with .. path components.
-        """
-        # Putting the next import at the top of the file causes circular import
-        # issues.
+        This does not currently deal with .. path components."""
+
         from pootle_store.models import Store
 
         if path not in (None, ''):
@@ -218,7 +216,7 @@ class Directory(models.Model, CachedTreeItem):
         return child_dir
 
     def trail(self, only_dirs=True):
-        """Return a list of ancestor directories excluding
+        """Returns a list of ancestor directories excluding
         :cls:`~pootle_translationproject.models.TranslationProject` and above.
         """
         path_parts = self.pootle_path.split('/')
@@ -245,12 +243,11 @@ class Directory(models.Model, CachedTreeItem):
                 not self.pootle_path.startswith('/projects/'))
 
     def is_project(self):
-        """Tell if this directory points at a project."""
         return (self.pootle_path.startswith('/projects/') and
                 self.pootle_path.count('/') == 3)
 
     def is_translationproject(self):
-        """Tell if this directory points at a translation project."""
+        """does this directory point at a translation project"""
         return (self.pootle_path.count('/') == 3 and not
                 self.pootle_path.startswith('/projects/'))
 
@@ -259,7 +256,7 @@ class Directory(models.Model, CachedTreeItem):
         return self.pootle_path == '/projects/'
 
     def get_real_path(self):
-        """Return physical filesystem path for directory."""
+        """physical filesystem path for directory"""
         if self.is_project():
             return self.project.code
 

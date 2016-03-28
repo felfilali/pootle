@@ -8,8 +8,6 @@
 # AUTHORS file for copyright and authorship information.
 
 import os
-
-# This must be run before importing Django.
 os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
 
 from optparse import make_option

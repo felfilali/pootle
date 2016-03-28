@@ -30,8 +30,6 @@ msgstr ""
 msgid ""
 "Your user seems to have disappeared. Please report this to the site owners."
 msgstr ""
-"អាសយដ្ឋាន​អ៊ីមែល​នេះ​មិន​ទាន់​បាន​ភ្ជាប់​ជាមួយ​គណនី​អ្នក​ប្រើ​ណាមួយ​ទេ។ "
-"តើ​អ្នក​ប្រាកដ​ថា​បាន​ចុះឈ្មោះ​ហើយ​មែន​ឬ?"
 
 #: apps/accounts/models.py:61 apps/pootle_app/views/admin/permissions.py:86
 msgid "Username"
@@ -66,8 +64,6 @@ msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
 msgstr ""
-"សូម​បញ្ចូល​ឈ្មោះ​អ្នក​ប្រើ និង​ពាក្យ​សម្ងាត់​ដែល​ត្រឹម​ត្រូវ។ សូម​ចាំ​ទេ "
-"វាល​ទាំង​ពីរ​នេះ​ប្រកាន់​តួ​អក្សរ​តូច​ធំ។"
 
 #: apps/accounts/models.py:76
 msgid "Superuser Status"
@@ -402,8 +398,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:52
 msgid "Ending punctuation"
 msgstr ""
-"នៅ​ទីនេះ អ្នក​អាច​បន្ថែម កែប្រែ "
-"និង​លុប​សិទ្ធិ​លំនាំ​ដើម​នៅ​ក្នុង​ម៉ាស៊ីន​បម្រើ Pootle នេះ។"
 
 #: apps/pootle_misc/checks.py:53
 msgid "Ending whitespace"
@@ -416,8 +410,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:55
 msgid "File paths"
 msgstr ""
-"នៅ​ទីនេះ អ្នក​អាច​បន្ថែម កែប្រែ "
-"និង​លុប​គម្រោង​ទាំង​អស់​ដែល​មាន​នៅ​ក្នុង​ម៉ាស៊ីន​បម្រើ Pootle នេះ។"
 
 #: apps/pootle_misc/checks.py:56
 msgid "Functions"
@@ -434,8 +426,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:59
 msgid "Old KDE comment"
 msgstr ""
-"នៅ​ទីនេះ អ្នក​អាច​បន្ថែម កែប្រែ "
-"និង​លុប​អ្នក​ប្រើ​ទាំង​អស់​ដែល​មាន​នៅ​ក្នុង​ម៉ាស៊ីន​បម្រើ Pootle នេះ។"
 
 #: apps/pootle_misc/checks.py:60
 msgid "Long"
@@ -456,9 +446,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:64
 msgid "Don't translate words"
 msgstr ""
-"Pootle ត្រូវ​បាន​អភិវឌ្ឍ​ដោយ Translate.org.za "
-"និង​សហគមន៍​អ្នក​ជំនាញ​ផ្នែក​មូលដ្ឋានីយកម្ម (localization) ។ យើង​ចង់​ឲ្យ "
-"Pootle ជួយ​ឲ្យ​ការងារ​ប្រែប្រួល​របស់​អ្នក​ឈាន​ដល់​សក្ដានុពល​មួយ​ពេញ​លេញ។"
 
 #: apps/pootle_misc/checks.py:65
 msgid "Numbers"
@@ -525,8 +512,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:81
 msgid "Unchanged"
 msgstr ""
-"ឈ្មោះ​អ្នកប្រើ និង​ពាក្យ​សម្ងាត់​របស់​អ្នក មិន​ត្រូវ​គ្នា​ទេ។ "
-"សូម​ព្យាយាម​ម្ដង​ទៀត។"
 
 #: apps/pootle_misc/checks.py:82 apps/pootle_misc/stats.py:27
 #: apps/pootle_store/util.py:30 core/helpers.py:58
@@ -2540,8 +2525,6 @@ msgstr ""
 #: templates/user/reports/user_rates_widget.html:29
 msgid "Review Rate:"
 msgstr ""
-"អ្នក​បាន​ភ្លេច​ពាក្យ​សម្ងាត់​ឬ? បញ្ចូល​អាសយដ្ឋាន​អ៊ីមែល​របស់​អ្នក​នៅ​ខាង​ក្រោ"
-"ម ហើយ​យើង​នឹង​ផ្ញើ​អ៊ីមែល​អំពី​របៀប​កំណត់​ពាក្យ​សម្ងាត់​ថ្មី​មួយ។"
 
 #: templates/user/reports/user_rates_widget.html:41
 msgid "Hourly Rate:"

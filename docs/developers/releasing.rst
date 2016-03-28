@@ -408,12 +408,6 @@ Publish the new release
 Once we have a valid package it is necessary to publish it and announce the
 release.
 
-Tag and branch the release
---------------------------
-
-You should only tag once you are happy with your release as there are some
-things that we can't undo. You can safely branch for a ``stable/`` branch
-before you tag.
 
 Tag and branch the release
 --------------------------
@@ -515,8 +509,6 @@ We use github pages for the website. First we need to checkout the pages:
 #. :command:`git commit` and :command:`git push` -- changes are quite quick so
    easy to review.
 
-#. Adjust the #pootle channel notice. Use ``/topic [new topic]`` to change the
-   topic. It is easier if you copy the previous topic and adjust it.
 
 Announce to the world
 ---------------------

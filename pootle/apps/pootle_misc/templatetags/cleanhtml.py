@@ -16,7 +16,7 @@ from lxml.html.clean import clean_html
 
 from django import template
 from django.template.defaultfilters import stringfilter
-from django.utils.html import escape, simple_email_re
+from django.utils.html import escape, simple_email_re as email_re
 from django.utils.safestring import mark_safe
 
 from pootle.core.utils.html import rewrite_links
@@ -42,20 +42,19 @@ def clean(text):
 @register.filter
 @stringfilter
 def obfuscate(text):
-    """Obfuscate the given text in case it is an email address.
+    """Obfuscates the given text in case it is an email address.
+    Based on the implementation used in addons.mozilla.org"""
 
-    Based on the implementation used in addons.mozilla.org
-    """
-    if not simple_email_re.match(text):
+    if not email_re.match(text):
         return text
 
-    fallback = text[::-1]  # Reverse.
-    # Inject junk somewhere.
+    fallback = text[::-1]  # reverse
+    # inject junk somewhere
     i = random.randint(0, len(text) - 1)
     fallback = u"%s%s%s" % (escape(fallback[:i]),
                             u'<span class="i">null</span>',
                             escape(fallback[i:]))
-    # Replace '@' and '.'.
+    # replace @ and .
     fallback = fallback.replace('@', '&#x0040;').replace('.', '&#x002E;')
 
     title = '<span class="email">%s</span>' % fallback
@@ -67,7 +66,7 @@ def obfuscate(text):
 @register.filter
 @stringfilter
 def url_target_blank(text):
-    """Set the target="_blank" for hyperlinks."""
+    """Sets the target="_blank" for hyperlinks."""
     return mark_safe(text.replace('<a ', '<a target="_blank" '))
 
 

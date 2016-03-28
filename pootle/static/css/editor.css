@@ -231,7 +231,7 @@ tr.edit-row.with-ctx
 
 tr.edit-ctx
 {
-    font-size: 82%;
+    font-size: 82%
 }
 
 tr.edit-ctx td
@@ -598,11 +598,6 @@ td.translate-full textarea.translation
     min-height: 2.7em;
 }
 
-.translate-translation .textcomplete-wrapper
-{
-    width: 100%;
-    display: block !important;
-}
 
 /* TM and suggestions */
 
@@ -846,41 +841,6 @@ html[dir="rtl"] #target-item-gravatar
 {
     margin-left: auto;
     margin-right: -30px;
-}
-
-.extra-item-tm-content
-{
-    float: left;
-    margin-bottom: -1px;
-    width: 100%;
-}
-
-.extra-item-tm-user
-{
-    float: left;
-    margin-top: 4px;
-    margin-left: -30px;
-}
-
-html[dir="rtl"] .extra-item-tm-user
-{
-    float: right;
-    margin-left: auto;
-    margin-right: -30px;
-}
-.extra-item-tm-project
-{
-    text-align: center;
-    font-size: x-small;
-    float: right;
-    width: 40px;
-    margin-top: 4px;
-    margin-right: -40px;
-}
-
-html[dir="rtl"] .extra-item-tm-project
-{
-    float: left;
 }
 
 .extra-item-content,
@@ -1286,29 +1246,9 @@ a.editor-specialchar:hover
     color: purple;
 }
 
-.highlight-html,
-.placeable
+.highlight-html
 {
     color: #840;
-}
-
-.highlight-escape,
-.placeable
-{
-    /* Switch the next two lines to “unicode-bidi: isolate” once it is widely
-     * supported and let the browser determine the direction, instead of
-     * assuming that all placeables are left-to-right string.
-     */
-    direction: ltr;
-    unicode-bidi: embed;
-}
-
-.placeable:hover,
-.highlight-escape:hover,
-#js-selected-placeable
-{
-    color: #000;
-    background-color: #90ee90;
 }
 
 .tm-server .suggestion-original .highlight-html
@@ -1439,56 +1379,4 @@ table.history td
 table.history td
 {
     padding: 5px;
-}
-
-/* Keyboard shortcuts dialog */
-
-#keyboard-button
-{
-    float: right;
-    margin: 0;
-    margin-top: .8em;
-    margin-right: 2em;
-    text-align: center;
-    line-height: 1.5em;
-    font-size: 1em;
-    vertical-align: text-top;
-}
-
-html[dir="rtl"] #keyboard-button
-{
-    float: left;
-    margin-right: 0;
-}
-
-#keyboard-button .kbd-icon
-{
-    float: right;
-    font-size: 1.5em;
-    margin: 0;
-    margin-left: .3em;
-}
-
-html[dir="rtl"] #keyboard-button .kbd-icon
-{
-    float: left;
-    margin-right: .3em;
-    margin-left: 0;
-}
-
-td.keyboard-shortcut
-{
-    padding: 1em;
-    font-weight: bold;
-}
-
-kbd
-{
-    border: 1px solid #aaa;
-    border-radius: 2px;
-    box-shadow: 1px 2px 2px #ddd;
-    background-color: #f9f9f9;
-    background-image: linear-gradient(top, #eee, #f9f9f9, #eee);
-    padding: 1px 3px;
-    font-family: inherit;
 }

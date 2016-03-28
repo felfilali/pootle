@@ -2698,36 +2698,6 @@ msgstr ""
 #~ msgid "Pootle Demo"
 #~ msgstr "Demo Pootle"
 
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Anda tidak mempunyai hak untuk mentadbir pootle."
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Anda tidak mempunyai hak mengubah terjemahan di sini"
-
-#, fuzzy
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Anda tidak berhak menyaran perubahan di sini"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Anda tidak mempunyai hak mengemaskini fail di sini"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Anda tidak mempunyai kebenaran untuk mengurus projek ini."
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Anda tidak mempunyai kebenaran untuk mengurus projek ini."
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Demo Pootle"
-
-#~ msgid "Admin"
-#~ msgstr "Admin"
-
 #~ msgid "Translated percentage"
 #~ msgstr "Peratus diterjemah"
 

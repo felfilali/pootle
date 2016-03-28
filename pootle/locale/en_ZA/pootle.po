@@ -2781,41 +2781,6 @@ msgstr ""
 #~ "Initialised database, you will be redirected to the front page in 10 "
 #~ "seconds"
 
-#~ msgid "Inactive"
-#~ msgstr "Inactive"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "You do not have rights to change translations here"
-
-#, fuzzy
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "You do not have rights to suggest changes here"
-
-#, fuzzy
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "You do not have rights to suggest changes here"
-
-#, python-format
-#~ msgid ""
-#~ "Error: \"%s\" while attempting to access the Pootle database, will try to "
-#~ "initialize database."
-#~ msgstr ""
-#~ "Error: \"%s\" while attempting to access the Pootle database, will try to "
-#~ "initialise database."
-
-#~ msgid ""
-#~ "Initialized database, you will be redirected to the front page in 10 seconds"
-#~ msgstr ""
-#~ "Initialised database, you will be redirected to the front page in 10 seconds"
-
-#, fuzzy
-#~ msgid ""
-#~ "Pootle initialized the database. You will be redirected to the front page in "
-#~ "10 seconds."
-#~ msgstr ""
-#~ "Initialised database, you will be redirected to the front page in 10 seconds"
-
 #~ msgid "Initialize"
 #~ msgstr "Initialise"
 

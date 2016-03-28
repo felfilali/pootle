@@ -41,8 +41,8 @@ Directory contents
   - stats.js :
     Statistics/overview browser page code.
 
-    - wikipedia.js :
-      Wikipedia lookup backend.
+  - search.js :
+    Search functionality, shared across pages.
 
   - user.js :
     User profile editing.

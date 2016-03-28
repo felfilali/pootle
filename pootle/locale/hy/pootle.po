@@ -2681,35 +2681,6 @@ msgstr ""
 #~ msgstr "Փութլի օրինակ"
 
 #, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "Դուք այս պրոյեկտի կառավարման իրավունքներ չունեք։"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "Դուք այստեղ թարգմանությունները փոխելու իրավունք չունեք"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "Դուք այստեղ ֆայլեր փոփոխելու իրավունք չունեք"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "Դուք այստեղ ֆայլեր թարմացնելու իրավունք չունեք"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "Դուք այս պրոյեկտի կառավարման իրավունքներ չունեք։"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "Դուք այս պրոյեկտի կառավարման իրավունքներ չունեք։"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Փութլի օրինակ"
-
-#~ msgid "Admin"
-#~ msgstr "Ադմին"
-
-#, python-format
-#, fuzzy
 #~ msgid "%d file"
 #~ msgid_plural "%d files"
 #~ msgstr[0] "%u ֆայլ"

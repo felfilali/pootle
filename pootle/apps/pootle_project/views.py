@@ -111,28 +111,6 @@ def project_admin(request, current_project):
             'name': current_project.fullname,
         }
     }
-    return admin_permissions(request, project.directory,
-                             'projects/admin/permissions.html', ctx)
-
-
-@get_path_obj
-@permission_required('view')
-def projects_overview(request, project_set):
-    """Page listing all projects."""
-    items = [make_project_list_item(project)
-             for project in project_set.get_children()]
-
-    table_fields = ['name', 'progress', 'total', 'need-translation',
-                    'suggestions', 'critical', 'last-updated', 'activity']
-
-    ctx = get_overview_context(request)
-    ctx.update({
-        'table': {
-            'id': 'projects',
-            'fields': table_fields,
-            'headings': get_table_headings(table_fields),
-            'items': items,
-        },
 
     def generate_link(tp):
         path_args = split_pootle_path(tp.pootle_path)[:2]

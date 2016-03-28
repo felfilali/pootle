@@ -61,9 +61,7 @@ Translate styleguide for other conventions that the imports must follow.
 
     from tastypie.models import ApiKey
 
-    from pootle.core.decorators import permission_required
-    from pootle_store.models import (FUZZY, TRANSLATED, UNTRANSLATED, Store,
-                                     Unit, count_words)
+    from pootle_language.models import Language
     from pootle_translationproject.models import TranslationProject
 
     from .forms import GoalForm
@@ -341,8 +339,6 @@ Indenting
 
   - Put selectors and braces on their own lines.
 
-  - Right-align the CSS browser-prefixed properties.
-
   Good:
 
   .. code-block:: css
@@ -351,9 +347,6 @@ Indenting
     .foo-bar:hover
     {
         background-color: #eee;
-        -webkit-box-shadow: 0 1px 4px #d9d9d9;
-           -moz-box-shadow: 0 1px 4px #d9d9d9;
-                box-shadow: 0 1px 4px #d9d9d9;
     }
 
   Bad:
@@ -362,9 +355,6 @@ Indenting
 
     .foo-bar, .foo-bar:hover {
       background-color: #eee;
-      -webkit-box-shadow: 0 1px 4px #d9d9d9;
-      -moz-box-shadow: 0 1px 4px #d9d9d9;
-      box-shadow: 0 1px 4px #d9d9d9;
     }
 
 Naming

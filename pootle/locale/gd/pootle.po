@@ -64,8 +64,6 @@ msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
 msgstr ""
-"Cuir a-steach ainm-cleachdaiche is facal-faire ceart. Tha aire do litrichean "
-"mòra 's beaga san dà raon."
 
 #: apps/accounts/models.py:76
 #, fuzzy
@@ -719,8 +717,6 @@ msgstr "Air adhart"
 #, python-format
 msgid "Last (%d)"
 msgstr ""
-"Tha tionndadh %(installed)s dhen Translate Toolkit air a stàladh. Feumaidh "
-"Pootle tionndadh %(required)s air a' char as lugha."
 
 #: apps/pootle_profile/views.py:55
 msgid "Select one or more languages"
@@ -759,8 +755,6 @@ msgstr "Nòs neo-GNU: Gach cànan 'na phasgan fhèin"
 #: apps/pootle_project/models.py:169
 msgid "Project Tree Style"
 msgstr ""
-"Tha tionndadh %(installed)s dhen lxml air a stàladh. Feumaidh Pootle "
-"tionndadh %(required)s air a' char as lugha."
 
 #: apps/pootle_project/models.py:175
 msgid "Ignore Files"
@@ -993,8 +987,6 @@ msgstr ""
 #: apps/reports/models.py:54
 msgid "Date"
 msgstr ""
-"Tha cumhachd Translate Toolkit %(toolkit_ver)s am broinn Pootle %"
-"(pootle_ver)s"
 
 #: apps/reports/models.py:55 apps/virtualfolder/models.py:58
 msgid "Description"
@@ -1807,45 +1799,12 @@ msgid ""
 "</code> code to provide links between static pages. Such links will be "
 "rewritten with full paths to static pages."
 msgstr ""
-"'S urrainn dhut ceadan a' phròiseict seo a chur ris, a dheasachadh is a "
-"thoirt air falbh gu h-ìosal."
-
-#: apps/pootle_project/templates/project/overview.html:19
-#: apps/pootle_translationproject/templates/translation_project/overview.html:25
-msgid "Show tags"
-msgstr "Seall na tagaichean"
-
-#: apps/pootle_project/templates/project/overview.html:22
-msgid "Show filtering"
-msgstr "Seall an criathradh"
-
-#: apps/pootle_project/templates/project/overview.html:33
-msgid "Filter using one or more tags"
-msgstr "Criathraich le co-dhiù aon taga"
-
-#: apps/pootle_project/templates/project/overview.html:37
-msgctxt "verb"
-msgid "Filter"
-msgstr "Criathrag"
-
-#: apps/pootle_project/templates/project/overview.html:38
-msgid "Filter using the selected tags"
-msgstr "Criathraich leis na tagaichean a thagh thu"
-
-#: apps/pootle_project/templates/project/overview.html:76
-#: apps/pootle_translationproject/templates/translation_project/overview.html:43
-#: apps/pootle_translationproject/templates/translation_project/overview.html:175
-#: templates/common/xhr_add_tag_form.html:15
-msgid "Add tag"
-msgstr "Cuir taga ris"
 
 #: templates/admin/staticpages/_form.html:37
 msgid ""
 "In Announcement pages use <code><strong>/xx/</strong></code> within URLs for "
 "a dynamic language code."
 msgstr ""
-"'S urrainn dhut cànain airson a' phròiseict seo a chur ris, a dheasachadh is "
-"no a thoirt air falbh gu h-ìosal."
 
 #: templates/admin/staticpages/_table.html:10
 msgid "Last Edited"
@@ -3408,58 +3367,6 @@ msgstr ""
 #~ msgid "%(language)s is %(percent)d%% complete"
 #~ msgstr "Tha %(language)s %(percent)d%% deiseil"
 
-#~ msgid "Project %(project)s is %(percent)d%% complete"
-#~ msgstr "Tha am pròiseact %(project)s %(percent)d%% deiseil"
-
-#~ msgid "Pootle: Update"
-#~ msgstr "Pootle: Ùraich"
-
-#~ msgid "Creating missing database tables..."
-#~ msgstr "A' cruthachadh clàir an stòir-dhàta a tha a dhìth..."
-
-#~ msgid "Updating existing database tables..."
-#~ msgstr "Ag ùrachadh clàir an stòir-dhàta..."
-
-#~ msgid "Advanced search"
-#~ msgstr "Lorg adhartach"
-
-#, fuzzy
-#~ msgid "File:"
-#~ msgstr "Faidhle"
-
-#, fuzzy
-#~ msgid "User Statistics"
-#~ msgstr "Stadastaireachd cleachdaidh"
-
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgid "Slug"
-#~ msgstr "Sluga"
-
-#~ msgid "Content"
-#~ msgstr "Susbaint"
-
-#~ msgid "Inactive"
-#~ msgstr "Neo-ghnìomhach"
-
-#~ msgid "Project Members"
-#~ msgstr "Buill a' phròiseict"
-
-#~ msgid "Language Members"
-#~ msgstr "Buill a' chànain"
-
-#~ msgid "Pootle: Install"
-#~ msgstr "Pootle: Stàlaich"
-
-#~ msgid "Creating database tables..."
-#~ msgstr "A' cruthachadh clàir an stòir-dhàta..."
-
-#, python-format
-#~ msgid "%(language)s is %(percent)d%% complete"
-#~ msgstr "Tha %(language)s %(percent)d%% deiseil"
-
-#, python-format
 #~ msgid "Project %(project)s is %(percent)d%% complete"
 #~ msgstr "Tha am pròiseact %(project)s %(percent)d%% deiseil"
 

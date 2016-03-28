@@ -540,16 +540,10 @@ msgstr ""
 #: apps/pootle_misc/checks.py:86
 msgid "Valid XML"
 msgstr ""
-"এখানে এই পুতলে সার্ভার এ সাধারনভাবে দেয়া আনুমতি সংযোজন, সম্পাদন, এবং মুছে "
-"ফেলতে পারেন।"
 
 #: apps/pootle_misc/checks.py:87
 msgid "XML tags"
 msgstr ""
-"“কেউ না” নামের ব্যবহারকারী বলতে বোঝায় সেই সমস্ত ব্যবহারকারী যারা লগইন করেনি "
-"(একটা অজানা, অসনাক্তব্যবহারকারী)। “ডিফল্ট”ব্যবহারকারী বলতে বোঝায় সেই সমস্ত "
-"অধিকার যেগুলি সমস্ত লগইন করা ব্যবহারকারী সাধারণভাবেই পেয়েছে, অন্যথায় অন্য "
-"নির্দিষ্ট কিছু অধিকার তাদের দেয়া হত।"
 
 #: apps/pootle_misc/checks.py:89
 msgid "Broken HTML Entities"
@@ -558,8 +552,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:90
 msgid "Java format"
 msgstr ""
-"এখানে এই পুতলে সার্ভার এ থাকা প্রজেক্টগুলি সংযোজন, সম্পাদন, এবং মুছে ফেলতে "
-"পারেন।"
 
 #: apps/pootle_misc/checks.py:91
 msgid "Template format"
@@ -576,8 +568,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:94
 msgid "Mustache like placeholder pairs"
 msgstr ""
-"এখানে এই পুতলে সার্ভার এ থাকা ব্যবহারকারী দের সংযোজন, সম্পাদন, এবং মুছে "
-"ফেলতে পারেন।"
 
 #: apps/pootle_misc/checks.py:95
 msgid "C format placeholders"
@@ -602,7 +592,6 @@ msgstr ""
 #: apps/pootle_misc/checks.py:100
 msgid "Incorrectly escaped ampersands"
 msgstr ""
-"আপনি নিম্নলিখিত বিষয়বস্তু গুলিকে আপনার কাজের জন্য সহায়ক কারী বলে মনে করবেন :"
 
 #: apps/pootle_misc/checks.py:101
 msgid "Whitespaces"
@@ -839,26 +828,18 @@ msgstr ""
 #: apps/pootle_store/filetypes.py:25
 msgid "XLIFF (.xliff)"
 msgstr ""
-"আনজিপ নির্দেশনা পাওয়া যায়নি। \"আনজিপ\" বর্তমান থাকলে আর্কাইভ এর আপলোড গতি "
-"বাড়ে।"
 
 #: apps/pootle_store/filetypes.py:31
 msgid "Qt ts"
 msgstr ""
-"আইএসো কোড প্যাকেজ পাওয়া যায়নি। Pootle ভাযার নাম অনুবাদ করতে আইএসো কোড "
-"ব্যবহার করে।"
 
 #: apps/pootle_store/filetypes.py:37
 msgid "TMX"
 msgstr ""
-"aeidon প্যাকেজ পাওয়া যায়নি। সাবটাইটেল এর ধরন সমর্থন করতে Pootle এর gaupol "
-"অথবা aeidon দরকার।"
 
 #: apps/pootle_store/filetypes.py:43
 msgid "TBX"
 msgstr ""
-"python-levenshtein প্যাকেজটি পাওয়া যায়নি। টেম্পলেট এর বিপরীত এ আপডেট টা  "
-"python-levenshtein এর সাথে বেশী দ্রুত হয়।"
 
 #: apps/pootle_store/filetypes.py:49
 msgid "Haiku catkeys"
@@ -3220,77 +3201,6 @@ msgstr ""
 
 #~ msgid "Quick Links"
 #~ msgstr "চটজলদি লিংক"
-
-#~ msgid "User Statistics"
-#~ msgstr "ব্যবহারকারীর পরিসংখ্যান তথ্য"
-
-#~ msgid "Display on registration"
-#~ msgstr "রেজিস্ট্রেশন করলে দেখানো হবে"
-
-#~ msgid "Whether this page should be displayed on registration."
-#~ msgstr "রেজিস্ট্রেশন করলে এই পাতাটা দেখানো উচিৎ হবে কিনা।"
-
-#, fuzzy
-#~ msgid "Inactive"
-#~ msgstr "সক্রিয়"
-
-#, python-format
-#, python-format, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "আপনার Pootle পরিচালনা করার অধিকার নেই।"
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "অনুবাদ পরিবর্তন করার অধিকার আপনার নেই"
-
-#, fuzzy
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "এখানে কোন পরিবর্তন প্রস্তাব করার অধিকার আপনার নেই"
-
-#, fuzzy
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "এখানে কোন পরিবর্তন প্রস্তাব করার অধিকার আপনার নেই"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "আপনার Pootle পরিচালনা করার অধিকার নেই।"
-
-#~ msgid "Pootle: Install"
-#~ msgstr "Pootle: ইনস্টল"
-
-#, python-format
-#~ msgid "Project %(project)s is %(percent)d%% complete"
-#~ msgstr "প্রোজেক্ট %(project)s এই %(percent)d%% সম্পূর্ণ"
-
-#, fuzzy
-#~ msgid "Advanced search"
-#~ msgstr "উন্নতভাবে খুঁজে নিন"
-
-#~ msgid "Suggestions Accepted"
-#~ msgstr "গ্রহণ করা হয়েছে এমন প্রস্তাব"
-
-#~ msgid "Suggestions Reviewed"
-#~ msgstr "যে সংখ্যক প্রস্তাব পরিবর্ধিত হয়েছে"
-
-#~ msgid "Submissions Made"
-#~ msgstr "প্রস্তাবের সংখ্যা"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "আপনার Pootle পরিচালনা করার অধিকার নেই।"
-
-#, fuzzy
-#~ msgid "File:"
-#~ msgstr "ফাইল"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "Pootle এর প্রতিপাদন"
-
-#~ msgid "Quick Links"
-#~ msgstr "চটজলদি লিংক"
-
-#~ msgid "Admin"
-#~ msgstr "পরিচালক"
 
 #~ msgid "User Statistics"
 #~ msgstr "ব্যবহারকারীর পরিসংখ্যান তথ্য"

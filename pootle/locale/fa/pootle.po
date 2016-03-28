@@ -2559,7 +2559,6 @@ msgid ""
 "Some translations are imported from external files. These are registered "
 "under this special meta-account."
 msgstr ""
-"در زیر می‌توانید اجازه‌های این زبان را بیفزایید، ویرایش کنید و حذف نمایید."
 
 #: templates/user/reports/user_rates_widget.html:4
 msgid "Rates"
@@ -3226,99 +3225,6 @@ msgstr ""
 
 #~ msgid "Quick Links"
 #~ msgstr "پیوندهای سریع"
-
-#, fuzzy
-#~ msgid "User Statistics"
-#~ msgstr "آمار سرور"
-
-#~ msgid "Display on registration"
-#~ msgstr "نمایش هنگام نام‌نویسی"
-
-#~ msgid "Whether this page should be displayed on registration."
-#~ msgstr "نمایش داده شدن یا نشدن این برگه به هنگام نام‌نویسی."
-
-#~ msgid "URL"
-#~ msgstr "URL"
-
-#~ msgid "If set, any references to this legal page will redirect to this URL"
-#~ msgstr "اگر تنظیم شود، هرگونه واگذاری به این برگه به آدرس زیر هدایت خواهد شد"
-
-#~ msgid "Slug"
-#~ msgstr "نام برگه (Slug)"
-
-#~ msgid "The page will be available at /about/<slug>/"
-#~ msgstr "این برگه در آدرس /about/<slug>/ در دسترس می‌باشد"
-
-#~ msgid "Content"
-#~ msgstr "محتوا"
-
-#~ msgid "Legal page created."
-#~ msgstr "برگه‌ی قانونی ساخته شد."
-
-#~ msgid "Edit Legal Page"
-#~ msgstr "ویرایش برگه‌ی قانونی"
-
-#~ msgid "Existing Legal Pages"
-#~ msgstr "برگه‌های قانونی موجود"
-
-#~ msgid "Inactive"
-#~ msgstr "غیرفعال"
-
-#~ msgid "New Legal Page"
-#~ msgstr "برگه‌ی قانونی تازه"
-
-#, python-format
-#, fuzzy
-#~ msgid "You do not have rights to administer %s."
-#~ msgstr "شما حق مدیریت پوتل را ندارید."
-
-#, fuzzy
-#~ msgid "You do not have rights to access this translation project."
-#~ msgstr "شما این جا حق تغییر دادن ترجمه‌ها را ندارید"
-
-#~ msgid "You do not have rights to commit files here"
-#~ msgstr "شما این جا اجازهٔ اعزام پرونده‌ها را ندارید"
-
-#~ msgid "You do not have rights to update files here"
-#~ msgstr "شما این جا حق به روز کردن پرونده‌ها را ندارید"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this language."
-#~ msgstr "شما حق مدیریت این پروژه را ندارید."
-
-#, fuzzy
-#~ msgid "Advanced search"
-#~ msgstr "جستجوی پیشرفته"
-
-#~ msgid "Suggestions Accepted"
-#~ msgstr "پیش‌نهادات پذیرفته شده"
-
-#~ msgid "Suggestions Reviewed"
-#~ msgstr "پیش‌نهادات بازبینی شده"
-
-#~ msgid "Submissions Made"
-#~ msgstr "ارائه‌های انجام شده"
-
-#, fuzzy
-#~ msgid "You do not have rights to administer this project."
-#~ msgstr "شما حق مدیریت این پروژه را ندارید."
-
-#, fuzzy
-#~ msgid "File:"
-#~ msgstr "پرونده‌ها"
-
-#, fuzzy
-#~ msgid "Update from Version Control"
-#~ msgstr "پروندهٔ %s از مهار نسخه به‌هنگام شد"
-
-#~ msgid "Pootle Demo"
-#~ msgstr "نمایش پوتل"
-
-#~ msgid "Quick Links"
-#~ msgstr "پیوندهای سریع"
-
-#~ msgid "Admin"
-#~ msgstr "مدیر"
 
 #, fuzzy
 #~ msgid "User Statistics"

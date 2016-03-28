@@ -7,8 +7,6 @@
 # or later license. See the LICENSE file for a copy of the license and the
 # AUTHORS file for copyright and authorship information.
 
-from lxml.html import rewrite_links
-
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -21,7 +19,7 @@ __all__ = (
 
 
 def rewrite_internal_link(link):
-    """Convert `link` into an internal link.
+    """Converts `link` into an internal link.
 
     Any active static pages defined for a site can be linked by pointing
     to its virtual path by starting the anchors with the `#/` sequence
@@ -51,7 +49,7 @@ def rewrite_internal_link(link):
 
 
 def get_markup_filter_name():
-    """Return a nice version for the current markup filter's name."""
+    """Returns a nice version for the current markup filter's name."""
     name, args = get_markup_filter()
     return {
         'textile': u'Textile',
@@ -61,7 +59,7 @@ def get_markup_filter_name():
 
 
 def get_markup_filter():
-    """Return the configured filter as a tuple with name and args.
+    """Returns the configured filter as a tuple with name and args.
 
     If there is any problem it returns (None, '').
     """
@@ -84,8 +82,8 @@ def get_markup_filter():
 
 
 def apply_markup_filter(text):
-    """Apply a text-to-HTML conversion function to a piece of text and
-    return the generated HTML.
+    """Applies a text-to-HTML conversion function to a piece of text and
+    returns the generated HTML.
 
     The function to use is derived from the value of the setting
     ``POOTLE_MARKUP_FILTER``, which should be a 2-tuple:
@@ -135,8 +133,13 @@ def apply_markup_filter(text):
         elif markup_filter_name == 'restructuredtext':
             from docutils import core
             if 'settings_overrides' not in markup_kwargs:
-                arg = getattr(settings, "RESTRUCTUREDTEXT_FILTER_SETTINGS", {})
-                markup_kwargs.update(settings_overrides=arg)
+                markup_kwargs.update(
+                    settings_overrides=getattr(
+                        settings,
+                        "RESTRUCTUREDTEXT_FILTER_SETTINGS",
+                        {},
+                    )
+                )
             if 'writer_name' not in markup_kwargs:
                 markup_kwargs.update(writer_name='html4css1')
 

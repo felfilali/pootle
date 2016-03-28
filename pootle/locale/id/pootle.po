@@ -287,8 +287,6 @@ msgstr "Pilih satu ijin atau lebih"
 #: apps/pootle_app/views/admin/permissions.py:104
 msgid "Revoke Permissions"
 msgstr ""
-"Di sini Anda dapat menambah, menyunting, dan menghapus ijin bawaan dalam "
-"server Pootle ini."
 
 #: apps/pootle_app/views/admin/util.py:126
 msgid "No files in this project."
@@ -327,8 +325,6 @@ msgid ""
 "projects/localization-guide/en/latest/l10n/pluralforms.html\">our page</a> "
 "on plural forms."
 msgstr ""
-"Di sini Anda dapat menambah, menyunting, dan menghapus semua pengguna yang "
-"tersedia dalam server Pootle ini."
 
 #: apps/pootle_language/models.py:93
 msgid "Unknown"
@@ -545,8 +541,6 @@ msgstr "Tempat letak"
 #: apps/pootle_misc/checks.py:86
 msgid "Valid XML"
 msgstr ""
-"Tak bisa temukan paket kode ISO. Pootle memakai kode ISO untuk menerjemahkan "
-"nama bahasa."
 
 #: apps/pootle_misc/checks.py:87
 msgid "XML tags"
@@ -555,55 +549,34 @@ msgstr "Tag XML"
 #: apps/pootle_misc/checks.py:89
 msgid "Broken HTML Entities"
 msgstr ""
-"Tak bisa temukan paket aeidon. Pootle memerlukan Gaupol atau aeidon untuk "
-"mendukung format subtitel."
 
 #: apps/pootle_misc/checks.py:90
 msgid "Java format"
 msgstr ""
-"Tak bisa temukan paket python-levenshtein. Memutakhirkan terhadap templat "
-"lebih cepat dengan python-levenshtein."
 
 #: apps/pootle_misc/checks.py:91
 msgid "Template format"
 msgstr ""
-"Tak ditemukan mesin pengindeks teks. Pencarian lebih cepat bila mesin "
-"pengindeks seperti Xapian atau Lucene terpasang."
 
 #: apps/pootle_misc/checks.py:92
 msgid "Mustache placeholders"
 msgstr ""
-"Menggunakan mesin basis data sqlite3 bawaan. SQLite hanya cocok bagi "
-"instalasi dengan sedikit pengguna. Kinerja Pootle akan lebih baik dengan "
-"mesin basis data MySQL."
 
 #: apps/pootle_misc/checks.py:93
 msgid "Mustache placeholder pairs"
 msgstr ""
-"Menggunakan mesin basis data sqlite3 bawaan. SQLite hanya cocok bagi "
-"instalasi dengan sedikit pengguna. Kinerja Pootle akan lebih baik dengan "
-"mesin basis data MySQL, tapi Anda perlu memasang python-MySQLdb terlebih "
-"dahulu."
 
 #: apps/pootle_misc/checks.py:94
 msgid "Mustache like placeholder pairs"
 msgstr ""
-"Pootle dikonfigurasi untuk memakai memcached sebagai backend penyinggahan, "
-"tapi tak bisa menyambung ke server memcached. Penyinggahan saat ini "
-"dinonaktifkan."
 
 #: apps/pootle_misc/checks.py:95
 msgid "C format placeholders"
 msgstr ""
-"Untuk kinerja optimal, gunakan django.contrib.sessions.backends.cached_db "
-"sebagai mesin sesi."
 
 #: apps/pootle_misc/checks.py:96
 msgid "Non printable"
 msgstr ""
-"Pootle dikonfigurasi untuk memakai memcached sebagai backend penyinggahan, "
-"tapi dukungan Python bagi memcached tidak terpasang. Penyinggahan kini "
-"dinonaktifkan."
 
 #: apps/pootle_misc/checks.py:97
 msgid "Unbalanced tag braces"
@@ -616,27 +589,18 @@ msgstr ""
 #: apps/pootle_misc/checks.py:99
 msgid "Unescaped ampersands"
 msgstr ""
-"Alamat \"from\" yang dipakai untuk mengirim surel registrasi tak dinyatakan. "
-"Periksa juga pengaturan server surat."
 
 #: apps/pootle_misc/checks.py:100
 msgid "Incorrectly escaped ampersands"
 msgstr ""
-"Tak ada alamat kontak yang dinyatakan. Formulir kontak akan mengijinkan "
-"pengguna menghubungi administrator server."
 
 #: apps/pootle_misc/checks.py:101
 msgid "Whitespaces"
 msgstr ""
-"Berjalan dalam modus debug. Modus debug hanya dibutuhkan untuk pengembangan "
-"Pootle. Untuk performa optimal, matikan modus debug"
 
 #: apps/pootle_misc/checks.py:102
 msgid "Date format"
 msgstr ""
-"Berjalan dalam mode penerjemahan langsung. Penerjemahan langsung adalah alat "
-"yang berguna untuk belajar tentang Pootle dan lokalisasi, tapi "
-"mengakibatkan impak tinggi pada kinerja."
 
 #: apps/pootle_misc/checks.py:103
 msgid "Uppercase placeholders"

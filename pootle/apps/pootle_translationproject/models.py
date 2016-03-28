@@ -9,7 +9,6 @@
 
 import logging
 import os
-from itertools import chain
 
 from translate.misc.lru import LRUCachingDict
 from translate.storage.base import ParseError
@@ -55,17 +54,6 @@ def create_or_resurrect_translation_project(language, project):
             logging.info(u"Created %s", tp)
 
 
-def create_or_resurrect_translation_project(language, project):
-    tp = create_translation_project(language, project)
-    if tp is not None:
-        if tp.directory.obsolete:
-            tp.directory.obsolete = False
-            tp.directory.save()
-            logging.info(u"Resurrected %s", tp)
-        else:
-            logging.info(u"Created %s", tp)
-
-
 def create_translation_project(language, project):
     from pootle_app import project_tree
     if project_tree.translation_project_should_exist(language, project):
@@ -73,7 +61,9 @@ def create_translation_project(language, project):
             translation_project, created = TranslationProject.objects.all() \
                     .get_or_create(language=language, project=project)
             return translation_project
-        except (OSError, IndexError):
+        except OSError:
+            return None
+        except IndexError:
             return None
 
 

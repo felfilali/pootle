@@ -799,8 +799,6 @@ html[dir="rtl"] .module.first
 {
     margin: 1em 0.5em 0;
     border-bottom: 1px solid #eee;
-    clear:both;
-    line-height: 120%;
 }
 
 html[dir="rtl"] .hd h2
@@ -865,7 +863,7 @@ html[dir="rtl"] .hd h3 span
     margin: 0;
 }
 
-.bd h2
+.bd h2,
 {
     margin-bottom: 0.5em;
 }
@@ -1086,47 +1084,6 @@ div.settings-container
     margin-bottom: 1em;
 }
 
-#login-wrapper
-{
-    margin: auto;
-    overflow: hidden;
-    padding: 2em;
-}
-
-#login-alternative
-{
-    float: right;
-    padding-top: 2em;
-    text-align: right;
-}
-
-html[dir="rtl"] #login-alternative
-{
-    float: left;
-    text-align: left;
-}
-
-#login-alternative h4
-{
-    margin-bottom: 0.7em;
-}
-
-#login-alternative h5
-{
-    font-size: 1.15em;
-    margin-bottom: 0.5em;
-}
-
-#forgot-password
-{
-    float: left;
-}
-
-html[dir="rtl"] #forgot-password
-{
-    float: right;
-}
-
 .settings-container table
 {
     width: 100%;
@@ -1261,18 +1218,8 @@ td.last-activity
     width: 100%;
 }
 
-td.stats-name.folder
-{
-    font-weight: bold;
-}
-
-td.last-activity
-{
-    width: 100%;
-}
-
 html[dir="rtl"] td.language,
-html[dir="rtl"] td.stats-name
+html[dir="rtl"] td.stats-name,
 {
     text-align: right !important;
 }
@@ -1664,8 +1611,7 @@ html[dir="rtl"] #tabs li
 
 #tabs a.admintab,
 #tabs.admin a,
-#tabs a .admin,
-.tags-add
+#tabs a .admin
 {
     color: #c30 !important;
 }
@@ -2091,15 +2037,6 @@ span.email .i
     display: none;
 }
 
-table.sortable .tags-row td
-{
-    padding: 0pt;
-}
-
-.tags-bd
-{
-    padding: 0pt 1em 0pt 1em;
-}
 
 /*
  * HACK: disable transitions until the page has been loaded
