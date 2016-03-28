@@ -1,23 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 Zuza Software Foundation
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import re
 
@@ -28,11 +16,17 @@ from django.shortcuts import render
 
 from pootle.core.forms import MathCaptchaForm
 
+URL_RE = re.compile("https?://", re.I)
 
 URL_RE = re.compile("https?://", re.I)
 
 CAPTCHA_EXEMPT_URLPATTERNS = (
-    'account_login', 'pootle-contact',
+    'account_login',
+    'account_signup',
+    'account_reset_password',
+    'account_reset_password_from_key',
+    'pootle-social-verify',
+    'pootle-contact',
 )
 
 
@@ -41,8 +35,7 @@ class CaptchaMiddleware:
     are made by humans.
     """
     def process_request(self, request):
-        if (not settings.USE_CAPTCHA or not request.POST or
-            request.path.startswith('/api/') or
+        if (not settings.POOTLE_CAPTCHA_ENABLED or not request.POST or
             request.session.get('ishuman', False)):
             return
 
@@ -56,9 +49,7 @@ class CaptchaMiddleware:
 
         if request.user.is_authenticated():
             if ('target_f_0' not in request.POST or
-                'translator_comment' not in request.POST or
-                ('submit' not in request.POST and
-                 'suggest' not in request.POST)):
+                'translator_comment' not in request.POST):
                 return
 
             # We are in translate page. Users introducing new URLs in the

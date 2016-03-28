@@ -1,258 +1,195 @@
-(function ($) {
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
 
-  window.PTL = window.PTL || {};
+'use strict';
 
-  PTL.common = {
+// Required for `Promise` support
+import 'babel-core/polyfill';
 
-    init: function () {
-      setInterval($.fn.tipsy.revalidate, 1000);
+import cookie from 'utils/cookie';
 
-      $(".js-select2").select2({
-        width: "resolve"
-      });
+// Aliased non-commonJS modules
 
-      // Hide the help messages for the Select2 multiple selects.
-      $("select[multiple].js-select2").siblings("span.help_text").hide();
+// Major libraries
+var $ = require('jquery');
 
-      // Build the language picker.
-      var picker = $("#js-language-picker");
-      for (i in PTL.languages) {
-        var code = PTL.languages[i][0];
-        var lang = PTL.languages[i][1];
-        picker.append($("<option>", {value: code}).text(lang));
-      }
-      var getLocale = function(lang) {
-        var locale = lang.slice(0, lang.indexOf("-"));
-        var country = lang.indexOf("-") != -1 ? lang.slice(lang.indexOf("-"), -1) : null;
-        var generic;
+// jQuery plugins
+require('jquery-cookie');
+require('jquery-magnific-popup');
+require('jquery-select2');
+require('jquery-tipsy');
 
-        for (i in PTL.languages) {
-          var code = PTL.languages[i][0];
-          if (lang == code) {
-            return code;
-          } else if (code == locale) {
-            generic = code;
-          }
-        }
-        return generic;
-      }
-      // select2 the picker separately because we want to give it a dynamic
-      // width.
-      picker.select2({dropdownCssClass: 's2js-freefloat-drop'})
-        .select2("val", getLocale(picker.attr("default")))
-        .on("change", function(e) {
-            $.cookie("django_language", e.val, {path: "/"});
-            location.reload();
-        });
+// Backbone plugins
+require('backbone-safesync');
 
-      // Append fragment identifiers for login redirects
-      $('#navbar').on('focus click', '#js-login', function (e) {
-        var $anchor = $(this),
-            currentURL = $anchor.attr('href'),
-            cleanURL = currentURL,
-            hashIndex = currentURL.indexOf(encodeURIComponent('#')),
-            newURL;
+// Other plugins
+var Spinner = require('spin');
 
-        if (hashIndex !== -1) {
-          cleanURL = currentURL.slice(0, hashIndex);
-        }
-        newURL = [cleanURL, encodeURIComponent(window.location.hash)].join('');
-        $anchor.attr('href', newURL);
-      });
 
-      /* Collapsing functionality */
-      $(document).on("click", ".collapse", function (e) {
-        e.preventDefault();
-        $(this).siblings(".collapsethis").slideToggle("fast");
+Spinner.defaults = {
+  lines: 11,
+  length: 2,
+  width: 5,
+  radius: 11,
+  rotate: 0,
+  corners: 1,
+  color: '#000',
+  direction: 1,
+  speed: 1,
+  trail: 50,
+  opacity: 1/4,
+  fps: 20,
+  zIndex: 2e9,
+  className: 'spinner',
+  top: 'auto',
+  left: 'auto',
+  position: 'relative'
+};
 
-        if ($("textarea", $(this).next("div.collapsethis")).length) {
-          $("textarea", $(this).next("div.collapsethis")).focus();
-        }
-      });
 
-      /* Page sidebar */
-      $(document).on('click', '.js-sidebar-toggle', function () {
-        var $sidebar =  $('.js-sidebar'),
-            openClass = 'sidebar-open',
-            cookieName = 'project-announcements',
-            cookieData = JSON.parse($.cookie(cookieName)) || {};
+// Pootle-specifics. These need to be kept here until:
+// 1. they evolve into apps of their own
+// 2. they're only used directly as modules from other apps (and they are
+//    not referenced like `PTL.<module>.<method>`)
 
-        $sidebar.toggleClass(openClass);
+window.PTL = window.PTL || {};
 
-        cookieData.isOpen = $sidebar.hasClass(openClass);
-        $.cookie(cookieName, JSON.stringify(cookieData), {path: '/'});
-      });
+PTL.auth = require('./auth');
+PTL.agreement = require('./agreement.js');
+PTL.browser = require('./browser.js');
+PTL.captcha = require('./captcha.js');
+PTL.contact = require('./contact.js');
+PTL.dropdown = require('./dropdown.js');
+PTL.msg = require('./msg.js');
+PTL.search = require('./search.js');
+PTL.score = require('./score.js');
+PTL.stats = require('./stats.js');
+PTL.utils = require('./utils.js');
 
-      /* Page sidebar tab display */
-      $(document).on('click', '.js-sidebar-tab-display', function () {
-        $('.js-sidebar-pane').hide();
-        $('.js-sidebar-tab-display').removeClass('active-sidebar-tab');
-        $('#' + $(this).attr('data-target')).show();
-        $(this).addClass('active-sidebar-tab');
-      });
 
-      /* Popups */
-      $(document).magnificPopup({
-        type: 'ajax',
-        delegate: '.js-popup-ajax',
-        mainClass: 'popup-ajax'
-      });
-      $('.js-popup-inline').magnificPopup();
+var helpers = require('./helpers.js');
+var utils = require('./utils.js');
 
-      /* Overview actions */
-      $("#overview-actions").on("click", ".js-overview-actions-delete-path",
-        function (e) {
-          return confirm(gettext("Are you sure you want to continue?") + "\n" +
-                         gettext("This operation cannot be undone."));
-      });
 
-      /* Generic toggle */
-      $(document).on("click", ".js-toggle", function (e) {
-        e.preventDefault();
-        var target = $(this).attr("href") || $(this).data("target");
-        $(target).toggle();
-      });
+PTL.common = {
 
-      /* Sorts language names within select elements */
-      var ids = ["id_languages", "id_alt_src_langs", "-language",
-                 "-source_language"];
+  init: function (opts) {
+    PTL.auth.init();
+    PTL.browser.init();
 
-      $.each(ids, function (i, id) {
-        var $selects = $("select[id$='" + id + "']");
+    $(window).load(function () {
+      $('body').removeClass('preload');
+    });
 
-        $.each($selects, function (i, select) {
-          var $select = $(select);
-          var options = $("option", $select);
-
-          if (options.length) {
-            if (!$select.is("[multiple]")) {
-              var selected = $(":selected", $select);
-            }
-
-            var opsArray = $.makeArray(options);
-            opsArray.sort(function (a, b) {
-              return PTL.utils.strCmp($(a).text(), $(b).text());
-            });
-
-            options.remove();
-            $select.append($(opsArray));
-
-            if (!$select.is("[multiple]")) {
-              $select.get(0).selectedIndex = $(opsArray).index(selected);
-            }
-          }
-        });
-      });
-
-      // Save a detached copy of the table that we will reuse when resetting
-      // filtering.
-      var $projectTable = $("table#project");
-      var $projectTableParent = $projectTable.parent();
-      $projectTable.attr("id", "project-detached").detach();
-      $projectTable.clone().attr("id", "project").appendTo($projectTableParent);
-    },
-
-    /* Updates the disabled state of an input button according to the
-     * checked status of input checkboxes.
-     */
-    updateInputState: function (checkboxSelector, inputSelector) {
-      var $checkbox = $(checkboxSelector);
-      if ($checkbox.length) {
-        function updateInputState($checkboxes, $input) {
-          if ($checkboxes.length === $checkboxes.filter(':checked').length) {
-            $input.removeAttr('disabled');
-          } else {
-            $input.attr('disabled', 'disabled');
-          }
-        }
-        var $input = $(inputSelector);
-        updateInputState($checkbox, $input);
-        $checkbox.change(function () {
-          updateInputState($checkbox, $input);
-        });
-      }
-    },
-
-    /* Updates relative dates */
-    updateRelativeDates: function () {
-      $('.js-relative-date').each(function (i, e) {
-        $(e).text(PTL.utils.relativeDate(Date.parse($(e).attr('datetime'))));
-      });
-    },
-
-    submitAgreementForm: function () {
-      var $agreementBox = $('.js-agreement-box'),
-          $agreementForm = $('.js-agreement-form');
-      $agreementBox.spin();
-      $agreementBox.css({opacity: .5});
-
-      $.ajax({
-        url: $agreementForm.attr('action'),
-        type: 'POST',
-        data: $agreementForm.serializeObject(),
-        success: function (data) {
-          $.magnificPopup.close();
-        },
-        complete: function (xhr) {
-          $agreementBox.spin(false);
-          $agreementBox.css({opacity: 1});
-
-          if (xhr.status === 400) {
-            var form = $.parseJSON(xhr.responseText).form;
-            $agreementBox.parent().html(form);
-          }
-        }
-      });
-    },
-
-    fixSidebarTabs: function () {
-      var sidebarTabsCount = $('.js-sidebar-tab-display').length;
-
-      if (sidebarTabsCount === 1) {
-        $('#sidebar-tabs').hide();
-      } else if (sidebarTabsCount > 1) {
-        $('.js-sidebar-pane').hide();
-        if (!$('.active-sidebar-tab').length) {
-          $('.js-sidebar-tab-display:first').addClass('active-sidebar-tab');
-        }
-        $('.active-sidebar-tab').trigger('click');
-      }
-    },
-
-    fixSidebarHeight: function () {
-      var $announceSidebar = $('#js-announcement-sidebar-pane'),
-          $actionsSidebar = $('#js-actions-sidebar-pane'),
-          $instructSidebar = $('#js-instructions-sidebar-pane'),
-          annHeight = $announceSidebar.length ? $announceSidebar.height() : 0,
-          actsHeight = $actionsSidebar.length ? $actionsSidebar.height() : 0,
-          instHeight = $instructSidebar.length ? $instructSidebar.height() : 0,
-          maxSidebarPanesHeight = Math.max(annHeight, actsHeight, instHeight);
-
-      if (!maxSidebarPanesHeight) {
-        // If there is no sidebar.
-        return;
-      }
-
-      var $body = $('#body'),
-          $sidebarTabs = $('#sidebar-tabs'),
-          bodyHeight = $body.height(),
-          bodyPadding = parseInt($body.css('padding-bottom'), 10),
-          contentAreaHeight = $('#wrapper').height() - $body.offset().top -
-                              bodyPadding,
-          sidebarTabsHeight = $sidebarTabs.length ? $sidebarTabs.height() : 0,
-          sidebarHeight = sidebarTabsHeight + maxSidebarPanesHeight +
-                          $('#footer').height() + bodyPadding,
-          newHeight = Math.max(contentAreaHeight, sidebarHeight);
-
-      if (bodyHeight < contentAreaHeight) {
-        $body.css('height', newHeight);
-      }
+    if (opts.hasSidebar) {
+      helpers.fixSidebarHeight();
+      $(window).on('resize', helpers.fixSidebarHeight);
     }
 
-  };
+    helpers.updateRelativeDates();
+    setInterval(helpers.updateRelativeDates, 6e4);
 
-}(jQuery));
+    // Tipsy setup
+    $(document).tipsy({
+      gravity: $.fn.tipsy.autoBounds2(150, 'n'),
+      html: true,
+      fade: true,
+      delayIn: 750,
+      opacity: 1,
+      live: '[title], [original-title]'
+    });
+    setInterval($.fn.tipsy.revalidate, 1000);
 
-$(function () {
-  PTL.common.init();
-});
+    $(".js-select2").select2({
+      width: "resolve"
+    });
+
+    // Set CSRF token for XHR requests (jQuery-specific)
+    $.ajaxSetup({
+      traditional: true,
+      crossDomain: false,
+      beforeSend: function (xhr, settings) {
+        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type)) {
+          xhr.setRequestHeader('X-CSRFToken', cookie('csrftoken'));
+        }
+      }
+    });
+
+    /* Collapsing functionality */
+    // XXX: crappy code, only used in `term_edit.html`
+    $(document).on("click", ".collapse", function (e) {
+      e.preventDefault();
+      $(this).siblings(".collapsethis").slideToggle("fast");
+
+      if ($("textarea", $(this).next("div.collapsethis")).length) {
+        $("textarea", $(this).next("div.collapsethis")).focus();
+      }
+    });
+
+    /* Page sidebar */
+    // TODO: create a named function
+    $(document).on('click', '.js-sidebar-toggle', function () {
+      var $sidebar = $('.js-sidebar'),
+          openClass = 'sidebar-open',
+          cookieName = 'pootle-browser-sidebar',
+          cookieData = JSON.parse($.cookie(cookieName)) || {};
+
+      $sidebar.toggleClass(openClass);
+
+      cookieData.isOpen = $sidebar.hasClass(openClass);
+      $.cookie(cookieName, JSON.stringify(cookieData), {path: '/'});
+    });
+
+    /* Popups */
+    $(document).magnificPopup({
+      type: 'ajax',
+      delegate: '.js-popup-ajax',
+      mainClass: 'popup-ajax'
+    });
+
+    /* Generic toggle */
+    $(document).on("click", ".js-toggle", function (e) {
+      e.preventDefault();
+      var target = $(this).attr("href") || $(this).data("target");
+      $(target).toggle();
+    });
+
+    /* Sorts language names within select elements */
+    var ids = ["id_languages", "id_alt_src_langs", "-language",
+               "-source_language"];
+
+    $.each(ids, function (i, id) {
+      var $selects = $("select[id$='" + id + "']");
+
+      $.each($selects, function (i, select) {
+        var $select = $(select);
+        var options = $("option", $select);
+        var selected;
+
+        if (options.length) {
+          if (!$select.is("[multiple]")) {
+            selected = $(":selected", $select);
+          }
+
+          var opsArray = $.makeArray(options);
+          opsArray.sort(function (a, b) {
+            return utils.strCmp($(a).text(), $(b).text());
+          });
+
+          options.remove();
+          $select.append($(opsArray));
+
+          if (!$select.is("[multiple]")) {
+            $select.get(0).selectedIndex = $(opsArray).index(selected);
+          }
+        }
+      });
+    });
+  }
+
+};

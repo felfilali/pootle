@@ -1,23 +1,10 @@
-{% load i18n locale %}
+{% extends 'welcome.html' %}
 
-{% get_current_language as LANGUAGE_CODE %}
-<div id="contact" dir="{% locale_dir %}">
-  <div id="js-contact">
-    <h1>{% trans "Contact Us" %}</h1>
-    <p>{% blocktrans %}You have to fill all the fields, and please <b>write in English</b>.{% endblocktrans %}</p>
-    <form method="post" action="{{ contact_form_url }}">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <p class="buttons">
-        <input type="submit" name="send" id="js-contact-submit"
-               class="btn btn-primary"
-               value="{% trans 'Send Message' %}" />
-      </p>
-    </form>
-  </div>
-  <div id="js-sent" class="hide">
-    <h1>{% trans "Thanks!" %}</h1>
-    <p>{% blocktrans %}We have received your message and will try to respond 
-as soon as possible.{% endblocktrans %}</p>
-  </div>
-</div>
+{% block scripts_extra %}
+{{ block.super }}
+<script type="text/javascript">
+  $(function () {
+    PTL.contact.open({url: '{% url "pootle-contact-xhr" %}'});
+  });
+</script>
+{% endblock %}

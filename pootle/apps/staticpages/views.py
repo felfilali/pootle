@@ -1,37 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2012-2013 Zuza Software Foundation
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# translate is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with translate; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
-from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse_lazy
-from django.http import Http404, HttpResponse
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.template import loader, RequestContext
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (CreateView, DeleteView, TemplateView,
                                   UpdateView)
 
+from pootle.core.http import JsonResponse, JsonResponseBadRequest
 from pootle.core.views import SuperuserRequiredMixin
-from pootle_misc.util import ajax_required, jsonify
+from pootle_misc.util import ajax_required
 
 from .forms import agreement_form_factory
 from .models import AbstractPage, LegalPage, StaticPage
@@ -63,6 +50,38 @@ class PageModelMixin(object):
         ctx = super(PageModelMixin, self).get_context_data(**kwargs)
         ctx.update({
             'has_page_model': True,
+            'page_display_name': self.model.display_name,
+        })
+        return ctx
+
+    def get_form_kwargs(self):
+        kwargs = super(PageModelMixin, self).get_form_kwargs()
+        kwargs.update({'label_suffix': ''})
+        return kwargs
+
+    def get_form(self, form_class):
+        form = super(PageModelMixin, self).get_form(form_class)
+
+        if self.page_type == ANN_TYPE:
+            form.fields['virtual_path'].help_text = u'/pages/' + ANN_VPATH
+
+        return form
+
+    def form_valid(self, form):
+        if (self.page_type == ANN_TYPE and not
+            form.cleaned_data['virtual_path'].startswith(ANN_VPATH)):
+            orig_vpath = form.cleaned_data['virtual_path']
+            form.instance.virtual_path = ANN_VPATH + orig_vpath
+
+        return super(PageModelMixin, self).form_valid(form)
+
+
+class AdminCtxMixin(object):
+
+    def get_context_data(self, **kwargs):
+        ctx = super(AdminCtxMixin, self).get_context_data(**kwargs)
+        ctx.update({
+            'page': 'admin-pages',
         })
         return ctx
 
@@ -83,7 +102,7 @@ class PageModelMixin(object):
         return super(PageModelMixin, self).form_valid(form)
 
 
-class AdminTemplateView(SuperuserRequiredMixin, TemplateView):
+class AdminTemplateView(SuperuserRequiredMixin, AdminCtxMixin, TemplateView):
 
     template_name = 'admin/staticpages/page_list.html'
 
@@ -105,7 +124,8 @@ class AdminTemplateView(SuperuserRequiredMixin, TemplateView):
         return ctx
 
 
-class PageCreateView(SuperuserRequiredMixin, PageModelMixin, CreateView):
+class PageCreateView(SuperuserRequiredMixin, AdminCtxMixin, PageModelMixin, CreateView):
+    fields = ('title', 'virtual_path', 'active', 'url', 'body')
 
     success_url = reverse_lazy('pootle-staticpages')
     template_name = 'admin/staticpages/page_create.html'
@@ -119,7 +139,7 @@ class PageCreateView(SuperuserRequiredMixin, PageModelMixin, CreateView):
 
         if self.page_type != ANN_TYPE:
             next_page_number = AbstractPage.max_pk() + 1
-            initial_args['virtual_path'] = _('page-%d', next_page_number)
+            initial_args['virtual_path'] = 'page-%d' % next_page_number
 
         initial.update(initial_args)
 
@@ -130,13 +150,17 @@ class PageCreateView(SuperuserRequiredMixin, PageModelMixin, CreateView):
 
         if self.page_type == ANN_TYPE:
             del form.fields['url']
-            form.fields['virtual_path'] \
-                .widget.attrs['placeholder'] = u'projects/<project_code>'
+            # Translators: 'projects' must not be translated.
+            msg = _(u'projects/<project_code> or <language_code> or '
+                    u'<language_code>/<project_code>')
+            form.fields['virtual_path'].widget.attrs['placeholder'] = msg
+            form.fields['virtual_path'].widget.attrs['size'] = 60
 
         return form
 
 
-class PageUpdateView(SuperuserRequiredMixin, PageModelMixin, UpdateView):
+class PageUpdateView(SuperuserRequiredMixin, AdminCtxMixin, PageModelMixin, UpdateView):
+    fields = ('title', 'virtual_path', 'active', 'url', 'body')
 
     success_url = reverse_lazy('pootle-staticpages')
     template_name = 'admin/staticpages/page_update.html'
@@ -182,12 +206,6 @@ def display_page(request, virtual_path):
     if page.url:
         return redirect(page.url)
 
-    if request.user.is_superuser and not page.active:
-        msg = _('This page is inactive and visible to administrators '
-                'only. You can activate it by <a href="%s">editing its '
-                'properties</a>', page.get_edit_url())
-        messages.warning(request, msg)
-
     template_name = 'staticpages/page_display.html'
     if request.is_ajax():
         template_name = 'staticpages/_body.html'
@@ -198,34 +216,26 @@ def display_page(request, virtual_path):
     return render(request, template_name, ctx)
 
 
+def _get_rendered_agreement(request, form):
+    template = loader.get_template('staticpages/agreement.html')
+    return template.render(RequestContext(request, {'form': form}))
+
+
 @ajax_required
 def legal_agreement(request):
     """Displays the pending documents to be agreed by the current user."""
     pending_pages = LegalPage.objects.pending_user_agreement(request.user)
     form_class = agreement_form_factory(pending_pages, request.user)
 
-    rcode = 200
-    agreed = False
-
     if request.method == 'POST':
         form = form_class(request.POST)
 
         if form.is_valid():
-            # The user agreed, let's record the specific agreements
-            agreed = True
             form.save()
-        else:
-            rcode = 400
-    else:
-        form = form_class()
+            return JsonResponse({})
 
-    response = {'agreed': agreed}
-    if not agreed:
-        ctx = {
-            'form': form,
-        }
-        template = loader.get_template('staticpages/agreement.html')
-        response['form'] = template.render(RequestContext(request, ctx))
+        rendered_form = _get_rendered_agreement(request, form)
+        return JsonResponseBadRequest({'form': rendered_form})
 
-    return HttpResponse(jsonify(response), status=rcode,
-                        content_type='application/json')
+    rendered_form = _get_rendered_agreement(request, form_class())
+    return JsonResponse({'form': rendered_form})

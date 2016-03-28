@@ -1,34 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import os
 from pkgutil import iter_modules
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
-WORKING_DIR = os.path.abspath(os.path.dirname(__file__))
-os.environ['POOTLE_SETTINGS'] = os.path.join(WORKING_DIR, 'settings.py')
-
-from pootle import syspath_override  # Needed for monkey-patching
+from django import setup
+from django.conf import settings
 
 from . import fixtures
 from .fixtures import models as fixture_models
+
+
+def pytest_configure():
+    if not settings.configured:
+        from pootle import syspath_override  # Needed for monkey-patching
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'pootle.settings'
+        WORKING_DIR = os.path.abspath(os.path.dirname(__file__))
+        os.environ['POOTLE_SETTINGS'] = os.path.join(WORKING_DIR, 'settings.py')
+        setup()  # Required until pytest-dev/pytest-django#146 is fixed
 
 
 def _load_fixtures(*modules):

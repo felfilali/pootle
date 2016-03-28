@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
+
 (function ($) {
   window.PTL.editor.mt = window.PTL.editor.mt || {};
 
@@ -61,7 +69,8 @@
           success: function (r) {
             if (r.data && r.data.translations) {
               resultCallback({
-                translation: r.data.translations[0].translatedText
+                translation: r.data.translations[0].translatedText,
+                storeResult: true
               });
             } else {
               if (r.error && r.error.message) {

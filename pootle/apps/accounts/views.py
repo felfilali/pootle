@@ -1,85 +1,73 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Zuza Software Foundation
-# Copyright 2013-2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# Pootle; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.utils.translation import gettext as _
-from django.views.generic import TemplateView, UpdateView
+import logging
+
+from django.core.urlresolvers import reverse
+from django.shortcuts import redirect
+from django.utils.translation import ugettext_lazy as _
+
+from allauth.account.views import LoginView
+from allauth.exceptions import ImmediateHttpResponse
+from allauth.socialaccount.helpers import _add_social_account
+from allauth.socialaccount.models import SocialLogin
+
+from .forms import SocialVerificationForm
 
 
-User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
-class LoginRequiredMixin(object):
-    """Require a logged-in user."""
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
+class PootleLoginView(LoginView):
+
+    def form_valid(self, form):
+        success_url = self.get_success_url()
+        try:
+            return form.login(self.request, redirect_url=success_url)
+        except ImmediateHttpResponse as e:
+            return e.response
+        except Exception as e:
+            logger.exception("%s %s" % (e.__class__.__name__, e))
+            raise RuntimeError(_("An error occurred logging you in. Please "
+                                 "contact your system administrator"))
 
 
-class UserUpdateView(LoginRequiredMixin, UpdateView):
-    model = User
-    template_name = "account/user_form.html"
+class SocialVerificationView(LoginView):
+    form_class = SocialVerificationForm
+    template_name = 'account/social_verification.html'
 
-    def get_object(self, queryset=None):
-        return self.request.user
+    def dispatch(self, request, *args, **kwargs):
+        self.sociallogin = None
+        data = request.session.get('sociallogin', None)
+        if data is not None:
+            self.sociallogin = SocialLogin.deserialize(data)
 
-    def get_form_kwargs(self):
-        kwargs = super(UserUpdateView, self).get_form_kwargs()
-        kwargs.update({'label_suffix': ''})
-        return kwargs
+        if self.sociallogin is None:
+            return redirect(reverse('account_login'))
 
-
-class UserSettingsView(UserUpdateView):
-    fields = ('_unit_rows', 'alt_src_langs')
-    template_name = 'profiles/settings/profile.html'
-
-    def get_form(self, *args, **kwargs):
-        form = super(UserSettingsView, self).get_form(*args, **kwargs)
-
-        form.fields['alt_src_langs'].widget.attrs['class'] = \
-            'js-select2 select2-multiple'
-        form.fields['alt_src_langs'].widget.attrs['data-placeholder'] = \
-            _('Select one or more languages')
-
-        return form
-
-edit_profile = UserSettingsView.as_view()
-
-
-class UserProfileView(UserUpdateView):
-    fields = ("full_name", "email")
-    template_name = "profiles/settings/personal.html"
-
-edit_personal_info = UserUpdateView.as_view()
-
-
-class UserDetailView(TemplateView):
-    template_name = "profiles/profile_detail.html"
+        return super(SocialVerificationView, self).dispatch(request, *args,
+                                                            **kwargs)
 
     def get_context_data(self, **kwargs):
-        user = User.objects.get(username=kwargs["username"])
-
         return {
-            "profile": user,
+            'email': self.sociallogin.user.email,
+            'provider_name': self.sociallogin.account.get_provider().name,
         }
 
-user_detail = UserDetailView.as_view()
+    def get_form_kwargs(self):
+        kwargs = super(SocialVerificationView, self).get_form_kwargs()
+        kwargs.update({
+            'sociallogin': self.sociallogin,
+        })
+        return kwargs
+
+    def form_valid(self, form):
+        # Authentication is OK, log in and request to connect accounts
+        form.login(self.request)
+        return _add_social_account(self.request, self.sociallogin)

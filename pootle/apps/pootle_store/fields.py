@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009 Zuza Software Foundation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 """Fields required for handling translation files"""
 
@@ -26,11 +15,7 @@ import os
 from django.db import models
 from django.db.models.fields.files import FieldFile, FileField
 
-from south.modelsinspector import add_introspection_rules
-
 from translate.misc.multistring import multistring
-
-from pootle_store.signals import translation_file_updated
 
 ################# String #############################
 
@@ -113,11 +98,6 @@ class MultiStringField(models.Field):
         return super(MultiStringField, self) \
                 .get_prep_lookup(lookup_type, value)
 
-add_introspection_rules(
-        [],
-        ["^pootle_store\.fields\.MultiStringField"],
-    )
-
 
 ################# File ###############################
 
@@ -193,15 +173,12 @@ class TranslationStoreFieldFile(FieldFile):
                                                self.realpath)
                 self._store_cache[self.path] = self._store_tuple
 
-                translation_file_updated.send(sender=self, path=self.path)
-
     def _touch_store_cache(self):
         """Update stored mod_info without reparsing file."""
         if hasattr(self, "_store_tuple"):
             mod_info = self.getpomtime()
             if self._store_tuple.mod_info != mod_info:
                 self._store_tuple.mod_info = mod_info
-                translation_file_updated.send(sender=self, path=self.path)
         else:
             #FIXME: do we really need that?
             self._update_store_cache()
@@ -217,8 +194,6 @@ class TranslationStoreFieldFile(FieldFile):
             del self._store_tuple
         except AttributeError:
             pass
-
-        translation_file_updated.send(sender=self, path=self.path)
 
     def exists(self):
         return os.path.exists(self.realpath)
@@ -244,11 +219,6 @@ class TranslationStoreFieldFile(FieldFile):
         if save:
             super(TranslationStoreFieldFile, self).delete(save)
 
-add_introspection_rules(
-        [],
-        ["^pootle_store\.fields\.TranslationStoreFieldFile"],
-    )
-
 
 class TranslationStoreField(FileField):
     """This is the field class to represent a FileField in a model that
@@ -262,12 +232,8 @@ class TranslationStoreField(FileField):
         self.ignore = ignore
         super(TranslationStoreField, self).__init__(**kwargs)
 
-add_introspection_rules([
-    (
-        [TranslationStoreField],
-        [],
-        {
-            'ignore': ['ignore', {'default': None}],
-        },
-    ),
-], ["^pootle_store\.fields\.TranslationStoreField"])
+    def deconstruct(self):
+        name, path, args, kwargs = super(TranslationStoreField, self).deconstruct()
+        if self.ignore is not None:
+            kwargs['ignore'] = self.ignore
+        return name, path, args, kwargs

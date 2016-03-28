@@ -1,10 +1,28 @@
 /*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
+
+/*
  * TRANSLATE PAGE
  */
+
+body.translate
+{
+    padding: 0;
+}
 
 body.translate #content
 {
     margin: 1em 0;
+}
+
+body.translate #body
+{
+    padding-bottom: 0;
 }
 
 /* MAIN TOOLBAR */
@@ -14,69 +32,104 @@ textarea#view_unit
     display: none;
 }
 
+/* By default, show the unit navigation toolbar inside the main toolbar */
 #toolbar
 {
-    background-color: #f8f8f8;
-    border-top: 1px solid #d9d9d9;
-    text-align: left;
-    width: 100%;
-    height: 46px;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    z-index: 100;
-    box-shadow: 0px 0px 20px #d9d9d9;
+    position: absolute;
+    right: 2em;
+    z-index: 300; /* show above the main toolbar */
+
+    top: -35px;
+}
+
+/* When browser size is 950px or less, show navigation toolbar below the main toolbar */
+@media screen and (max-width: 950px)
+{
+    #toolbar
+    {
+        z-index: 100; /* show below the main toolbar, to hide the shadow top edge */
+
+        background-color: #eee;
+        border-color: #d9d9d9;
+        border-width: medium 1px 1px;
+        border-style: none solid solid;
+
+        padding: 10px 8px 5px;
+        top: -11px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        border-radius: 5px;
+    }
+}
+
+#toolbar button
+{
+    position: relative;
+    top: -1px;
 }
 
 html[dir="rtl"] #toolbar
 {
-    text-align: right;
+    left: 1em;
+    right: auto;
 }
 
-.toolbar > div
+#toolbar > div
 {
     display: inline-block;
-    padding: 10px;
+    margin-right: 1em;
 }
+
+html[dir="rtl"] #toolbar > div
+{
+    margin-right: auto;
+    margin-left: 1em;
+}
+
+#toolbar > div:last-child
+{
+    margin-right: 0;
+}
+
+html[dir="rtl"] #toolbar > div:last-child
+{
+    margin-right: auto;
+    margin-left: 0;
+}
+
 
 /* Navigation buttons */
 
 #prevnext #item-navigation
 {
-    font-size: 120%;
     margin: 0 0.5em;
+    position: relative;
+    top: 2px;
 }
 
 #prevnext #item-number
 {
-    margin: 0; padding: 0;
+    margin: 0 -0.3em;
+    padding: 0 0.3em;
     text-align: center;
     position: relative;
-    top: 1px;
     border: 1px solid transparent;
     background: transparent;
+    display: inline-block;
+    max-width: 5em;
+    white-space: nowrap;
+    outline: 0;
 }
 
-#prevnext #item-number:hover,
-#prevnext #item-number:focus
+#prevnext:hover #item-number,
+#prevnext:focus #item-number
 {
     background: #fff;
     border: 1px solid #d9d9d9;
-    outline: 0;
 }
 
 #prevnext #items-count
 {
     display: inline-block;
-    min-width: 1em;
-}
-
-
-/* SPECIAL FOOTER */
-
-#translate-footer
-{
-    margin: 0 0 46px; /* this should be equal to the height of the #toolbar */
 }
 
 
@@ -87,13 +140,19 @@ Unicode ranges is supported, and that they all look the same */
 .translation-text,
 #tm-results .suggestion-original,
 #tm-results .suggestion-translation,
-#id_search {
+#id_search
+{
     font-family: sans-serif;
 }
 
 #editor
 {
     position: relative;
+}
+
+.loader > div
+{
+    margin: 180px auto;
 }
 
 .editor-overlay
@@ -108,11 +167,6 @@ Unicode ranges is supported, and that they all look the same */
     text-align: center;
 }
 
-.loader > div
-{
-    margin: 180px auto;
-}
-
 .editor-overlay > div.alert
 {
     display: block;
@@ -120,26 +174,14 @@ Unicode ranges is supported, and that they all look the same */
     width: 400px;
 }
 
-.toolbar-message
+.editor-msg-btns
 {
-    position: fixed;
-    bottom: 46px; /* #toolbar height */
-    left: 50%;
-    width: 400px;
-    margin-left: -200px;
-    z-index: 101;
-    text-align: center;
+    margin-top: 1em;
 }
 
-.toolbar-message > div
+.editor-msg-btns .btn
 {
-    border-radius: 5px 5px 0 0;
-    border: 1px solid #d9d9d9;
-    border-bottom: 0px;
-    background-color: #f8f8f8;
-    padding: 0.5em 1em;
-    display: table;
-    margin: 0 auto;
+    margin: 0 0.5em;
 }
 
 
@@ -161,11 +203,6 @@ th.translate-original,
 th.translate-translation
 {
     width: 50%;
-}
-
-tr.edit-row
-{
-    /*background-color: #f1f7f8;*/
 }
 
 tr.edit-row.with-ctx
@@ -208,12 +245,14 @@ tr.edit-ctx td
 tr.edit-ctx a
 {
      text-decoration: none;
+
      opacity: 0.5;
 }
 
 tr.edit-ctx a:hover
 {
      text-decoration: none;
+
      opacity: 1;
 }
 
@@ -308,7 +347,7 @@ div.translate-container
     padding: 1em 0;
     border: 1px solid rgba(0, 0, 0, 0.3);
     border-radius: 5px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
     background-color: #f1f7f8;
     overflow: hidden;
     clear: both;
@@ -328,16 +367,13 @@ div.translate-container.error
 
 div.unit-path
 {
-    background-color: #0489b7;
+    background: rgba(0, 0, 0, 0.6);
     position: absolute;
     top: 0;
     width: 100%;
     padding: 5px 20px;
     color: rgba(255, 255, 255, 0.4);
-
-    -webkit-box-sizing: border-box;
-       -moz-box-sizing: border-box;
-            box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 div.unit-path li
@@ -351,17 +387,7 @@ div.unit-path li:after
     content: '→';
 }
 
-html[dir="rtl"] div.unit-path li:after
-{
-    content: "←";
-}
-
 div.unit-path li:last-child:after
-{
-    content: '';
-}
-
-html[dir="rtl"] div.unit-path li:last-child:after
 {
     content: '';
 }
@@ -376,7 +402,6 @@ div.unit-path li span.content-wrapper
 div.unit-path li a
 {
     color: #cff;
-    filter: alpha(opacity=80);
     opacity: .8;
 }
 
@@ -473,13 +498,11 @@ table td.translate-translation
 }
 
 /* Force-wrap URLs */
-.comments p a,
-.developer-images a
+.comments.sidebar a
 {
-    white-space: normal !important;
+    white-space: normal;
 }
 
-.sidetitle,
 .comments .developer-comments
 {
     display: inline;
@@ -496,8 +519,29 @@ table td.translate-translation
     height: auto;
     margin: 2px;
     vertical-align: top;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
+.developer-images a:active,
+.developer-images a:focus
+{
+    outline: none;
+    opacity: 1;
+}
+
+.developer-images a:hover img
+{
+    box-shadow: 0 0 7px rgba(0, 0, 0, 0.7);
+}
+
+.developer-images a:active img,
+.developer-images a:focus img
+{
+    outline: 2px solid Highlight;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+}
+
+.translate-priority,
 .translate-locations,
 .translate-context-value
 {
@@ -573,12 +617,32 @@ html[dir="rtl"] .sidebar
 }
 
 .sidetitle,
+.unit-empty,
 .unit-meta,
+.extras-bar,
 .extra-item-meta,
 .extra-item-title
 {
     color: #999;
     font-size: 85%;
+}
+
+.unit-empty
+{
+    font-style: italic;
+}
+
+.extras-bar
+{
+    float: left;
+    text-align: left;
+    max-width: 30%;
+}
+
+html[dir="rtl"] .extras-bar
+{
+    float: right;
+    text-align: right;
 }
 
 .unit-meta
@@ -598,6 +662,7 @@ html[dir="rtl"] .unit-meta
 .extra-item-meta
 {
     float: right;
+    margin-bottom: 0.5em;
 }
 
 html[dir="rtl"] .extra-item-meta
@@ -651,6 +716,7 @@ html[dir="rtl"] .extra-item-meta
 /* EXTRAS: SUGGESTIONS, TM RESULTS, COMMENTS */
 
 #suggestions,
+#extras-container,
 #timeline-results,
 #tm-results,
 #translator-comment
@@ -659,23 +725,40 @@ html[dir="rtl"] .extra-item-meta
     margin-top: 1em;
 }
 
-#extras-bar a
+.extras-bar a
 {
     cursor: pointer;
-    margin-right: 10px;
-    font-size: 0.9em;
+    display: inline-block;
+    margin: 0 0.1em 0.4em 0;
+    padding: 0.3em 0.5em;
+    border-radius: 0.2em;
 }
 
-html[dir="rtl"] #extras-bar a
+html[dir="rtl"] .extras-bar a
 {
     margin-right: 0;
     margin-left: 10px;
+}
+
+.extras-bar a.selected
+{
+    background: rgba(0, 0, 0, 0.05);
+    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.3) inset;
+}
+
+.extras-bar a i
+{
+    margin: 0 0.3em 0;
 }
 
 .extra-item-block
 {
     clear: both;
     position: relative;
+
+    background-color: #f1f7e4;
+    border: 1px dotted #d9d9d9;
+    color: #444;
 }
 
 .extra-item-block:last-child
@@ -683,23 +766,25 @@ html[dir="rtl"] #extras-bar a
     margin-bottom: 0;
 }
 
-.suggestion-action img
-{
-    top: 50%;
-    opacity: 0.1;
-}
-
+a.comment-action,
 a.suggestion-action
 {
     float: right;
 }
 
+html[dir="rtl"] .comment-action,
 html[dir="rtl"] .suggestion-action
 {
     float: left;
 }
 
-.suggestion-translation-body
+#tm-results .suggestion-original,
+#tm-results .suggestion-translation
+{
+    word-break: break-word;
+}
+
+.suggestion-translation
 {
     unicode-bidi: embed;
 }
@@ -716,21 +801,23 @@ html[dir="rtl"] .suggestion-action
 
 .extra-item
 {
-    background-color: #f1f7e4;
-    border: 1px dotted #d9d9d9;
-    color: #444;
     line-height: 140%;
     padding: 0.5em;
 }
 
-.extra-item:hover
+.extra-item-block:hover
 {
     background-color: #fff;
 }
 
-#translator-comment .extra-item:hover
+#translator-comment .extra-item-block
 {
-    background-color: #f1f7e4;
+    background-color: rgba(255, 153, 0, 0.3);
+}
+
+#translator-comment .extra-item-block:hover
+{
+    background-color: rgba(255, 153, 0, 0.5);
 }
 
 .suggestion-original
@@ -808,6 +895,14 @@ html[dir="rtl"] .extra-item-tm-project
     unicode-bidi: embed;
 }
 
+.extra-item .tm-context
+{
+    font-size: 85%;
+    margin-top: 0.6em;
+    color: rgba(150, 140, 0, 0.8);
+    font-style: italic;
+}
+
 .timeline-extra
 {
     position:absolute;
@@ -849,17 +944,65 @@ html[dir="rtl"] .timeline-arrow:before
     content: "←";
 }
 
+#editor-comment.hide
+{
+    display: none;
+}
+
 #editor-comment
 {
-    margin: 10px 0;
+    font-size: 115%;
+    display: inline-block;
+    white-space: nowrap;
+    width:100%;
+    margin-top: 1em;
+}
+
+html[dir="rtl"] #editor-comment
+{
+    float: right;
+    text-align: right;
+}
+
+#editor-comment form > *
+{
+    float: left;
+}
+
+html[dir="rtl"] #editor-comment form > *
+{
+    float: right;
+}
+
+#editor-comment textarea
+{
+    margin-right: 1em;
+    max-height: 300px;
+    max-width: 80%;
+}
+
+html[dir="rtl"] #editor-comment textarea
+{
+    margin-right: 0;
+    margin-left: 1em;
 }
 
 /* CHECKS */
+
+.unit-checks
+{
+    clear: both;
+}
 
 ul.checks
 {
     display: inline;
     font-size: 85%;
+}
+
+.checks .toggle-check
+{
+    display: inline-block;
 }
 
 div.check a
@@ -881,11 +1024,6 @@ div.check a
     width: 46%;
 }
 
-[dir="rtl"] #translate-checks-block
-{
-    right: 100%;
-}
-
 #translate-checks-block .sidetitle
 {
     color: rgba(0, 0, 0, 0.75);
@@ -894,22 +1032,12 @@ div.check a
     margin: 0.1em 1em 0 0;
 }
 
-[dir="rtl"] #translate-checks-block .sidetitle
-{
-    float: right;
-}
-
 li.check
 {
     display: inline-block;
     margin: 0 1em 0.5em -0.5em;
     padding: 0.1em 0.5em;
     border-radius: 4px;
-}
-
-li.check[dir="rtl"]
-{
-    float: right;
 }
 
 #translate-checks-block.blink li.check
@@ -1073,6 +1201,7 @@ div.translation-text-headers[dir="rtl"] div.translate-toolbar a
 }
 
 .translate-toolbar a,
+.js-editor-copy-comment,
 .js-editor-copytext
 {
     cursor: pointer;
@@ -1082,29 +1211,21 @@ div.translation-text-headers[dir="rtl"] div.translate-toolbar a
 {
     text-decoration: none;
     white-space: nowrap;
-    opacity: 0.7;
+
+    opacity: 0.8;
 }
 
 .translate-container a:hover
 {
     opacity: 1;
-}
-
-/* We don't want the above hover activity for links in the comments. */
-.developer-comments a
-{
-    text-decoration: none;
-    opacity: 1;
-}
-
-.developer-comments a:hover
-{
-    text-decoration: underline;
+    outline: none;
 }
 
 .editor-specialchars-block
 {
     text-align: center;
+    max-width: 40%;
+    margin: 0 auto;
 }
 
 a.editor-specialchar
@@ -1204,7 +1325,23 @@ a.editor-specialchar,
 
 .highlight
 {
-    background-color: #FFC;
+    background-color: #fe6;
+}
+
+/* HIGHLIGHT SIMILAR MATCHES */
+
+.best-match
+{
+    z-index: 100;
+    box-shadow: 0 0 3px #6daa00;
+    border: 1px solid transparent;
+    transition: all 0.1s linear 0s;
+}
+
+.exact-match
+{
+    box-shadow: 0 0 6px #6daa00;
+    background-color: #ebfacc;
 }
 
 /* FUZZY TRANSLATION */
@@ -1212,6 +1349,14 @@ a.editor-specialchar,
 div.translate-translation
 {
     min-height: 1.5em;
+}
+
+div.translate-translation.raw textarea.translation
+{
+    direction: ltr;
+    font-family: monospace;
+    font-size: 140%;
+    line-height: 110%;
 }
 
 /* Special handling for languages with big fonts */

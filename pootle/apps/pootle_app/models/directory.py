@@ -1,41 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009-2013 Zuza Software Foundation
-# Copyright 2013-2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of translate.
-#
-# translate is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# translate is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with translate; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.functional import cached_property
 
-from pootle.core.mixins import TreeItem
-from pootle.core.url_helpers import get_editor_filter, split_pootle_path
+from pootle.core.mixins import CachedTreeItem
+from pootle.core.url_helpers import (get_editor_filter, split_pootle_path,
+                                     to_tp_relative_path)
 from pootle_misc.baseurl import l
 
-
 class DirectoryManager(models.Manager):
+    use_for_related_fields = True
 
     def get_queryset(self):
-        # ForeignKey fields with null=True are not selected by select_related
-        # unless explicitly specified.
+        # ForeignKey fields with null=True are not selected by
+        # select_related unless explicitly specified
         return super(DirectoryManager, self).get_queryset() \
                                             .select_related('parent')
+
+    def live(self):
+        """Filters non-obsolete directories."""
+        return self.filter(obsolete=False)
 
     @cached_property
     def root(self):
@@ -46,17 +39,13 @@ class DirectoryManager(models.Manager):
         return self.get(pootle_path='/projects/')
 
 
-class Directory(models.Model, TreeItem):
+class Directory(models.Model, CachedTreeItem):
 
     name = models.CharField(max_length=255, null=False)
-    parent = models.ForeignKey(
-        'Directory',
-        related_name='child_dirs',
-        null=True,
-        db_index=True,
-    )
-    pootle_path = models.CharField(max_length=255, null=False, db_index=True,
-                                   unique=True)
+    parent = models.ForeignKey('Directory', related_name='child_dirs',
+            null=True, db_index=True)
+    pootle_path = models.CharField(max_length=255, null=False,
+            db_index=True, unique=True)
     obsolete = models.BooleanField(default=False)
 
     is_dir = True
@@ -72,11 +61,21 @@ class Directory(models.Model, TreeItem):
     @property
     def stores(self):
         """Queryset with all descending stores."""
-        # Putting the next import at the top of the file causes circular import
-        # issues.
         from pootle_store.models import Store
+        return Store.objects.live() \
+                            .filter(pootle_path__startswith=self.pootle_path)
 
-        return Store.objects.filter(pootle_path__startswith=self.pootle_path)
+    @property
+    def vfolder_treeitems(self):
+        if 'virtualfolder' in settings.INSTALLED_APPS:
+            return self.vf_treeitems.all()
+
+        return []
+
+    @property
+    def has_vfolders(self):
+        return ('virtualfolder' in settings.INSTALLED_APPS and
+                self.vf_treeitems.count() > 0)
 
     @property
     def is_template_project(self):
@@ -95,29 +94,24 @@ class Directory(models.Model, TreeItem):
 
     @cached_property
     def path(self):
-        """Return just the path part omitting language and project codes.
-
-        If the `pootle_path` of a :cls:`Directory` object `dir` is
-        `/af/project/dir1/dir2/file.po`, `dir.path` will return
-        `dir1/dir2/file.po`.
-        """
-        return u'/'.join(self.pootle_path.split(u'/')[3:])
+        """Returns just the path part omitting language and project codes."""
+        return to_tp_relative_path(self.pootle_path)
 
     @cached_property
     def translation_project(self):
-        """Return the translation project belonging to this directory."""
+        """Returns the translation project belonging to this directory."""
         if self.is_language() or self.is_project():
             return None
-        elif self.is_translationproject():
-            return self.translationproject
         else:
-            aux_dir = self
-            while (not aux_dir.is_translationproject() and
-                   aux_dir.parent is not None):
-                aux_dir = aux_dir.parent
+            if self.is_translationproject():
+                return self.translationproject
+            else:
+                aux_dir = self
+                while (not aux_dir.is_translationproject() and
+                       aux_dir.parent is not None):
+                    aux_dir = aux_dir.parent
 
-            return aux_dir.translationproject
-
+                return aux_dir.translationproject
     ############################ Methods ######################################
 
     def __unicode__(self):
@@ -133,12 +127,6 @@ class Directory(models.Model, TreeItem):
             self.pootle_path = '/'
 
         super(Directory, self).save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        for store in self.stores.iterator():
-            store.delete()
-
-        super(Directory, self).delete(*args, **kwargs)
 
     def get_absolute_url(self):
         return l(self.pootle_path)
@@ -164,6 +152,43 @@ class Directory(models.Model, TreeItem):
             get_editor_filter(**kwargs),
         ])
 
+    ### TreeItem
+    def can_be_updated(self):
+        return not self.obsolete
+
+    def get_children(self):
+        result = []
+        if not self.is_projects_root():
+            #FIXME: can we replace this with a quicker path query?
+            result.extend([item for item in self.child_stores.live().iterator()])
+            result.extend([item for item in self.child_dirs.live().iterator()])
+        else:
+            project_list = [item.project for item in self.child_dirs.iterator()
+                            if not item.project.disabled]
+            result.extend(project_list)
+
+        return result
+
+    def get_parents(self):
+        if self.parent:
+            if self.is_translationproject():
+                return self.translationproject.get_parents()
+            elif self.is_project():
+                return self.project.get_parents()
+            elif self.is_language():
+                return self.language.get_parents()
+            elif self.parent.is_translationproject():
+                return [self.parent.translationproject]
+            else:
+                return [self.parent]
+        else:
+            return []
+
+    def get_cachekey(self):
+        return self.pootle_path
+
+    ### /TreeItem
+
     def get_relative(self, path):
         """Given a path of the form a/b/c, where the path is relative
         to this directory, recurse the path and return the object
@@ -178,68 +203,19 @@ class Directory(models.Model, TreeItem):
         if path not in (None, ''):
             pootle_path = '%s%s' % (self.pootle_path, path)
             try:
-                return Directory.objects.get(pootle_path=pootle_path)
+                return Directory.objects.live().get(pootle_path=pootle_path)
             except Directory.DoesNotExist as e:
                 try:
-                    return Store.objects.get(pootle_path=pootle_path)
+                    return Store.objects.live().get(pootle_path=pootle_path)
                 except Store.DoesNotExist:
                     raise e
         else:
             return self
 
     def get_or_make_subdir(self, child_name):
-        return Directory.objects.get_or_create(name=child_name, parent=self)[0]
-
-    ### TreeItem
-
-    def get_children_for_stats(self):
-        return super(Directory, self).get_children_for_stats()
-
-    def get_progeny(self):
-        return super(Directory, self).get_progeny()
-
-    def get_self_stats(self):
-        if self.parent is not None:
-            return {
-                'total': self.get_total_wordcount(),
-                'translated': self.get_translated_wordcount(),
-                'fuzzy': self.get_fuzzy_wordcount(),
-                'suggestions': self.get_suggestion_count(),
-                'critical': self.get_critical_error_unit_count(),
-                'lastupdated': self.get_last_updated(),
-                'lastaction': self.get_last_action(),
-            }
-        else:
-            return super(Directory, self).get_self_stats()
-
-    def get_children(self):
-        result = []
-        if self.parent is None:
-            # For root directory we are interested in a list of all projects
-            # and languages.
-            from pootle_language.models import Language
-            from pootle_project.models import Project
-            result.extend([item for item in Language.objects.iterator()])
-            result.extend([item for item in Project.objects.iterator()])
-        else:
-            #FIXME: can we replace this with a quicker path query?
-            result.extend([item for item in self.child_stores.iterator()])
-            result.extend([item for item in self.child_dirs.iterator()])
-        return result
-
-    def get_parents(self):
-        if self.parent:
-            if self.parent.is_translationproject():
-                return [self.parent.translationproject]
-            else:
-                return [self.parent]
-        else:
-            return []
-
-    def get_cachekey(self):
-        return self.pootle_path
-
-    ### /TreeItem
+        child_dir, created = Directory.objects.get_or_create(name=child_name,
+                                                             parent=self)
+        return child_dir
 
     def trail(self, only_dirs=True):
         """Return a list of ancestor directories excluding
@@ -258,14 +234,15 @@ class Directory(models.Model, TreeItem):
             parents.append(path)
 
         if parents:
-            return Directory.objects.filter(pootle_path__in=parents) \
-                                    .order_by('pootle_path')
+            return Directory.objects.live().filter(pootle_path__in=parents) \
+                                           .order_by('pootle_path')
 
         return Directory.objects.none()
 
     def is_language(self):
-        """Tell if this directory points at a language."""
-        return self.pootle_path.count('/') == 2
+        """does this directory point at a language"""
+        return (self.pootle_path.count('/') == 2 and
+                not self.pootle_path.startswith('/projects/'))
 
     def is_project(self):
         """Tell if this directory points at a project."""
@@ -276,6 +253,10 @@ class Directory(models.Model, TreeItem):
         """Tell if this directory points at a translation project."""
         return (self.pootle_path.count('/') == 3 and not
                 self.pootle_path.startswith('/projects/'))
+
+    def is_projects_root(self):
+        """is this directory a projects root directory"""
+        return self.pootle_path == '/projects/'
 
     def get_real_path(self):
         """Return physical filesystem path for directory."""
@@ -290,3 +271,27 @@ class Directory(models.Model, TreeItem):
             tp_path = translation_project.pootle_path
             path_prefix = self.pootle_path[len(tp_path)-1:-1]
             return translation_project.real_path + path_prefix
+
+    def delete(self, *args, **kwargs):
+        self.clear_all_cache(parents=False, children=False)
+
+        self.initialize_children()
+        for item in self.children:
+            item.delete()
+
+        super(Directory, self).delete(*args, **kwargs)
+
+    def makeobsolete(self, *args, **kwargs):
+        """Make this directory and all its children obsolete"""
+
+        self.initialize_children()
+        for item in self.children:
+            item.makeobsolete()
+
+        self.obsolete = True
+        self.save()
+        self.clear_all_cache(parents=False, children=False)
+
+        # Clear stats cache for sibling VirtualFolderTreeItems as well.
+        for vfolder_treeitem in self.vfolder_treeitems:
+            vfolder_treeitem.clear_all_cache(parents=False, children=False)

@@ -1,23 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008-2013 Zuza Software Foundation
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import glob
 import os
@@ -25,13 +13,14 @@ import re
 import sys
 
 from distutils import log
+from distutils.core import Command
 from distutils.command.build import build as DistutilsBuild
 from distutils.errors import DistutilsOptionError
 
 from setuptools import find_packages, setup
 from setuptools.command.test import test as TestCommand
 
-from pootle.__version__ import sver as pootle_version
+from pootle import __version__
 
 
 def parse_requirements(file_name):
@@ -43,7 +32,7 @@ def parse_requirements(file_name):
     requirements = []
     for line in open(file_name, 'r').read().split('\n'):
         # Ignore comments, blank lines and included requirements files
-        if re.match(r'(\s*#)|(\s*$)|(-r .*$)', line):
+        if re.match(r'(\s*#)|(\s*$)|((-r|--allow-external|--allow-unverified) .*$)', line):
             continue
 
         if re.match(r'\s*-e\s+', line):
@@ -151,9 +140,75 @@ class PootleBuildMo(DistutilsBuild):
         self.build_mo()
 
 
+class BuildChecksTemplatesCommand(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import django
+        import codecs
+        from pootle.apps.pootle_misc.checks import check_names, excluded_filters
+        from translate.filters.checks import (TeeChecker,
+                                              StandardChecker, StandardUnitChecker)
+        try:
+            from docutils.core import publish_parts
+        except ImportError:
+            from distutils.errors import DistutilsModuleError
+            raise DistutilsModuleError("Please install the docutils library.")
+        from pootle import syspath_override
+        django.setup()
+
+        def get_check_description(name, filterfunc):
+            """Get a HTML snippet for a specific quality check description.
+
+            The quality check description is extracted from the check function
+            docstring (which uses reStructuredText) and rendered using docutils
+            to get the HTML snippet.
+            """
+            # Provide a header with an anchor to refer to.
+            description = ('\n<h3 id="%s">%s</h3>\n\n' %
+                           (name, unicode(check_names[name])))
+
+            # Clean the leading whitespace on each docstring line so it gets
+            # properly rendered.
+            docstring = "\n".join(line.strip() for line in filterfunc.__doc__.split("\n"))
+
+            # Render the reStructuredText in the docstring into HTML.
+            description += publish_parts(docstring, writer_name="html")["body"]
+            return description
+
+        print("Regenerating Translate Toolkit quality checks descriptions")
+
+        # Get a checker with the Translate Toolkit checks. Note that filters
+        # that are not used in Pootle are excluded.
+        fd = TeeChecker(
+            checkerclasses=[StandardChecker, StandardUnitChecker]
+        ).getfilters(excludefilters=excluded_filters)
+
+        docs = sorted(
+            get_check_description(name, f) for name, f in fd.items()
+        )
+
+        # Output the quality checks descriptions to the HTML file.
+        templates_dir = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)), "pootle", "templates"
+        )
+        filename = os.path.join(templates_dir, "help/_ttk_quality_checks.html")
+
+        with codecs.open(filename, "w", "utf-8") as f:
+            f.write(u"\n".join(docs))
+
+        print("Checks templates written to %r" % (filename))
+
+
 setup(
     name="Pootle",
-    version=pootle_version,
+    version=__version__,
 
     description="An online collaborative localization tool.",
     long_description=open(
@@ -162,11 +217,12 @@ setup(
 
     author="Translate",
     author_email="dev@translate.org.za",
-    license="GNU General Public License (GPL)",
+    license="GNU General Public License 3 or later (GPLv3+)",
     url="http://pootle.translatehouse.org",
-    download_url="http://sourceforge.net/projects/translate/files/Pootle/" + pootle_version,
+    download_url="https://github.com/translate/pootle/releases/tag/" + __version__,
 
     install_requires=parse_requirements('requirements/base.txt'),
+    tests_require=parse_requirements('requirements/tests.txt'),
 
     platforms=["any"],
     classifiers=[
@@ -176,7 +232,7 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Information Technology",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: Unix",
@@ -195,6 +251,7 @@ setup(
         ],
     },
     cmdclass={
+        'build_checks_templates': BuildChecksTemplatesCommand,
         'build_mo': PootleBuildMo,
         'test': PyTest,
     },

@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import pytest
 
@@ -28,13 +17,12 @@ def _require_tp(language, project):
     return create_translation_project(language, project)
 
 
-def _require_disabled_tp(language, project):
-    """Helper to get/create a new translation project in disabled state."""
+def _require_tp_with_obsolete_dir(language, project):
+    """Helper to get/create a translation project in obsolete state."""
     from pootle_translationproject.models import create_translation_project
 
     tp = create_translation_project(language, project)
-    tp.disabled = True
-    tp.save()
+    tp.directory.makeobsolete()
 
     return tp
 
@@ -46,6 +34,42 @@ def afrikaans_tutorial(afrikaans, tutorial):
 
 
 @pytest.fixture
-def arabic_tutorial_disabled(arabic, tutorial):
-    """Require Arabic Tutorial in disabled state."""
-    return _require_disabled_tp(arabic, tutorial)
+def arabic_tutorial_obsolete(arabic, tutorial):
+    """Require Arabic Tutorial in obsolete state."""
+    return _require_tp_with_obsolete_dir(arabic, tutorial)
+
+
+@pytest.fixture
+def english_tutorial(english, tutorial):
+    """Require English Tutorial."""
+    return _require_tp(english, tutorial)
+
+
+@pytest.fixture
+def french_tutorial(french, tutorial):
+    """Require French Tutorial."""
+    return _require_tp(french, tutorial)
+
+
+@pytest.fixture
+def spanish_tutorial(spanish, tutorial):
+    """Require Spanish Tutorial."""
+    return _require_tp(spanish, tutorial)
+
+
+@pytest.fixture
+def italian_tutorial(italian, tutorial):
+    """Require Italian Tutorial."""
+    return _require_tp(italian, tutorial)
+
+
+@pytest.fixture
+def russian_tutorial(russian, tutorial):
+    """Require Russian Tutorial."""
+    return _require_tp(russian, tutorial)
+
+
+@pytest.fixture
+def afrikaans_vfolder_test(afrikaans, vfolder_test):
+    """Require Afrikaans Virtual Folder Test."""
+    return _require_tp(afrikaans, vfolder_test)

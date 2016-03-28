@@ -12,7 +12,7 @@ Pootle 2.5.1 has been in production for a number of users, so although it is a
 new official release, we've had many people running their production Pootle
 server off this code.  This includes `Mozilla
 <http://mozilla.locamotion.org/>`_ and `Evernote
-<http://translate.evernote.com/pootle/>`_. So you are in good company.
+<https://translate.evernote.com/>`_. So you are in good company.
 
 For those who can't wait you might be interested to know what we've got planned
 on our :ref:`roadmap <roadmap>` for Pootle 2.5.2.
@@ -36,15 +36,14 @@ These are by no means exhaustive, check the `git log
 <https://github.com/translate/pootle/compare/stable%2F2.5.0...2.5.1-rc1>`_
 for more details.
 
-- :doc:`Tags </features/tags>` -- You can now tag and filter translation
-  projects, making it easy to focus on a set of languages.
-- :doc:`Goals </features/goals>` -- you can now group files within a project to
-  ensure that translators focus on the most important tasks first.
-- :doc:`Extension Actions </features/actions>` -- you can create custom actions
-  using Python scripts. These are displayed with current actions and allow you
-  to extend Pootle's functionality.
-- :doc:`API </api/index>` -- an initial Pootle API is in place (disabled by
-  default).
+- Tags -- You can now tag and filter translation projects, making it easy to
+  focus on a set of languages.
+- Goals -- you can now group files within a project to ensure that translators
+  focus on the most important tasks first.
+- Extension Actions -- you can create custom actions using Python scripts.
+  These are displayed with current actions and allow you to extend Pootle's
+  functionality.
+- API -- an initial Pootle API is in place (disabled by default).
 
 
 Important server admin changes

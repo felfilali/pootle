@@ -95,37 +95,7 @@ Update requirements versions
 Update the minimum version number for the requirements in:
 
 - :file:`requirements/`
-- :file:`pootle/depcheck.py`
-
-
-Update the requirements files:
-
-.. code-block:: bash
-
-    $ make requirements-pinned.txt
-
-
-.. note:: This creates the following files:
-
-       - :file:`requirements-pinned.txt` - the maximum available version when
-         we released.  Chances are we've tested with these and they are good.
-         Using this would prevent a person from installing something newer but
-         untested.
-
-.. FIXME check that these are actually packaged next time we build as they are
-   files for release.
-
-
-Adjust the roadmap
-------------------
-
-The roadmap file needs to be updated.  Remove things that are part of this
-release.  Adjust any version numbering if for example we're moving to Django
-1.6 we need to change the proposed release numbers.
-
-Look at the actual roadmap commitments and change if needed. These will remain
-during the lifetime of this version so it is good to adjust them before we
-branch.
+- :file:`pootle/checks.py`
 
 
 Check copyright dates
@@ -137,6 +107,51 @@ that needs fixing.
 .. code-block:: bash
 
     $ git grep 2013  # Should pick up anything that should be examined
+
+
+Set build settings
+------------------
+
+Create :file:`~/.pootle/pootle_build.conf` with the following content:
+
+.. code-block:: python
+
+    #!/usr/bin/env python
+    # -*- coding: utf-8 -*-
+
+    """Configuration file to build Pootle.
+
+    Must be placed in ~/.pootle/pootle_build.conf
+    """
+
+    # Django now requires to set some secret key to be set.
+    SECRET_KEY = '__BuildingPootle_1234567890__'
+
+    # Silence some checks so the build output is cleaner.
+    SILENCED_SYSTEM_CHECKS = [
+        'pootle.W004',  # Pootle requires a working mail server
+        'pootle.W006',  # sqlite database backend is unsupported
+        'pootle.W010',  # DEFAULT_FROM_EMAIL has default setting
+        'pootle.W011',  # POOTLE_CONTACT_EMAIL has default setting
+    ]
+
+
+Update checks descriptions
+--------------------------
+
+The quality checks descriptions are kept as a static HTML page that has to be
+regenerated in order to ensure the descriptions match the currently available
+quality checks.
+
+.. code-block:: bash
+
+    $ mkvirtualenv build-checks-templates
+    (build-checks-templates)$ pip install -r requirements/build.txt
+    (build-checks-templates)$ export POOTLE_SETTINGS=~/.pootle/pootle_build.conf
+    (build-checks-templates)$ DJANGO_SETTINGS_MODULE=pootle.settings ./setup.py build_checks_templates
+    (build-checks-templates)$ deactivate
+    $ unset POOTLE_SETTINGS
+    $ rmvirtualenv build-checks-templates
 
 
 Update translations
@@ -181,7 +196,7 @@ like this:
 
 .. code-block:: bash
 
-    $ git log $previous_version..HEAD > docs/release/$version.rst
+    $ git log $previous_version..HEAD > docs/releases/$version.rst
 
 
 Or a more specific example:
@@ -224,31 +239,20 @@ Up version numbers
 
 Update the version number in:
 
-- :file:`pootle/__version__.py`
-- :file:`docs/conf.py`
+- :file:`pootle/__init__.py:VERSION`
 
-In :file:`pootle/__version__.py`, bump the build number if anybody used Pootle
-with the previous number, and there have been any changes to code touching
-stats or quality checks.
+The version tuple should follow the pattern::
 
-For :file:`docs/conf.py` change ``version`` and ``release``.
-
-.. note:: FIXME -- We might want to automate the version and release info so
-   that we can update it in one place.
-
-
-The version string should follow the pattern::
-
-    $MAJOR-$MINOR-$MICRO[-$EXTRA]
+    (major, minor, micro, candidate, extra)
 
 E.g. ::
 
-    1.10.0
-    0.9.1-rc1
+    (1, 10, 0, 'final', 0)
+    (2, 7, 0 'alpha', 1)
 
-``$EXTRA`` is optional but all the three others are required.  The first
-release of a ``$MINOR`` version will always have a ``$MICRO`` of ``.0``. So
-``2.6.0`` and never just ``2.6``.
+When in development we use 'alpha' with ``extra`` of 0.  The first release of a
+``minor`` version will always have a ``micro`` of ``.0``. So ``2.6.0`` and
+never just ``2.6``.
 
 
 Build the package
@@ -261,9 +265,13 @@ checkout run:
 
     $ mkvirtualenv build-pootle-release
     (build-pootle-release)$ pip install -r requirements/build.txt
+    (build-pootle-release)$ export PYTHONPATH="${PYTHONPATH}:`pwd`"
+    (build-pootle-release)$ export POOTLE_SETTINGS=~/.pootle/pootle_build.conf
+    (build-pootle-release)$ cd pootle/static/js && npm install && cd ../../../
     (build-pootle-release)$ make mo-all  # If we are shipping an RC
     (build-pootle-release)$ make build
     (build-pootle-release)$ deactivate
+    $ unset POOTLE_SETTINGS
     $ rmvirtualenv build-pootle-release
 
 
@@ -291,9 +299,45 @@ the new release using:
 You can then proceed with other tests such as checking:
 
 #. Documentation is available in the package
+#. Assets are available in the package
+#. Quick SQLite installation check:
+
+   .. code-block:: bash
+
+     (test-pootle-release)$ pootle migrate
+     (test-pootle-release)$ pootle initdb
+     (test-pootle-release)$ pootle start
+     (test-pootle-release)$  # Browse to localhost:8000
+
+#. MySQL installation check:
+
+   #. Create a blank database on MySQL:
+
+      .. code-block:: bash
+
+        mysql -u $db_user -p$db_password -e 'CREATE DATABASE `test-mysql-pootle` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;'
+
+   #. Change the database settings in the settings file created by
+      :djadmin:`pootle init <init>` (by default :file:`~/.pootle/pootle.conf`)
+      to use this new MySQL database
+   #. Run the following:
+
+      .. code-block:: bash
+
+        (test-pootle-release)$ pootle migrate
+        (test-pootle-release)$ pootle initdb
+        (test-pootle-release)$ pootle start
+        (test-pootle-release)$  # Browse to localhost:8000
+
+   #. Drop the MySQL database you have created:
+
+      .. code-block:: bash
+
+        mysql -u $db_user -p$db_password -e 'DROP DATABASE `test-mysql-pootle`;'
+
 #. MySQL upgrade check:
 
-   #. Download a database dump from `Pootle Test Data 
+   #. Download a database dump from `Pootle Test Data
       <https://github.com/translate/pootle-test-data>`_ repository
    #. Create a blank database on MySQL:
 
@@ -311,7 +355,7 @@ You can then proceed with other tests such as checking:
 
       .. code-block:: bash
 
-        (test-pootle-release)$ pootle setup
+        (test-pootle-release)$ pootle migrate
         (test-pootle-release)$ pootle start
         (test-pootle-release)$  # Browse to localhost:8000
 
@@ -364,6 +408,12 @@ Publish the new release
 Once we have a valid package it is necessary to publish it and announce the
 release.
 
+Tag and branch the release
+--------------------------
+
+You should only tag once you are happy with your release as there are some
+things that we can't undo. You can safely branch for a ``stable/`` branch
+before you tag.
 
 Tag and branch the release
 --------------------------
@@ -433,16 +483,9 @@ Run the following to publish the package on PyPI:
 Create a release on Github
 --------------------------
 
-- https://github.com/translate/pootle/releases/new
-
-You will need:
-
-- Tarball of the release
-- Release notes in Markdown
-
-
 Do the following to create the release:
 
+#. Go to https://github.com/translate/pootle/releases/new
 #. Draft a new release with the corresponding tag version
 #. Convert the major changes (no more than five) in the release notes to
    Markdown with `Pandoc <http://pandoc.org/>`_. Bugfix releases can replace
@@ -467,14 +510,13 @@ We use github pages for the website. First we need to checkout the pages:
 #. In :file:`_posts/` add a new release posting. Use the same text used for the
    :ref:`Github release <releasing#create-github-release>` description,
    including the link to the full release notes.
-#. Change ``$version`` as needed. See :file:`download.html`,
-   :file:`_config.yml` and :command:`git grep $old_release`
+#. Change ``$version`` as needed. See :file:`_config.yml` and
+   :command:`git grep $old_release`
 #. :command:`git commit` and :command:`git push` -- changes are quite quick so
    easy to review.
 
-.. note:: FIXME it would be great if gh-pages accepted .rst, maybe it can if we
-   prerender just that page?
-
+#. Adjust the #pootle channel notice. Use ``/topic [new topic]`` to change the
+   topic. It is easier if you copy the previous topic and adjust it.
 
 Announce to the world
 ---------------------

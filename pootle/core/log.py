@@ -1,22 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
+
 
 import logging
 
@@ -26,14 +16,20 @@ TRANSLATION_ADDED = 'A'
 TRANSLATION_CHANGED = 'C'
 TRANSLATION_DELETED = 'D'
 UNIT_ADDED = 'UA'
-UNIT_DELETED = 'UD'
 UNIT_OBSOLETE = 'UO'
+UNIT_RESURRECTED = 'UR'
+UNIT_DELETED = 'UD'
 STORE_ADDED = 'SA'
+STORE_OBSOLETE = 'SO'
+STORE_RESURRECTED = 'SR'
 STORE_DELETED = 'SD'
 CMD_EXECUTED = 'X'
-MUTE_QUALITYCHECK = "QM"
-UNMUTE_QUALITYCHECK = "QU"
+MUTE_QUALITYCHECK = 'QM'
+UNMUTE_QUALITYCHECK = 'QU'
+SCORE_CHANGED = 'SC'
 
+PAID_TASK_ADDED = 'PTA'
+PAID_TASK_DELETED = 'PTD'
 
 def log(message):
     logger = logging.getLogger('action')
@@ -51,37 +47,36 @@ def action_log(*args, **kwargs):
     tr = tr.replace("\n", "\\\n")
     d['translation'] = tr
 
-    message = "%(user)s\t%(action)s\t%(lang)s\t%(unit)s\t%(path)s\t%(translation)s" % d
+    msg = u"%(user)s\t%(action)s\t%(lang)s\t%(unit)s\t%(path)s\t%(translation)s" % d
 
-    logger.info(message)
+    logger.info(msg)
 
 
 def cmd_log(*args, **kwargs):
     import os
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pootle.settings")
-    from datetime import datetime
     from django.conf import settings
-    from pootle_app.project_tree import ensure_target_dir_exists
 
-    _log = settings.LOGGING
-    filename = _log.get("handlers", {}).get("log_action", {}).get("filename")
-    if not filename:
-        return
-    ensure_target_dir_exists(filename)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pootle.settings')
+    fn = settings.LOGGING.get('handlers').get('log_action').get('filename')
+    dft = settings.LOGGING.get('formatters').get('action').get('datefmt')
 
-    logfile = open(filename, "a")
-    datefmt = _log.get("formatters", {}).get("action", {}).get("datefmt", "%Y-%m-%dT%H:%M:%S")
+
+    logfile = open(fn, 'a')
+    cmd = ' '.join(args)
 
     message = "%(user)s\t%(action)s\t%(cmd)s" % {
         'user': 'system',
         'action': CMD_EXECUTED,
-        'cmd': " ".join(args)
+        'cmd': cmd
     }
+
+    from datetime import datetime
+    now = datetime.now()
     d = {
          'message': message,
-         'datefmt': datetime.now().strftime(datefmt)
+         'asctime': now.strftime(dft)
     }
-    logfile.write("[%(datefmt)s]\t%(message)s\n" % d)
+    logfile.write("[%(asctime)s]\t%(message)s\n" % d)
     logfile.close()
 
 

@@ -2,49 +2,77 @@
 
 VERBOSITY=0
 
-if [ "$(uname -s)" != "Darwin" ]; then
-	SRC_DIR=$(readlink -f `dirname $0`/..)
-else
-	SRC_DIR=$(stat -f %N `dirname $0`/..)
-fi
+SRC_DIR=$(dirname $0)/..
 
 # Placeholders
-YEAR_COPYRIGHT_PLACEHOLDER="YEAR THE PACKAGE'S COPYRIGHT HOLDER"
 PACKAGE_VERSION_PLACEHOLDER="PACKAGE VERSION"
 MSGID_BUGS_TO_PLACEHOLDER="Report-Msgid-Bugs-To:"
 
 # Filename constants
-POT_DIR="$SRC_DIR/locale/templates"
+POT_DIR="./locale/templates"
 DJANGO_POT="$POT_DIR/LC_MESSAGES/django.po"
 DJANGO_JS_POT="$POT_DIR/LC_MESSAGES/djangojs.po"
 POOTLE_POT="$POT_DIR/pootle.pot"
 POOTLE_JS_POT="$POT_DIR/pootle_js.pot"
 
 # Header settings
-YEAR=`date +%Y`
-COPYRIGHT_HOLDER="Zuza Software Foundation (Translate.org.za)"
 PACKAGE="Pootle"
-VERSION=`egrep "^ver" $SRC_DIR/__version__.py | sed "s,.*(\(.*\)),\1,g" | sed "s,[ ],,g" | sed "s/,/./g"`
-MSGID_BUGS_TO="translate-pootle@lists.sourceforge.net"
+VERSION=$(python -m pootle.core.utils.version main)
+MSGID_BUGS_TO="https://github.com/translate/pootle/issues/new"
 
-pushd . 2>&1 > /dev/null
 cd $SRC_DIR
 
-django-admin.py makemessages -v $VERBOSITY -e py,txt,html,conf -l templates
-django-admin.py makemessages -v $VERBOSITY --ignore assets -d djangojs -l templates
-popd  2>&1  >  /dev/null
+# Common folders to ignore when extracting
+ignore="\
+	--ignore assets \
+	--ignore po \
+	--ignore migrations \
+	--ignore static/images \
+	--ignore static/css \
+	--ignore log \
+	--ignore dbs \
+	--ignore tools \
+	"
 
-# Header replacements
-sed -i"" -e "s/$YEAR_COPYRIGHT_PLACEHOLDER/2006-$YEAR $COPYRIGHT_HOLDER/" $DJANGO_POT
-sed -i"" -e "s/$PACKAGE_VERSION_PLACEHOLDER/$PACKAGE $VERSION/" $DJANGO_POT
-sed -i"" -e "s/$MSGID_BUGS_TO_PLACEHOLDER /$MSGID_BUGS_TO_PLACEHOLDER $MSGID_BUGS_TO/" $DJANGO_POT
+django-admin.py makemessages -v $VERBOSITY $ignore --ignore static/js -e py,txt,html,conf -l templates
 
-sed -i"" -e "s/$YEAR_COPYRIGHT_PLACEHOLDER/2012-$YEAR $COPYRIGHT_HOLDER/" $DJANGO_JS_POT
-sed -i"" -e "s/$PACKAGE_VERSION_PLACEHOLDER/$PACKAGE $VERSION/" $DJANGO_JS_POT
-sed -i"" -e "s/$MSGID_BUGS_TO_PLACEHOLDER /$MSGID_BUGS_TO_PLACEHOLDER $MSGID_BUGS_TO/" $DJANGO_JS_POT
+# JavaScript extraction
 
-mv $DJANGO_POT $POOTLE_POT
-mv $DJANGO_JS_POT $POOTLE_JS_POT
+# makemessages is rubbish at this so use xgettext directly
+# Until xgettext properly supports JavaScript extraction we use Python, but
+# first we extract using JavaScript just to get the ones that do actually work.
+find static/js -name "*.js" |  egrep -v "(node_modules|\.bundle\.js)" | xargs xgettext --output=$DJANGO_JS_POT --language=JavaScript --from-code=utf-8
+sed -i"" -e "s/charset=CHARSET/charset=UTF-8/" $DJANGO_JS_POT
+find static/js -name "*.js" |  egrep -v "(node_modules|\.bundle\.js)" | xargs xgettext --join-existing --output=$DJANGO_JS_POT --language=Python --from-code=utf-8
+
+# For .jsx we use Python so that variables are at least marked.
+xgettext --join-existing --output=$DJANGO_JS_POT --language=Python --from-code=utf-8 $(find static/js -name "*.jsx")
+
+# Extract localisable content from HTML pages used by JS
+xgettext --join-existing --output=$DJANGO_JS_POT --language=Python --from-code=utf-8 $(find templates -name "*.html")
+
+# Copyright header replacement
+cat <<EOF >$POOTLE_POT
+# Copyright (C) Pootle contributors.
+#
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
+EOF
+
+cp $POOTLE_POT $POOTLE_JS_POT
+
+tail -n +5 $DJANGO_POT >> $POOTLE_POT
+tail -n +5 $DJANGO_JS_POT >> $POOTLE_JS_POT
+rm $DJANGO_POT $DJANGO_JS_POT
+
+# Gettext Header replacements
+sed -i"" -e "s/$PACKAGE_VERSION_PLACEHOLDER/$PACKAGE $VERSION/" $POOTLE_POT
+sed -i"" -e "s|$MSGID_BUGS_TO_PLACEHOLDER |$MSGID_BUGS_TO_PLACEHOLDER $MSGID_BUGS_TO|" $POOTLE_POT
+
+sed -i"" -e "s/$PACKAGE_VERSION_PLACEHOLDER/$PACKAGE $VERSION/" $POOTLE_JS_POT
+sed -i"" -e "s|$MSGID_BUGS_TO_PLACEHOLDER |$MSGID_BUGS_TO_PLACEHOLDER $MSGID_BUGS_TO|" $POOTLE_JS_POT
+
 
 # Revert if we only have a header change
 [ "$(git status --porcelain ${POT_DIR})" != "?? ${POT_DIR}/" ] && git checkout --quiet -- $(git difftool -y -x 'diff --unified=3 --ignore-matching-lines=POT-Creation --ignore-matching-lines=X-Generator -s' ${POT_DIR} |

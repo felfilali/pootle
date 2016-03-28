@@ -111,11 +111,6 @@ sorttable = {
 
           var cookieId = $(table).data('sort-cookie');
 
-          // Remove any tr of class "tags-row", as we will insert them with
-          // insertTagsRows() after sorting, so that they don't interfere with
-          // the sorting.
-          $(this).parents("table").find("tr.tags-row").remove();
-
           if (this.className.search(/\bsorttable_sorted\b/) != -1) {
             // if we're already sorted by this column, just
             // reverse the table, which is quicker
@@ -163,8 +158,6 @@ sorttable = {
         });
       }
     }
-
-    sorttable.insertTagsRows(table.tBodies[0]);
   },
 
   doSort: function(th) {
@@ -296,44 +289,6 @@ sorttable = {
       }
     }
   },
-
-  insertTagsRows: function(tbody) {
-    // Inserts a tags tr after each tr that contains a td of class
-    // "tags-cell". We use this to insert the tags rows after sorting the
-    // table, so that they don't interfere with the sorting process.
-    newrows = [];
-    for (var i=0; i<tbody.rows.length; i++) {
-      newrows[newrows.length] = tbody.rows[i];
-    }
-    var width = 0;
-    if (newrows.length > 0)
-      width = $(newrows[0]).outerWidth() - $(newrows[0]).children().first().outerWidth();
-
-    for (var i=0; i<newrows.length; i++) {
-       if ($(newrows[i]).children('.tags-cell').length == 1) {
-          var $td = $(newrows[i]).children('.tags-cell').first().clone();
-          $td.children().addClass('js-tags');
-          $td.attr('id', $td.attr('id').replace('-hidden', ''));
-          $td.width(width);
-          $td.show();
-
-          var $tr = $('<tr></tr>');
-          $tr.addClass(newrows[i].className).addClass('tags-row');
-          $tr.append('<td></td>');
-          $tr.append($td);
-          $tr.insertAfter(newrows[i]);
-       }
-    }
-    delete newrows;
-
-    if ($.cookie('showtags') == 'true') {
-      $('.js-tags').show();
-      $("#js-toggle-tags-text").text(gettext("Hide tags"));
-    } else {
-      $('.js-tags').hide();
-    }
-  },
-
   reverse: function(tbody) {
     // reverse the rows in a tbody
     newrows = [];

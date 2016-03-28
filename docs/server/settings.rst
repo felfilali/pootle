@@ -15,21 +15,22 @@ in.
 Customizing Settings
 --------------------
 
-When starting Pootle with the ``pootle`` runner script, by default it will try
-to load custom settings from the *~/.pootle/pootle.conf* file. These settings
-will override the defaults set by Pootle.
+When starting Pootle with the :command:`pootle` runner script, by default it
+will try to load custom settings from the :file:`~/.pootle/pootle.conf` file.
+These settings will override the defaults set by Pootle.
 
 An alternative location for the settings file can be specified by setting the
 ``-c </path/to/settings.conf/>`` flag when executing the runner. You can also
-set the ``POOTLE_SETTINGS`` environment variable to specify the path to the
-custom configuration file. The environment variable will take precedence over
-the command-line flag.
+set the :envvar:`POOTLE_SETTINGS` environment variable to specify the path to
+the custom configuration file. The environment variable will take precedence
+over the command-line flag.
 
 If instead of an installation you deployed Pootle straight from the git
-repository, you can either set the ``POOTLE_SETTINGS`` environment variable or
-put a file under the *pootle/settings/* directory. Note that the files in this
-directory are read in alphabetical order, and  **creating a 90-local.conf file
-is recommended** (files ending in *-local.conf* will be ignored by git).
+repository, you can either set the :envvar:`POOTLE_SETTINGS` environment
+variable or put a file under the :file:`pootle/settings/` directory. Note that
+the files in this directory are read in alphabetical order, and **creating a
+90-local.conf file is recommended** (files ending in *-local.conf* will be
+ignored by git).
 
 
 .. _settings#available:
@@ -47,15 +48,20 @@ contained and ordered alphabetically.
 This file contains base configuration settings.
 
 
-.. setting:: DESCRIPTION
+.. setting:: POOTLE_INSTANCE_ID
 
-``DESCRIPTION``
-  Description of the Pootle server.
+``POOTLE_INSTANCE_ID``
+  Instance ID. This is to differentiate multiple instances
+  of the same app (e.g. development, staging and production).
+  By default this value is exposed as a global <html> class name
+  to allow overriding CSS rules based on the instance type.
 
 
-.. setting:: TITLE
+.. setting:: POOTLE_TITLE
 
-``TITLE``
+``POOTLE_TITLE``
+  Default: ``'Pootle Translation Server'``
+
   The name of the Pootle server.
 
 
@@ -65,12 +71,33 @@ This file contains base configuration settings.
 Backend and caching settings.
 
 
-.. setting:: OBJECT_CACHE_TIMEOUT
+.. setting:: POOTLE_CACHE_TIMEOUT
 
-``OBJECT_CACHE_TIMEOUT``
-  Default: ``2500000``
+``POOTLE_CACHE_TIMEOUT``
+  Default: ``604800`` (a week)
 
-  Time in seconds the Pootle's statistics cache will last.
+  .. versionadded:: 2.7
+
+  Time in seconds to keep certain objects cached in memory (template fragments,
+  language and project lists, permissions, etc.).
+
+  Note that for anonymous users Pootle also uses :ref:`Django's caching
+  middleware <django:the-per-site-cache>`, and its settings can be configured
+  separately.
+
+
+25-logging.conf
+^^^^^^^^^^^^^^^
+
+.. setting:: POOTLE_LOG_DIRECTORY
+
+``POOTLE_LOG_DIRECTORY``
+  Default: ``working_path('log')``
+
+  .. versionadded:: 2.7
+
+  The directory where Pootle writes event logs to. These are high-level
+  logs of events on store/unit changes and manage.py commands executed
 
 
 .. setting:: POOTLE_TOP_STATS_CACHE_TIMEOUT
@@ -96,31 +123,32 @@ Backend and caching settings.
 Site-specific settings.
 
 
-.. setting:: CAN_CONTACT
+.. setting:: POOTLE_CONTACT_ENABLED
 
-``CAN_CONTACT``
+``POOTLE_CONTACT_ENABLED``
   Default: ``True``
 
   Controls whether users will be able to use the contact form. The address to
-  receive messages is controlled by :setting:`CONTACT_EMAIL`.
+  receive messages is controlled by :setting:`POOTLE_CONTACT_EMAIL`.
 
 
-.. setting:: CAN_REGISTER
+.. setting:: POOTLE_CONTACT_EMAIL
 
-``CAN_REGISTER``
-  Default: ``True``
-
-  Controls whether user registrations are allowed or not. If set to ``False``,
-  administrators will still be able to create new user accounts.
-
-
-.. setting:: CONTACT_EMAIL
-
-``CONTACT_EMAIL``
+``POOTLE_CONTACT_EMAIL``
   Default: ``info@YOUR_DOMAIN.com``
 
   Address to receive messages sent through the contact form. This will only
-  have effect if :setting:`CAN_CONTACT` is set to ``True``.
+  have effect if :setting:`POOTLE_CONTACT_ENABLED` is set to ``True``.
+
+
+.. setting:: POOTLE_CONTACT_REPORT_EMAIL
+
+``POOTLE_CONTACT_REPORT_EMAIL``
+  Default: ``POOTLE_CONTACT_EMAIL``
+
+  .. versionadded:: 2.7
+
+  Email address to report errors on strings.
 
 
 .. setting:: POOTLE_REPORT_STRING_ERRORS_EMAIL
@@ -139,80 +167,57 @@ Site-specific settings.
 Configuration settings for applications used by Pootle.
 
 
-.. setting:: API_LIMIT_PER_PAGE
+.. setting:: POOTLE_SIGNUP_ENABLED
 
-``API_LIMIT_PER_PAGE``
-  Default: ``0``
+``POOTLE_SIGNUP_ENABLED``
+  Default: ``True``
 
-  .. versionadded:: 2.5.1
+  .. versionchanged:: 2.7
 
-  Number of records Pootle API will show in a list view. ``0`` means no limit.
+  Controls whether user sign ups are allowed or not. If set to ``False``,
+  administrators will still be able to create new user accounts.
 
 
-.. setting:: CUSTOM_TEMPLATE_CONTEXT
+.. setting:: POOTLE_CUSTOM_TEMPLATE_CONTEXT
 
-``CUSTOM_TEMPLATE_CONTEXT``
+``POOTLE_CUSTOM_TEMPLATE_CONTEXT``
   Default: ``{}``
 
-  .. versionadded:: 2.5
+  .. versionchanged:: 2.7
 
   Custom template context dictionary. The values will be available in the
   templates as ``{{ custom.<key> }}``.
 
 
-.. setting:: FUZZY_MATCH_MAX_LENGTH
+.. setting:: POOTLE_LEGALPAGE_NOCHECK_PREFIXES
 
-``FUZZY_MATCH_MAX_LENGTH``
-  Default: ``70``
+``POOTLE_LEGALPAGE_NOCHECK_PREFIXES``
+  Default: ``('/about', '/accounts', '/admin', '/contact', '/jsi18n', '/pages', )``
 
-  .. versionadded:: 2.5
-
-  Maximum character length to consider when doing fuzzy matching. The default
-  might not be enough for long texts. Please note this affects all fuzzy
-  matching operations, so bear in mind this might affect performance.
-
-
-.. setting:: FUZZY_MATCH_MIN_SIMILARITY
-
-``FUZZY_MATCH_MIN_SIMILARITY``
-  Default: ``75``
-
-  .. versionadded:: 2.5
-
-  Minimum similarity to consider when doing fuzzy matching. Please note this
-  affects all fuzzy matching operations, so bear in mind this might affect
-  performance.
-
-
-.. setting:: LEGALPAGE_NOCHECK_PREFIXES
-
-``LEGALPAGE_NOCHECK_PREFIXES``
-  Default: ``('/accounts', '/admin', '/api', '/contact', '/django_admin',
-  '/jsi18n', '/pages', )``
-
-  .. versionadded:: 2.5.1
+  .. versionchanged:: 2.7
 
   List of path prefixes where the ``LegalAgreementMiddleware`` will check
   if the current logged-in user has agreed all the legal documents defined
   for the Pootle instance. Don't change this unless you know what you're
   doing.
 
+.. setting:: POOTLE_META_USERS
 
-.. setting:: MIN_AUTOTERMS
+``POOTLE_META_USERS``
+  Default: ``()``
 
-``MIN_AUTOTERMS``
-  Default: ``60``
+  .. versionadded:: 2.7
 
-  When building the terminology, the minimum number of terms that will be
-  automatically extracted.
+  Additional meta, or non-human, accounts. Pootle already manages the 'system'
+  and 'nobody' users who own system updates to translations and submissions by
+  anonymous users.  These meta accounts have their own simple public profiles
+  and won't track scores.
 
 
-.. setting:: MARKUP_FILTER
+.. setting:: POOTLE_MARKUP_FILTER
 
-``MARKUP_FILTER``
+``POOTLE_MARKUP_FILTER``
   Default: ``(None, {})``
-
-  .. versionadded:: 2.5
 
   Two-tuple defining the markup filter to apply in certain textareas.
 
@@ -224,124 +229,52 @@ Configuration settings for applications used by Pootle.
 
   Examples::
 
-    MARKUP_FILTER = (None, {})
+    POOTLE_MARKUP_FILTER = (None, {})
 
-    MARKUP_FILTER = ('markdown', {'safe_mode': 'escape'})
+    POOTLE_MARKUP_FILTER = ('markdown', {'safe_mode': 'escape'})
 
-    MARKUP_FILTER = ('restructuredtext', {'settings_overrides': {
-                                             'report_level': 'quiet',
-                                             }
-                                         })
-
-
-.. setting:: MAX_AUTOTERMS
-
-``MAX_AUTOTERMS``
-  Default: ``600``
-
-  When building the terminology, the maximum number of terms that will be
-  automatically extracted.
+    POOTLE_MARKUP_FILTER = ('restructuredtext', {
+                                'settings_overrides': {
+                                    'report_level': 'quiet',
+                                 }
+                            })
 
 
-.. setting:: POOTLE_ENABLE_API
+.. setting:: POOTLE_CAPTCHA_ENABLED
 
-``POOTLE_ENABLE_API``
-  Default: ``False``
-
-  .. versionadded:: 2.5.1
-
-  Enable Pootle API.
-
-
-.. setting:: TASTYPIE_DEFAULT_FORMATS
-
-``TASTYPIE_DEFAULT_FORMATS``
-  Default: ``['json']``
-
-  .. versionadded:: 2.5.1
-
-  List defining the allowed serialization formats for Pootle API. Check
-  :ref:`Tastypie docs <tastypie:settings.TASTYPIE_DEFAULT_FORMATS>` for all the
-  available formats and :ref:`its dependencies <tastypie:ref-tutorial>` (see in
-  Installation section).
-
-
-.. setting:: TOPSTAT_SIZE
-
-``TOPSTAT_SIZE``
-  Default: ``5``
-
-  The number of rows displayed in the top contributors table.
-
-
-.. setting:: USE_CAPTCHA
-
-``USE_CAPTCHA``
+``POOTLE_CAPTCHA_ENABLED``
   Default: ``True``
 
   Enable spam prevention through a captcha.
 
 
-.. _settings#ldap:
+.. setting:: POOTLE_REPORTS_MARK_FUNC
 
-51-ldap.conf
-^^^^^^^^^^^^
+``POOTLE_REPORTS_MARK_FUNC``
+  Default: ``''`` (empty string)
 
-Optional LDAP configuration settings. To enable the LDAP authentication
-backend, you'll need to append ``'pootle.core.auth.ldap_backend.LdapBackend'``
-to the list of ``AUTHENTICATION_BACKENDS``.
+  .. versionadded:: 2.7
 
+  The graph of a user's activity, within reports, can be `marked
+  <https://code.google.com/p/flot-marks/>`_  to indicate events by using
+  this function. The setting must contain an import path to such a marking
+  function (string).
 
-.. setting:: AUTH_LDAP_ANON_DN
+  The function receives the user and graph ranges and returns an array of
+  applicable marks.
 
-``AUTH_LDAP_ANON_DN``
-  Default: ``''``
+  Parameters:
 
-  Anonymous credentials: Distinguished Name.
+  - ``username`` - user for whom we're producing this graph
+  - ``start`` (datetime) - start date of the graph
+  - ``end`` (datetime) - end date of the graph
 
+  The function must return an **array of dictionaries** (marks), where
+  every mark has the following properties:
 
-.. setting:: AUTH_LDAP_ANON_PASS
-
-``AUTH_LDAP_ANON_PASS``
-  Default: ``''``
-
-  Anonymous credentials: password.
-
-
-.. setting:: AUTH_LDAP_BASE_DN
-
-``AUTH_LDAP_BASE_DN``
-  Default: ``''``
-
-  Base DN to search
-
-
-.. setting:: AUTH_LDAP_FIELDS
-
-``AUTH_LDAP_FIELDS``
-  Default: ``{'dn': 'dn'}``
-
-  A mapping of Pootle field names to LDAP fields.  The key is Pootle's name,
-  the value should be your LDAP field name.  If you don't use the field or
-  don't want to automatically retrieve these fields from LDAP comment them out.
-  The only required field is ``dn``.
-
-
-.. setting:: AUTH_LDAP_FILTER
-
-``AUTH_LDAP_FILTER``
-  Default: ``''``
-
-  What are we filtering on? %s will be the username, for example ``'sn=%s'``,
-  or ``'uid=%s'``.
-
-
-.. setting:: AUTH_LDAP_SERVER
-
-``AUTH_LDAP_SERVER``
-  Default: ``''``
-
-  The LDAP server. Format: ``protocol://hostname:port``
+  - ``position``, specifying the point in the x-axis where the mark should
+    be set (UNIX timestamp multiplied by 1000), and
+  - ``label`` specifying the text that will be displayed next to the mark.
 
 
 60-translation.conf
@@ -360,42 +293,40 @@ Translation environment configuration settings.
   This URL must point to the public API URL which returns JSON. Don't forget
   the trailing slash.
 
-  Setting it to blank string disables retrieving translation memory results.
 
+.. setting:: POOTLE_SYNC_FILE_MODE
 
-.. setting:: EXPORTED_DIRECTORY_MODE
-
-``EXPORTED_DIRECTORY_MODE``
-  Default: ``0755``
-
-  On POSIX systems, exported directories will be assigned this permission. Use
-  ``0755`` for publically-readable directories or ``0700`` if you want only the
-  Pootle user to be able to read them.
-
-
-.. setting:: EXPORTED_FILE_MODE
-
-``EXPORTED_FILE_MODE``
+``POOTLE_SYNC_FILE_MODE``
   Default: ``0644``
 
-  On POSIX systems, exported files will be assigned this permission. Use
-  ``0644`` for publically-readable files or ``0600`` if you want only the
+  .. versionchanged:: 2.7
+
+  On POSIX systems, files synchronized to disk will be assigned this permission.
+  Use ``0644`` for publically-readable files or ``0600`` if you want only the
   Pootle user to be able to read them.
 
 
-.. setting:: LOOKUP_BACKENDS
+.. setting:: POOTLE_TM_SERVER
 
-``LOOKUP_BACKENDS``
-  Default: ``['wikipedia']`` (Wikipedia enabled)
+.. versionadded:: 2.7
 
-  Enables backends for web-based lookups.
+``POOTLE_TM_SERVER``
+  Default: Set to ``http://localhost:9200/translations``
 
-  Available options: ``wikipedia``.
+  This is configured to access a standard Elasticsearch setup.  Change the
+  settings for any non-standard setup.  Change ``HOST`` and ``PORT`` settings
+  as required.
+
+  Use ``MIN_SCORE`` to set the Levenshtein Distance score.  Set it to ``AUTO``
+  so that Eslasticsearch will adjust the required score depending on the length
+  of the string being translated. Elasticsearch documentation provides further
+  details on `Fuzzy matching
+  <https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness>`_.
 
 
-.. setting:: MT_BACKENDS
+.. setting:: POOTLE_MT_BACKENDS
 
-``MT_BACKENDS``
+``POOTLE_MT_BACKENDS``
   Default: ``[]`` (empty list)
 
   This setting enables translation suggestions through several online services.
@@ -412,8 +343,11 @@ Translation environment configuration settings.
   ``GOOGLE_TRANSLATE``: Google Translate service.
     For this service you need to set the API key. Note that Google Translate
     API is a paid service. See more at
-    https://developers.google.com/translate/v2/pricing
+    https://cloud.google.com/translate/v2/pricing
 
+  ``YANDEX_TRANSLATE``: Yandex.Translate service.
+    For this service you need to set the API key. Get your key at
+    https://tech.yandex.com/keys/get/?service=trnsl
 
 .. setting:: PARSE_POOL_CULL_FREQUENCY
 
@@ -436,22 +370,51 @@ Translation environment configuration settings.
   (per server process).
 
 
-.. setting:: PODIRECTORY
+.. setting:: POOTLE_TRANSLATION_DIRECTORY
 
-``PODIRECTORY``
-  Default: ``working_path('po')``
+``POOTLE_TRANSLATION_DIRECTORY``
+  Default: ``working_path('translations')``
 
-  The directory where the translation files are kept.
+  The directory where projects hosted on Pootle store their translation files.
+  :djadmin:`sync_stores` will write to this directory and
+  :djadmin:`update_stores` will read from this directory.
 
 
-.. setting:: VCS_DIRECTORY
+.. setting:: POOTLE_QUALITY_CHECKER
 
-``VCS_DIRECTORY``
-  Default: ``working_path('repos')``
+``POOTLE_QUALITY_CHECKER``
+  Default: ``''``
 
-  .. versionadded:: 2.5
+  .. versionadded:: 2.7
 
-  The directory where version control clones/checkouts are kept.
+  The import path to a class that provides alternate quality checks to
+  Pootle.  If it is unset then the Translate Toolkit checking functions are
+  used and you can make adjustments in the project's admin page.  If set
+  then the quality checker function is used for all projects.
+
+  .. note:: If set, only the checker function defined here is used instead of
+     the Translate Toolkit counterparts. Both cannot be selectively applied.
+
+
+.. setting:: POOTLE_WORDCOUNT_FUNC
+
+``POOTLE_WORDCOUNT_FUNC``
+  Default: ``translate.storage.statsdb.wordcount``
+
+  .. versionadded:: 2.7
+
+  The import path to a function that provides wordcounts for Pootle.
+
+  Current options:
+
+  - Translate Toolkit (default) - translate.storage.statsdb.wordcount
+  - Pootle - pootle.core.utils.wordcount.wordcount
+
+  Adding a custom function allows you to alter how words are counted.
+
+  .. warning:: Changing this function requires that you run
+     :djadmin:`refresh_stats --calculate-wordcount <refresh_stats>` to
+     recalculate the associated wordcounts.
 
 
 .. _settings#deprecated:
@@ -462,11 +425,88 @@ Deprecated Settings
 .. setting:: ENABLE_ALT_SRC
 
 ``ENABLE_ALT_SRC``
-  Default: ``True``
-
   .. deprecated:: 2.5
      Alternate source languages are now on by default. This ensures
      that translators have access to as much useful information as possible
      when translating.
 
-  Display alternate source languages in the translation interface.
+
+.. setting:: POOTLE_TOP_STATS_CACHE_TIMEOUT
+
+``POOTLE_TOP_STATS_CACHE_TIMEOUT``
+  .. deprecated:: 2.7
+     The overview page statistics rewrite has removed these statistics and the
+     RQ based statistics has also removed the load of this type of data so this
+     setting has been removed.
+
+
+.. setting:: VCS_DIRECTORY
+
+``VCS_DIRECTORY``
+  .. deprecated:: 2.7
+     Version Control Support has been removed from Pootle.  We feel we can
+     support version control better in future.  You can currently make use of
+     :djadmin:`sync_stores` and :djadmin:`update_stores` to automate your own
+     integration.
+
+
+.. setting:: CONTRIBUTORS_EXCLUDED_NAMES
+
+``CONTRIBUTORS_EXCLUDED_NAMES``
+  .. deprecated:: 2.7
+     The contributors page has been removed and is being replaced with better
+     user statistics.
+
+
+.. setting:: CONTRIBUTORS_EXCLUDED_PROJECT_NAMES
+
+``CONTRIBUTORS_EXCLUDED_PROJECT_NAMES``
+  .. deprecated:: 2.7
+     The contributors page has been removed and is being replaced with better
+     user statistics.
+
+
+.. setting:: MIN_AUTOTERMS
+
+``MIN_AUTOTERMS``
+  .. deprecated:: 2.7
+     Terminology auto-extraction feature has been removed.
+
+
+.. setting:: MAX_AUTOTERMS
+
+``MAX_AUTOTERMS``
+  .. deprecated:: 2.7
+     Terminology auto-extraction feature has been removed.
+
+
+.. setting:: DESCRIPTION
+
+``DESCRIPTION``
+  .. deprecated:: 2.7
+     Pootle no longer displays site description on the landing page, but rather
+     makes use of static pages to convey information to users in the sidebar.
+     Use :doc:`static pages </features/staticpages>` and :doc:`customization
+     </developers/customization>` if you want to give users information about
+     the Pootle site.
+
+
+.. setting:: FUZZY_MATCH_MAX_LENGTH
+
+``FUZZY_MATCH_MAX_LENGTH``
+  .. deprecated:: 2.7
+     Update against templates feature has been removed.
+
+
+.. setting:: FUZZY_MATCH_MIN_SIMILARITY
+
+``FUZZY_MATCH_MIN_SIMILARITY``
+  .. deprecated:: 2.7
+     Update against templates feature has been removed.
+
+
+.. setting:: EXPORTED_DIRECTORY_MODE
+
+``EXPORTED_DIRECTORY_MODE``
+  .. deprecated:: 2.7
+     Offline translation support was rewritten and the setting was unused.

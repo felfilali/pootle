@@ -3,10 +3,8 @@
 Translation Memory
 ==================
 
-.. versionchanged:: 2.5
-
 Pootle provides suggested translations to the current string.  Translator can
-use these suggestions for the translation.
+use these suggestions as their translation or to aid their translation.
 
 Suggestions are based on previous translations of similar strings.  These
 Translation Memory (TM) matches mean that you can speed up your translation and
@@ -33,35 +31,45 @@ Configuring Translation Memory
 ------------------------------
 
 Translation Memory will work out of the box with a default Pootle installation.
-There are two source for Translation Memory in Pootle:
+There are two methods of getting Translation Memory.
 
-1. Local Translation Memory
-2. Remote Translation Memory
+1. Amagama - for remote Translation Memory
+2. Elasticsearch - for local Translation Memory
 
-Local Translation Memory
-^^^^^^^^^^^^^^^^^^^^^^^^
+Amagama based remote TM
+~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 2.6.0
+By default Pootle will query Translate's `Amagama
+<http://amagama.translatehouse.org>`_ Translation Memory server, which hosts
+translations of an extensive collection of Opensource software.
 
-Local Translation Memory is served from Pootle itself.  All projects hosted on
-Pootle are available to give TM suggestions to translators.
+If you want to setup and connect to your own TM server then the
+:setting:`AMAGAMA_URL` will allow you to point to a private TM server.
 
-This allows translations that have just been submitted to be served as
-suggestions immediately.
 
-Local Translation Memory can also serve icons representing the source of the
-suggestion.  When you know where a translation came from it is easier to
-evaluate its usefulness. These icons are stored in :setting:`PODIRECTORY`
-``/$project/.pootle/icon.png``
+.. _translation_memory#local_translation_memory:
 
-Remote Translation Memory
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Elasticsearch based local TM
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Pootle will query Translate's `Amagama <http://amagama.translatehouse.org>`_
-Translation Memory server, which hosts translations of an extensive collection
-of Opensource software.  Thus with no effort you have access to a very large
-database of Translation Memory results for many languages.
+.. versionadded:: 2.7
 
-If you want to setup and connect to your own TM server rather than Translate's
-hosted Amagama server then the :setting:`AMAGAMA_URL` will allow you to point
-to your private TM server.
+By default this is configured to operate if local TM is available.  To use it
+you will need to install `Elasticsearch 
+<https://www.elastic.co/products/elasticsearch>`_ and populate the initial
+translation memory using the :djadmin:`update_tmserver` command:
+
+.. code-block:: bash
+
+   (env) $ pootle update_tmserver --rebuild
+
+
+Once populated Pootle will keep Local TM up-to-date.
+
+.. note:: Note that Elasticsearch depends on Java.
+
+
+Local TM settings can be adjusted in :setting:`POOTLE_TM_SERVER`.
+
+You may want to disable Amagama by setting :setting:`AMAGAMA_URL` to ``''`` if
+you are using Elasticsearch local TM, though the two will operate together.

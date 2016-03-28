@@ -1,53 +1,50 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009, 2013 Zuza Software Foundation
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import pytest
 
 from translate.storage import factory
 
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
-def _update_translation(store, item, new_values):
+from pootle.core.mixins.treeitem import CachedMethods
+from pootle_store.util import UNTRANSLATED, FUZZY, TRANSLATED
+
+
+User = get_user_model()
+
+
+def _update_translation(store, item, new_values, sync=True):
     unit = store.getitem(item)
 
     if 'target' in new_values:
         unit.target = new_values['target']
-        if "fuzzy" not in new_values:
-            unit.state = 200
 
     if 'fuzzy' in new_values:
         unit.markfuzzy(new_values['fuzzy'])
 
     if 'translator_comment' in new_values:
         unit.translator_comment = new_values['translator_comment']
+        unit._comment_updated = True
 
-    if new_values.get("refresh_stats"):
-        unit._target_updated = True
-        # Will be updated on save()
-
+    unit.submitted_on = timezone.now()
+    unit.submitted_by = User.objects.get_system_user()
     unit.save()
-    store.sync()
+
+    if sync:
+        store.sync()
 
     return store.getitem(item)
 
 
+@pytest.mark.django_db
 def test_getorig(af_tutorial_po):
     """Tests that the in-DB Store and on-disk Store match by checking that
     units match in order.
@@ -57,6 +54,7 @@ def test_getorig(af_tutorial_po):
         assert db_unit.getid() == store_unit.getid()
 
 
+@pytest.mark.django_db
 def test_convert(af_tutorial_po):
     """Tests that in-DB and on-disk units match after format conversion."""
     for db_unit in af_tutorial_po.units.iterator():
@@ -71,7 +69,6 @@ def test_convert(af_tutorial_po):
         assert str(newunit) == str(store_unit)
 
 
-@pytest.mark.xfail
 @pytest.mark.django_db
 def test_update_target(af_tutorial_po):
     """Tests that target changes are properly sync'ed to disk."""
@@ -96,7 +93,6 @@ def test_empty_plural_target(af_tutorial_po):
     assert len(store_unit.target.strings) == 2
 
 
-@pytest.mark.xfail
 @pytest.mark.django_db
 def test_update_plural_target(af_tutorial_po):
     """Tests plural translations are stored and sync'ed."""
@@ -115,7 +111,6 @@ def test_update_plural_target(af_tutorial_po):
     assert db_unit.target == po_file.units[db_unit.index].target
 
 
-@pytest.mark.xfail
 @pytest.mark.django_db
 def test_update_plural_target_dict(af_tutorial_po):
     """Tests plural translations are stored and sync'ed (dict version)."""
@@ -134,7 +129,6 @@ def test_update_plural_target_dict(af_tutorial_po):
     assert db_unit.target == po_file.units[db_unit.index].target
 
 
-@pytest.mark.xfail
 @pytest.mark.django_db
 def test_update_fuzzy(af_tutorial_po):
     """Tests fuzzy state changes are stored and sync'ed."""
@@ -142,7 +136,7 @@ def test_update_fuzzy(af_tutorial_po):
                                  {'target': u'samaka', 'fuzzy': True})
     store_unit = db_unit.getorig()
 
-    assert db_unit.isfuzzy() == True
+    assert db_unit.isfuzzy()
     assert db_unit.isfuzzy() == store_unit.isfuzzy()
 
     po_file = factory.getobject(af_tutorial_po.file.path)
@@ -151,14 +145,13 @@ def test_update_fuzzy(af_tutorial_po):
     db_unit = _update_translation(af_tutorial_po, 0, {'fuzzy': False})
     store_unit = db_unit.getorig()
 
-    assert db_unit.isfuzzy() == False
+    assert not db_unit.isfuzzy()
     assert db_unit.isfuzzy() == store_unit.isfuzzy()
 
     po_file = factory.getobject(af_tutorial_po.file.path)
     assert db_unit.isfuzzy() == po_file.units[db_unit.index].isfuzzy()
 
 
-@pytest.mark.xfail
 @pytest.mark.django_db
 def test_update_comment(af_tutorial_po):
     """Tests translator comments are stored and sync'ed."""
@@ -176,10 +169,101 @@ def test_update_comment(af_tutorial_po):
 
 
 @pytest.mark.django_db
-def test_stats_counting(af_tutorial_po):
-    unit = _update_translation(af_tutorial_po, 0, {"refresh_stats": True})
-    initial_translated = af_tutorial_po.translated_wordcount
-    initial_wordcount = af_tutorial_po.total_wordcount
-    db_unit = _update_translation(af_tutorial_po, 0, {'target': u'samaka'})
-    # assert af_tutorial_po.translated_wordcount == initial_translated + 1  # Flaky
-    assert af_tutorial_po.total_wordcount == initial_wordcount
+def test_add_suggestion(af_tutorial_po, system):
+    """Tests adding new suggestions to units."""
+    untranslated_unit = af_tutorial_po.getitem(0)
+    translated_unit = af_tutorial_po.getitem(1)
+    suggestion_text = 'foo bar baz'
+
+    # Empty suggestion is not recorded
+    sugg, added = untranslated_unit.add_suggestion('')
+    assert sugg is None
+    assert not added
+
+    # Existing translation can't be added as a suggestion
+    sugg, added = translated_unit.add_suggestion(translated_unit.target)
+    assert sugg is None
+    assert not added
+
+    # Add new suggestion
+    sugg, added = untranslated_unit.add_suggestion(suggestion_text)
+    assert sugg is not None
+    assert added
+    assert len(untranslated_unit.get_suggestions()) == 1
+
+    # Already-suggested text can't be suggested again
+    sugg, added = untranslated_unit.add_suggestion(suggestion_text)
+    assert sugg is not None
+    assert not added
+    assert len(untranslated_unit.get_suggestions()) == 1
+
+    # Removing a suggestion should allow suggesting the same text again
+    tp = untranslated_unit.store.translation_project
+    untranslated_unit.reject_suggestion(sugg, tp, system)
+    assert len(untranslated_unit.get_suggestions()) == 0
+
+    sugg, added = untranslated_unit.add_suggestion(suggestion_text)
+    assert sugg is not None
+    assert added
+    assert len(untranslated_unit.get_suggestions()) == 1
+
+
+@pytest.mark.django_db
+def test_accept_suggestion_changes_state(issue_2401_po, system):
+    """Tests that accepting a suggestion will change the state of the unit."""
+    tp = issue_2401_po.translation_project
+
+    # First test with an untranslated unit
+    unit = issue_2401_po.getitem(0)
+    assert unit.state == UNTRANSLATED
+
+    suggestion, created = unit.add_suggestion('foo')
+    assert unit.state == UNTRANSLATED
+
+    unit.accept_suggestion(suggestion, tp, system)
+    assert unit.state == TRANSLATED
+
+    # Let's try with a translated unit now
+    unit = issue_2401_po.getitem(1)
+    assert unit.state == TRANSLATED
+
+    suggestion, created = unit.add_suggestion('bar')
+    assert unit.state == TRANSLATED
+
+    unit.accept_suggestion(suggestion, tp, system)
+    assert unit.state == TRANSLATED
+
+    # And finally a fuzzy unit
+    unit = issue_2401_po.getitem(2)
+    assert unit.state == FUZZY
+
+    suggestion, created = unit.add_suggestion('baz')
+    assert unit.state == FUZZY
+
+    unit.accept_suggestion(suggestion, tp, system)
+    assert unit.state == TRANSLATED
+
+@pytest.mark.django_db
+def test_accept_suggestion_update_wordcount(it_tutorial_po, system):
+    """Tests that accepting a suggestion for an untranslated unit will
+    change the wordcount stats of the unit's store.
+    """
+
+    # Parse store
+    it_tutorial_po.update(overwrite=False, only_newer=False)
+
+    untranslated_unit = it_tutorial_po.getitem(0)
+    suggestion_text = 'foo bar baz'
+
+    sugg, added = untranslated_unit.add_suggestion(suggestion_text)
+    assert sugg is not None
+    assert added
+    assert len(untranslated_unit.get_suggestions()) == 1
+    assert it_tutorial_po.get_cached(CachedMethods.SUGGESTIONS) == 1
+    assert it_tutorial_po.get_cached(CachedMethods.WORDCOUNT_STATS)['translated'] == 1
+    assert untranslated_unit.state == UNTRANSLATED
+    untranslated_unit.accept_suggestion(sugg,
+                                        it_tutorial_po.translation_project,
+                                        system)
+    assert untranslated_unit.state == TRANSLATED
+    assert it_tutorial_po.get_cached(CachedMethods.WORDCOUNT_STATS)['translated'] == 2

@@ -28,39 +28,6 @@ Adjust the :setting:`DATABASES` setting accordingly.
   PostgreSQL adapter for Python.
 
 
-Caching
-^^^^^^^
-
-Fast and efficient caching avoids hitting the DB when it's not really needed.
-Adjust the :setting:`CACHES` setting accordingly.
-
-`python-memcached <http://www.tummy.com/software/python-memcached/>`_ Efficient
-caching.
-
-
-Indexing Engines
-^^^^^^^^^^^^^^^^
-
-Installing an :doc:`indexing engine <indexing>` will speed-up searches. Pootle
-will automatically pick one from any of the available engines.
-
-`Xapian <http://xapian.org/docs/bindings/python/>`_
-  Python bindings for Xapian [#f1]_.
-
-`PyLucene <https://lucene.apache.org/pylucene/>`_
-  Python bindings for Lucene.
-
-
-.. rubric:: Note
-
-.. [#f1] Xapian versions before 1.0.13 are incompatible with Apache; Pootle will
-  detect Xapian version and disable indexing when running under *mod_wsgi* if
-  needed.
-
-  Checking for Xapian relies on the `xapian-check` command, which is found in
-  the `xapian-tools` package in Debian-based systems.
-
-
 Web Servers
 ^^^^^^^^^^^
 
@@ -81,23 +48,13 @@ alternative WSGI servers that might better suit your environment.
 Speed-ups and Extras
 ^^^^^^^^^^^^^^^^^^^^
 
-zip and unzip
-  Fast (un)compression of file archives.
-
-`python-Levenshtein <https://pypi.python.org/pypi/python-Levenshtein/>`_
-  Provides speed-up when updating against templates.
-
-`iso-codes <http://packages.debian.org/unstable/source/iso-codes>`_
+`iso-codes <https://packages.debian.org/unstable/source/iso-codes>`_
   Enables translated language and country names.
 
-`raven <http://raven.readthedocs.org/>`_
+`raven <http://raven.readthedocs.org/en/latest/>`_
   Enables logging server exceptions to a `Sentry server
   <http://sentry.readthedocs.org/en/latest/>`_. If installed and configured,
   Pootle will automatically use the raven client.
-
-`python-ldap <http://www.python-ldap.org/>`_
-  Enables :ref:`LDAP authentication <authentication#ldap>`. Be sure to check the
-  :ref:`LDAP settings <settings#ldap>`.
 
 
 .. _optimization#tips:
@@ -115,26 +72,12 @@ some tips for performance tuning on your Pootle installation.
   an existing installation <database_migration>` if you already have data you
   don't want to lose.
 
-- Install :doc:`memcached <cache>` and enable it in the settings file.
-
 - Install the latest recommended version of all dependencies. Django and the
   Translate Toolkit might affect performance.  Later versions of Pootle should
   also give better performance.  You can :doc:`upgrade <upgrading>` to newer
   versions of Pootle easily.
 
 - Ensure :setting:`DEBUG` mode is disabled.
-
-- Ensure that the ``zip`` and ``unzip`` commands are installed on your
-  server.  These can improve the performance during upload and download
-  of large ZIP files.
-
-- Ensure that you have an :doc:`indexing engine <indexing>` installed with its
-  Python bindings. This will improve the performance of searching in big
-  projects. PyLucene should perform better, although it might be harder to
-  install.
-
-- Ensure that you have python-levenshtein installed. This will improve the
-  performance when updating against templates.
 
 - Increase the cache timeout for users who are not logged in.
 
@@ -171,28 +114,7 @@ with values between 10 and 80.
 MySQL
 ^^^^^
 
-Using MySQL is well tested and recommended. You can :doc:`migrate your current
+Using MySQL with `InnoDB backend
+<https://dev.mysql.com/doc/refman/5.6/en/innodb-storage-engine.html>`_ is well
+tested. MyISAM is no longer supported. You can :doc:`migrate your current
 database <database_migration>` if you already have data you don't want to lose.
-
-If using MySQL backend, for smaller installations it is suggested to go with
-`MyISAM backend
-<https://dev.mysql.com/doc/refman/5.6/en/myisam-storage-engine.html>`_ (which
-might result in smaller memory usage and better performance). If high
-concurrency is expected, `InnoDB
-<https://dev.mysql.com/doc/refman/5.6/en/innodb-storage-engine.html>`_ is
-suggested to avoid locking issues.
-
-
-.. _optimization#fast_po_implementation:
-
-Fast PO implementation
-^^^^^^^^^^^^^^^^^^^^^^
-
-If you want better performance for your PO based operations, you can try to
-enable the fast PO implementation. This implementation will be used if
-``USECPO=2`` is available in the operating system environment variables. Note
-that this is different from the web server's environment variables.
-
-Your PO files will have to have character encodings specified, and be perfectly
-valid PO files (no duplicate messages or other format errors). Be sure to test
-this extensively before you migrate your live server to this setup.

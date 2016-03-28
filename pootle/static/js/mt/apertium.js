@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
+
 (function ($) {
   window.PTL.editor.mt = window.PTL.editor.mt || {};
 
@@ -14,7 +22,7 @@
     init: function (apiKey) {
       var _this = PTL.editor.mt.apertium;
       /* Load Apertium library */
-      _this.url = apiKey == undefined ? _this.url : _this.url + '?key=' + apiKey;
+      _this.url = apiKey === undefined ? _this.url : _this.url + '?key=' + apiKey;
       $.getScript(_this.url, function () {
         /* Init variables */
         var _this = PTL.editor.mt.apertium;

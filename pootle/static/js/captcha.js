@@ -1,33 +1,35 @@
-(function ($) {
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
 
-  window.PTL = window.PTL || {};
+'use strict';
 
-  PTL.captcha = {
+var $ = require('jquery');
 
-    display: function (html) {
-      $.magnificPopup.open({
-        items: {
-          src: html,
-          type: 'inline'
-        },
-        focus: '#id_captcha_answer'
-      });
+require('jquery-magnific-popup');
+require('jquery-serializeObject');
+
+var utils = require('./utils.js');
+
+
+var display = function (html) {
+  $(document).on('submit', '#js-captcha', onSubmit);
+
+  $.magnificPopup.open({
+    items: {
+      src: html,
+      type: 'inline'
     },
-
-    onError: function (xhr, errorFn) {
-      if (xhr.status == 402) {
-        PTL.captcha.display(xhr.responseText);
-      } else {
-        PTL.utils.executeFunctionByName(errorFn, window, xhr);
-      }
-    }
-
-  };
-
-}(jQuery));
+    focus: '#id_captcha_answer'
+  });
+};
 
 
-$(document).on('submit', '#js-captcha', function (e) {
+var onSubmit = function (e) {
   e.preventDefault();
   var $form = $(this),
       reqData = $form.serializeObject(),
@@ -40,11 +42,25 @@ $(document).on('submit', '#js-captcha', function (e) {
     type: 'POST',
     data: reqData,
     success: function () {
-      PTL.utils.executeFunctionByName(successFn, window, e);
+      utils.executeFunctionByName(successFn, window, e);
       $.magnificPopup.close();
     },
     error: function (xhr) {
-      PTL.captcha.onError(xhr, errorFn);
+      onError(xhr, errorFn);
     }
   });
-});
+};
+
+
+var onError = function (xhr, errorFn) {
+  if (xhr.status === 402) {
+    display(xhr.responseText);
+  } else {
+    utils.executeFunctionByName(errorFn, window, xhr);
+  }
+};
+
+
+module.exports = {
+  onError: onError,
+};

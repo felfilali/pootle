@@ -1,15 +1,25 @@
-window.PTL = window.PTL || {};
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
 
-PTL.collections = PTL.collections || {};
+var Backbone = require('backbone');
 
-(function (collections, models) {
+var Unit = require('./models.js').Unit;
+
+
+var collections = {};
+
 
 /*
- * PTL.collections.Units
+ * collections.UnitSet
  */
 
 collections.UnitSet = Backbone.Collection.extend({
-  model: models.Unit,
+  model: Unit,
 
   initialize: function (model, opts) {
     this.chunkSize = opts.chunkSize;
@@ -58,4 +68,4 @@ collections.UnitSet = Backbone.Collection.extend({
 });
 
 
-}(PTL.collections, PTL.models));
+module.exports = collections;

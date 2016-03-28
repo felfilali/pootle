@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
+
 /* Standard button */
 
 .btn
@@ -15,7 +23,6 @@
 
     text-align: center;
     text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.1);
-    font-weight: bold;
 
     transition: all 0.25s linear 0s;
 
@@ -61,7 +68,7 @@ a.btn:link
 
 .btn
 {
-    background-color: #91a9b9;
+    background-color: #72a6c4;
 }
 
 .btn.btn-primary
@@ -72,6 +79,11 @@ a.btn:link
 .btn.btn-success
 {
     background-color: #5fb336;
+}
+
+.btn.btn-login
+{
+    background-color: #1cc8dd;
 }
 
 .btn.btn-info

@@ -1,24 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Zuza Software Foundation
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-#
-# Pootle is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# Pootle; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import os
+import re
+import urllib
 import urlparse
 
 from django.core.urlresolvers import reverse
@@ -58,6 +49,39 @@ def split_pootle_path(pootle_path):
     return (language_code, project_code, dir_path, filename)
 
 
+def to_tp_relative_path(pootle_path):
+    """Returns a path relative to translation projects.
+
+    If `pootle_path` is `/af/project/dir1/dir2/file.po`, this will
+    return `dir1/dir2/file.po`.
+    """
+    return u'/'.join(pootle_path.split(u'/')[3:])
+
+
+def get_all_pootle_paths(pootle_path):
+    """Get list of `pootle_path` for all parents."""
+    res = [pootle_path]
+
+    if pootle_path == '' or pootle_path[-1] != u'/':
+        pootle_path += u'/'
+
+    while True:
+        chunks = pootle_path.rsplit(u'/', 2)
+        slash_count = chunks[0].count(u'/')
+        pootle_path = chunks[0] + u'/'
+        if slash_count > 1:
+            res.append(pootle_path)
+        else:
+            if slash_count == 1 and pootle_path != u'/projects/':
+                # omit chunk[0] which is a language_code
+                # since language is inherited from a (non cached) TreeItem
+                # chunk[1] is a project_code
+                res.append(u'/projects/%s/' % chunks[1])
+            break
+
+    return res
+
+
 def get_path_sortkey(path):
     """Returns the sortkey to use for a `path`."""
     if path == '' or path.endswith('/'):
@@ -91,7 +115,9 @@ def get_path_parts(path):
     return parts
 
 
-def get_editor_filter(state=None, check=None, user=None):
+def get_editor_filter(state=None, check=None, user=None, month=None,
+                      sort=None, search=None, sfields=None,
+                      check_category=None):
     """Return a filter string to be appended to a translation URL."""
     filter_string = ''
 
@@ -99,8 +125,24 @@ def get_editor_filter(state=None, check=None, user=None):
         filter_string = '#filter=%s' % state
         if user is not None:
             filter_string += '&user=%s' % user
+        if month is not None:
+            filter_string += '&month=%s' % month
     elif check is not None:
         filter_string = '#filter=checks&checks=%s' % check
+    elif check_category is not None:
+        filter_string = '#filter=checks&category=%s' % check_category
+    elif search is not None:
+        filter_string = '#search=%s' % urllib.quote_plus(search)
+        if sfields is not None:
+            if not isinstance(sfields, list):
+                sfields = [sfields]
+            filter_string += '&sfields=%s' % ','.join(sfields)
+
+    if sort is not None:
+        if filter_string:
+            filter_string += '&sort=%s' % sort
+        else:
+            filter_string = '#sort=%s' % sort
 
     return filter_string
 
@@ -123,13 +165,29 @@ def get_previous_url(request):
         parsed_referer = urlparse.urlparse(referer_url)
         referer_host = parsed_referer.netloc
         referer_path = parsed_referer.path
+        referer_query = parsed_referer.query
         server_host = request.get_host()
 
         if referer_host == server_host and '/translate/' not in referer_path:
             # Remove query string if present
-            if '?' in referer_url:
+            if referer_query:
                 referer_url = referer_url[:referer_url.index('?')]
+
+            # But ensure `?details` is not missed out
+            if 'details' in referer_query:
+                referer_url = '%s?details' % referer_url
 
             return referer_url
 
     return reverse('pootle-home')
+
+
+def urljoin(base, *url_parts):
+    """Joins URL parts with a `base` and removes any duplicated slashes in
+    `url_parts`.
+    """
+    new_url = urlparse.urljoin(base, '/'.join(url_parts))
+    new_url = list(urlparse.urlparse(new_url))
+    new_url[2] = re.sub('/{2,}', '/', new_url[2])
+
+    return urlparse.urlunparse(new_url)

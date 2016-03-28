@@ -1,26 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008-2012 Zuza Software Foundation
-# Copyright 2013 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of translate.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
+from django import forms
 from django.forms.models import modelformset_factory
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -31,15 +20,15 @@ from pootle.core.paginator import paginate
 def form_set_as_table(formset, link=None, linkfield='code'):
     """Create an HTML table from the formset. The first form in the
     formset is used to obtain a list of the fields that need to be
-    displayed. All these fields not appearing in 'exclude' will be
-    placed into consecutive columns.
+    displayed.
 
     Errors, if there are any, appear in the row above the form which
     triggered any errors.
 
     If the forms are based on database models, the order of the
     columns is determined by the order of the fields in the model
-    specification."""
+    specification.
+    """
 
     def add_header(result, fields, form):
         result.append('<tr>\n')
@@ -86,8 +75,8 @@ def form_set_as_table(formset, link=None, linkfield='code'):
 
             result.append('</tr>\n')
 
-    def add_widgets(result, fields, form, link, zebra):
-        result.append('<tr class="%s">\n' % zebra)
+    def add_widgets(result, fields, form, link):
+        result.append('<tr class="item">\n')
         for i, field in enumerate(fields):
             result.append('<td class="%s">' % field)
             # Include a hidden element containing the form's id to the
@@ -99,7 +88,7 @@ def form_set_as_table(formset, link=None, linkfield='code'):
             # widget
             if field == linkfield and linkfield in form.initial and link:
                 if callable(link):
-                    result.append(link(form.instance).decode("utf-8"))
+                    result.append(link(form.instance))
                 result.append(form[field].as_hidden())
             else:
                 result.append(form[field].as_widget())
@@ -122,14 +111,13 @@ def form_set_as_table(formset, link=None, linkfield='code'):
         result.append('</tfoot>\n')
 
         result.append('<tbody>\n')
-        for i, form in enumerate(formset.forms):
-            if i % 2:
-                zebra = "odd"
-            else:
-                zebra = "even"
 
+        # Do not display the delete checkbox for the 'add a new entry' form.
+        formset.forms[-1].fields['DELETE'].widget = forms.HiddenInput()
+
+        for i, form in enumerate(formset.forms):
             add_errors(result, fields, form)
-            add_widgets(result, fields, form, link, zebra)
+            add_widgets(result, fields, form, link)
 
         result.append('</tbody>\n')
     except IndexError:
@@ -188,6 +176,7 @@ def edit(request, template, model_class, ctx=None,
         'formset': formset,
         'objects': objects,
         'error_msg': msg,
+        'can_add': kwargs.get('extra', 1) != 0,
     })
 
     return render(request, template, ctx)

@@ -10,9 +10,9 @@ other way, make sure to read through this part.
    :maxdepth: 2
 
    contributing
-   design_principles
    roadmap
    hacking
+   frontend
    customization
    browsers
    testing
@@ -20,4 +20,5 @@ other way, make sure to read through this part.
    release
    glossary
    styleguide
+   deprecation
    releasing

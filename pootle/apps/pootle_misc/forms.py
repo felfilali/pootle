@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010-2012 Zuza Software Foundation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# Pootle is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# Pootle is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# Pootle; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 from django import forms
 from django.core.validators import EMPTY_VALUES
@@ -70,26 +59,25 @@ class LiberalModelChoiceField(forms.ModelChoiceField):
 
 def make_search_form(*args, **kwargs):
     """Factory that instantiates one of the search forms below."""
-    terminology = kwargs.pop('terminology', False)
     request = kwargs.pop('request', None)
 
     if request is not None:
-        env = terminology and "terminology" or "editor"
-        sparams_cookie = request.COOKIES.get("search-%s" % env)
+        sparams_cookie = request.COOKIES.get('pootle-search')
 
         if sparams_cookie:
             import json
             import urllib
 
-            initial_sparams = json.loads(urllib.unquote(sparams_cookie))
-            if isinstance(initial_sparams, dict):
-                if 'sfields' in initial_sparams:
+            try:
+                initial_sparams = json.loads(urllib.unquote(sparams_cookie))
+            except ValueError:
+                pass
+            else:
+                if (isinstance(initial_sparams, dict) and
+                    'sfields' in initial_sparams):
                     kwargs.update({
                         'initial': initial_sparams,
                     })
-
-    if terminology:
-        return TermSearchForm(*args, **kwargs)
 
     return SearchForm(*args, **kwargs)
 
@@ -99,6 +87,7 @@ class SearchForm(forms.Form):
     search = forms.CharField(
         widget=forms.TextInput(attrs={
             'size': '15',
+            'placeholder': _('Search'),
             'title': _("Search (Ctrl+Shift+S)<br/>Type and press Enter to "
                        "search"),
         }),
@@ -118,21 +107,6 @@ class SearchForm(forms.Form):
             ('target', _('Target Text')),
             ('notes', _('Comments')),
             ('locations', _('Locations'))
-        ),
-        initial=['source', 'target'],
-    )
-
-
-class TermSearchForm(SearchForm):
-    """Search form for terminology projects and pootle-terminology files."""
-    # Mostly the same as SearchForm, but defining it this way seemed easiest.
-    sfields = forms.ChoiceField(
-        required=False,
-        widget=forms.CheckboxSelectMultiple,
-        choices=(
-            ('source', _('Source Terms')),
-            ('target', _('Target Terms')),
-            ('notes', _('Definitions')),
         ),
         initial=['source', 'target'],
     )

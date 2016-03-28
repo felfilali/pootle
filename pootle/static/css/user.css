@@ -1,0 +1,279 @@
+/*
+ * Copyright (C) Pootle contributors.
+ *
+ * This file is a part of the Pootle project. It is distributed under the GPL3
+ * or later license. See the LICENSE file for a copy of the license and the
+ * AUTHORS file for copyright and authorship information.
+ */
+
+/* USER PROFILES */
+
+#profile-page #content
+{
+    background: url(../images/bg.png) 0px 0px repeat-x;
+    margin: 0;
+}
+
+#user-profile
+{
+    text-align: center;
+    padding-top: 140px;
+}
+
+#user-profile a:active,
+#user-profile a:hover,
+#user-profile a:focus
+{
+    opacity: 0.8;
+    text-decoration: none;
+}
+
+/* Meta */
+
+#user-meta img
+{
+    border: 1px solid #eee;
+    padding: 5px;
+}
+
+#user-meta .user-name
+{
+    font-size: 3em;
+}
+
+/* Stats */
+
+#user-stats .user-score-title
+{
+    font-family: sans-serif;
+    font-size: 1.8em;
+    font-weight: normal;
+    color: #1a1a1a;
+    margin-top: 0.5em;
+}
+
+#user-stats .user-score
+{
+    font-size: 3em;
+    margin-bottom: 1em;
+}
+
+#user-stats .user-score,
+#user-stats .user-position
+{
+    color: #5A8295;
+}
+
+#user-stats .user-position
+{
+    display: inline-block;
+    background-color: #eee;
+    font-size: 1.6em;
+    border-radius: 1.5em;
+    padding: 0.5em 1em;
+    margin-bottom: 2em;
+}
+
+#user-stats .user-last-activity
+{
+    margin-bottom: 3em;
+    font-size: 1.1em;
+}
+
+#user-stats .user-last-activity .label
+{
+    color: #999;
+    display: inline;
+    margin-right: 0.5em;
+}
+
+#user-stats .last-action
+{
+    display: inline;
+}
+
+#user-stats .last-action img
+{
+    vertical-align: middle;
+}
+
+
+/* Personal details */
+
+#user-details
+{
+    background-color: #f5fbfd;
+    padding: 1em 2em;
+    font-size: 1.5em;
+}
+
+#user-details.meta-user
+{
+    margin-top: 2em;
+}
+
+#user-details .user-contact
+{
+    margin: 1em 0;
+}
+
+#user-details .user-contact i
+{
+    vertical-align: middle;
+    margin-right: 0.5em;
+    position: relative;
+    top: -2px;
+}
+
+#user-details .user-contact li
+{
+    display: inline-block;
+    margin: 0 2em;
+}
+
+.user-contact + .user-bio
+{
+    margin-top: 1em !important;
+}
+
+#user-details .user-bio
+{
+    font-family: sans-serif;
+    font-weight: normal;
+    line-height: 1.6;
+    max-width: 750px;
+    margin: 1em auto;
+}
+
+#user-details .user-bio.placeholder
+{
+    color: #4dbdcb;
+}
+
+#user-details .edit-profile-btn
+{
+    margin: 2em 0 1em 0;
+}
+
+
+/* Detailed stats */
+
+#user-stats table
+{
+    margin-top: 0.5em;
+    margin-bottom: 1.5em;
+    width: 100%;
+}
+
+#user-stats table td
+{
+    padding: 5px;
+    width: 16.6%;
+}
+
+
+/* User profile editing form */
+
+.lightbox-body.user-edit
+{
+  font-size: 1.2em;
+}
+
+#user-edit
+{
+    width: 500px;
+}
+
+#user-edit label
+{
+    width: 30%;
+}
+
+#user-edit .fields label,
+#user-edit .fields input,
+#user-edit .fields textarea,
+#user-edit .fields .helptext
+{
+    display: inline-block;
+    box-sizing: border-box;
+    vertical-align: top;
+}
+
+#user-edit .field-wrapper
+{
+    margin-bottom: 1em;
+}
+
+#user-edit .fields input,
+#user-edit .fields textarea
+{
+    width: 70%;
+    padding: 0.3em;
+    line-height: 1.2;
+}
+
+#user-edit .fields input[type="checkbox"]
+{
+    width: auto;
+}
+
+#user-edit #id_twitter
+{
+    width: 35%;
+}
+
+#user-edit #id_bio
+{
+    height: 5em;
+}
+
+#user-edit .helptext,
+#user-edit .errorlist,
+#user-edit .buttons
+{
+    margin-left: 30%;
+}
+
+html[dir="rtl"] #user-edit .helptext,
+html[dir="rtl"] #user-edit .errorlist,
+html[dir="rtl"] #user-edit .buttons
+{
+    margin-left: auto;
+    margin-right: 30%;
+}
+
+#user-edit .buttons
+{
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#user-edit .helptext
+{
+    position: absolute;
+    margin-top: -0.2em;
+    left: 80px;
+    width: 40%;
+}
+
+html[dir="rtl"] #user-edit .helptext
+{
+    left: auto;
+    right: 80px;
+}
+
+#user-edit .divider
+{
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.2);
+    width: 100%;
+    clear: both;
+}
+
+
+/* USER SETTINGS */
+
+.user-settings h2
+{
+    margin-top: 1em;
+}

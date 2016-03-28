@@ -1,78 +1,44 @@
 # -*- coding: utf-8 -*-
-from south.utils import datetime_utils as datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import connection, models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import django.utils.timezone
+import re
+import django.core.validators
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        if "auth_user" not in connection.introspection.table_names():
-            # Fresh installations of Pootle will not have an auth_user table.
-            db.create_table("accounts_user", (
-                (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-                ('password', self.gf('django.db.models.fields.CharField')(max_length=128)),
-                ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-                ('username', self.gf('django.db.models.fields.CharField')(unique=True, max_length=30)),
-                ('email', self.gf('django.db.models.fields.EmailField')(max_length=255)),
-                ('full_name', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-                ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-                ('is_superuser', self.gf('django.db.models.fields.BooleanField')(default=False)),
-                ('date_joined', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ))
-            db.send_create_signal("accounts", ["User"])
-            # We're done here
-            return
+    dependencies = [
+    ]
 
-        # We now have a full_name column instead of first_name and last_name
-        db.add_column("auth_user", "full_name",
-                      self.gf("django.db.models.fields.CharField")(default='', max_length=255),
-                      keep_default=False)
-        if db.backend_name == "mysql":
-            db.execute("UPDATE auth_user SET full_name = CONCAT(`first_name`, ' ', `last_name`)")
-        else:
-            # Works in postgres and sqlite
-            db.execute("UPDATE auth_user SET full_name = first_name || ' ' || last_name")
-
-        # Delete the first_name and last_name columns now
-        db.delete_column("auth_user", "first_name")
-        db.delete_column("auth_user", "last_name")
-        # We don't use the is_staff column either
-        db.delete_column("auth_user", "is_staff")
-
-        # Finally, rename the table to accounts_user
-        db.rename_table("auth_user", "accounts_user")
-
-    def backwards(self, orm):
-        db.rename_table("accounts_user", "auth_user")
-
-        # WARNING: full_name -> first_name + last_name is lossy!
-        db.add_column("auth_user", "first_name",
-                      self.gf("django.db.models.fields.CharField")(default='', max_length=30),
-                      keep_default=False)
-        db.add_column("auth_user", "last_name",
-                      self.gf("django.db.models.fields.CharField")(default='', max_length=30),
-                      keep_default=False)
-        db.add_column("auth_user", "is_staff",
-                      self.gf("django.db.models.fields.BooleanField")(default=False),
-                      keep_default=False)
-
-        db.delete_column("auth_user", "full_name")
-
-    models = {
-        'accounts.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '255'}),
-            'full_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        }
-    }
-
-    complete_apps = ['accounts']
+    operations = [
+        migrations.CreateModel(
+            name='User',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('password', models.CharField(max_length=128, verbose_name='password')),
+                ('last_login', models.DateTimeField(default=django.utils.timezone.now, verbose_name='last login')),
+                ('username', models.CharField(help_text='Required. 30 characters or fewer. Letters, numbers and @/./+/-/_ characters', unique=True, max_length=30, verbose_name='Username', validators=[django.core.validators.RegexValidator(re.compile(b'^[\\w.@+-]+$'), 'Enter a valid username.', b'invalid')])),
+                ('email', models.EmailField(max_length=255, verbose_name='Email Address')),
+                ('full_name', models.CharField(max_length=255, verbose_name='Full Name', blank=True)),
+                ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='Active')),
+                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='Superuser Status')),
+                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
+                ('unit_rows', models.SmallIntegerField(default=9, verbose_name='Number of Rows')),
+                ('rate', models.FloatField(default=0, verbose_name='Rate')),
+                ('review_rate', models.FloatField(default=0, verbose_name='Review Rate')),
+                ('hourly_rate', models.FloatField(default=0, verbose_name='Hourly Rate')),
+                ('score', models.FloatField(default=0, verbose_name='Score')),
+                ('currency', models.CharField(blank=True, max_length=3, null=True, verbose_name='Currency', choices=[(b'USD', b'USD'), (b'EUR', b'EUR'), (b'CNY', b'CNY'), (b'JPY', b'JPY')])),
+                ('is_employee', models.BooleanField(default=False, verbose_name='Is employee?')),
+                ('twitter', models.CharField(max_length=15, null=True, verbose_name='Twitter', blank=True)),
+                ('website', models.URLField(null=True, verbose_name='Website', blank=True)),
+                ('linkedin', models.URLField(null=True, verbose_name='LinkedIn', blank=True)),
+                ('bio', models.TextField(null=True, verbose_name='Short Bio', blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+    ]

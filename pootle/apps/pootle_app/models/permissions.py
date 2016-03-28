@@ -1,24 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2008-2013 Zuza Software Foundation
-# Copyright 2014 Evernote Corporation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of translate.
-#
-# translate is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# translate is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with translate; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 from django.db import models
 from django.conf import settings
@@ -26,8 +13,6 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.utils.encoding import iri_to_uri
-
-from pootle.core.managers import RelatedManager
 
 
 def get_permission_contenttype():
@@ -67,7 +52,8 @@ def get_permissions_by_username(username, directory):
         try:
             permissionset = PermissionSet.objects.filter(
                 directory__in=directory.trail(only_dirs=False),
-                user__username=username).order_by("-directory__pootle_path")[0]
+                user__username=username) \
+                        .order_by('-directory__pootle_path')[0]
         except IndexError:
             permissionset = None
 
@@ -89,7 +75,7 @@ def get_permissions_by_username(username, directory):
         else:
             permissions_cache[pootle_path] = None
 
-        cache.set(key, permissions_cache, settings.OBJECT_CACHE_TIMEOUT)
+        cache.set(key, permissions_cache, settings.POOTLE_CACHE_TIMEOUT)
 
     return permissions_cache[pootle_path]
 
@@ -113,8 +99,10 @@ def get_matching_permissions(user, directory, check_default=True):
     return permissions
 
 
-def check_user_permission(user, perm_code, directory, check_default=True):
-    """Check if the current user has the permission to perform ``perm_code``."""
+def check_user_permission(user, permission_codename, directory,
+                          check_default=True):
+    """Checks if the current user has the permission to perform
+    ``permission_codename``."""
     if user.is_superuser:
         return True
 
@@ -123,14 +111,16 @@ def check_user_permission(user, perm_code, directory, check_default=True):
     return ("administrate" in permissions or perm_code in permissions)
 
 
-def check_permission(perm_code, request):
-    """Check if the current user has `perm_code` permission."""
+def check_permission(permission_codename, request):
+    """Checks if the current user has `permission_codename`
+    permissions.
+    """
     if request.user.is_superuser:
         return True
 
     # `view` permissions are project-centric, and we must treat them
     # differently
-    if perm_code == 'view':
+    if permission_codename == 'view':
         path_obj = None
         if hasattr(request, 'translation_project'):
             path_obj = request.translation_project
@@ -142,38 +132,42 @@ def check_permission(perm_code, request):
 
         return path_obj.is_accessible_by(request.user)
 
-    permissions = request.permissions
+    return ("administrate" in request.permissions or
+            permission_codename in request.permissions)
 
-    return ("administrate" in permissions or perm_code in permissions)
+        if path_obj is None:
+            return True  # Always allow to view language pages
+
+class PermissionSetManager(models.Manager):
+
+    def get_queryset(self):
+        """Mimics `select_related(depth=1)` behavior. Pending review."""
+        return (
+            super(PermissionSetManager, self).get_queryset().select_related(
+                'user', 'directory',
+            )
+        )
 
 
 class PermissionSet(models.Model):
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
-    directory = models.ForeignKey(
-        'pootle_app.Directory',
-        db_index=True,
-        related_name='permission_sets',
-    )
-    positive_permissions = models.ManyToManyField(
-        Permission,
-        db_index=True,
-        related_name='permission_sets_positive',
-    )
-    negative_permissions = models.ManyToManyField(
-        Permission,
-        db_index=True,
-        related_name='permission_sets_negative',
-    )
-
-    objects = RelatedManager()
+    objects = PermissionSetManager()
 
     class Meta:
         unique_together = ('user', 'directory')
         app_label = "pootle_app"
 
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
+    directory = models.ForeignKey('pootle_app.Directory', db_index=True,
+                                  related_name='permission_sets')
+    positive_permissions = models.ManyToManyField(Permission, db_index=True,
+            related_name='permission_sets_positive')
+    negative_permissions = models.ManyToManyField(Permission, db_index=True,
+            related_name='permission_sets_negative')
+
     def __unicode__(self):
-        return "%s : %s" % (self.user.username, self.directory.pootle_path)
+        return "%s : %s" % (self.user.username,
+                            self.directory.pootle_path)
 
     def to_dict(self):
         permissions_iterator = self.positive_permissions.iterator()
@@ -183,20 +177,12 @@ class PermissionSet(models.Model):
         super(PermissionSet, self).save(*args, **kwargs)
         # FIXME: can we use `post_save` signals or invalidate caches in
         # model managers, please?
-        username = self.user.username
-        keys = [
-            iri_to_uri('Permissions:%s' % username),
-            iri_to_uri('projects:accessible:%s' % username),
-        ]
-        cache.delete_many(keys)
+        key = iri_to_uri('Permissions:%s' % self.user.username)
+        cache.delete(key)
 
     def delete(self, *args, **kwargs):
         super(PermissionSet, self).delete(*args, **kwargs)
         # FIXME: can we use `post_delete` signals or invalidate caches in
         # model managers, please?
-        username = self.user.username
-        keys = [
-            iri_to_uri('Permissions:%s' % username),
-            iri_to_uri('projects:accessible:%s' % username),
-        ]
-        cache.delete_many(keys)
+        key = iri_to_uri('Permissions:%s' % self.user.username)
+        cache.delete(key)

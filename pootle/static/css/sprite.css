@@ -1,89 +1,320 @@
-/* glue: 0.3 hash: eac1652495 */
-.logo,
-.icon-keyboard,
+﻿/* glue: 0.9.4 hash: 4cb498d832 */
+        .icon-user-website,
+.icon-user-twitter,
+.icon-user-linkedin,
+.icon-logo,
 .icon-desc,
 .icon-ascdesc,
 .icon-asc,
 .icon-expand-stats,
 .icon-collapse-stats,
-.icon-wikipedia,
+.icon-yandex-translate,
 .icon-web-translate,
 .icon-warning,
-.icon-vote-inactive,
-.icon-vote-active,
+.icon-timeline,
 .icon-tick,
 .icon-tag,
 .icon-tag-remove,
 .icon-tag-add,
 .icon-search,
 .icon-reject,
+.icon-raw-mode,
 .icon-project,
 .icon-language,
 .icon-information,
 .icon-google-translate,
 .icon-folder,
 .icon-folder-parent,
-.icon-filter,
 .icon-file,
-.icon-feed,
 .icon-error,
 .icon-copy,
 .icon-comment-user,
 .icon-comment-add,
 .icon-block,
 .icon-block-muted,
+.icon-arrow-up,
+.icon-arrow-down,
 .icon-apertium,
 .icon-accept,
-.icon-vcs-update,
-.icon-vcs-commit,
 .icon-upload,
-.icon-update-templates,
-.icon-rescan-files,
 .icon-download,
-.icon-delete-path,
 .icon-back,
-.icon-external-link{background-image:url('../images/sprite.png');background-repeat:no-repeat}
-.logo{background-position:0px 0px;width:52px;height:32px;}
-.icon-keyboard{background-position:0px -32px;width:32px;height:19px;}
-.icon-desc{background-position:-52px 0px;width:21px;height:4px;}
-.icon-ascdesc{background-position:-52px -4px;width:21px;height:9px;}
-.icon-asc{background-position:-52px -13px;width:21px;height:4px;}
-.icon-expand-stats{background-position:-52px -17px;width:17px;height:17px;}
-.icon-collapse-stats{background-position:-52px -34px;width:17px;height:17px;}
-.icon-wikipedia{background-position:-32px -32px;width:16px;height:16px;}
-.icon-web-translate{background-position:0px -51px;width:16px;height:16px;}
-.icon-warning{background-position:-16px -51px;width:16px;height:16px;}
-.icon-vote-inactive{background-position:-32px -51px;width:16px;height:16px;}
-.icon-vote-active{background-position:-48px -51px;width:16px;height:16px;}
-.icon-tick{background-position:-73px 0px;width:16px;height:16px;}
-.icon-tag{background-position:-73px -16px;width:16px;height:16px;}
-.icon-tag-remove{background-position:-73px -32px;width:16px;height:16px;}
-.icon-tag-add{background-position:-73px -48px;width:16px;height:16px;}
-.icon-search{background-position:0px -67px;width:16px;height:16px;}
-.icon-reject{background-position:-16px -67px;width:16px;height:16px;}
-.icon-project{background-position:-32px -67px;width:16px;height:16px;}
-.icon-language{background-position:-48px -67px;width:16px;height:16px;}
-.icon-information{background-position:-64px -67px;width:16px;height:16px;}
-.icon-google-translate{background-position:-89px 0px;width:16px;height:16px;}
-.icon-folder{background-position:-89px -16px;width:16px;height:16px;}
-.icon-folder-parent{background-position:-89px -32px;width:16px;height:16px;}
-.icon-filter{background-position:-89px -48px;width:16px;height:16px;}
-.icon-file{background-position:-89px -64px;width:16px;height:16px;}
-.icon-feed{background-position:0px -83px;width:16px;height:16px;}
-.icon-error{background-position:-16px -83px;width:16px;height:16px;}
-.icon-copy{background-position:-32px -83px;width:16px;height:16px;}
-.icon-comment-user{background-position:-48px -83px;width:16px;height:16px;}
-.icon-comment-add{background-position:-64px -83px;width:16px;height:16px;}
-.icon-block{background-position:-80px -83px;width:16px;height:16px;}
-.icon-block-muted{background-position:-105px 0px;width:16px;height:16px;}
-.icon-apertium{background-position:-105px -16px;width:16px;height:16px;}
-.icon-accept{background-position:-105px -32px;width:16px;height:16px;}
-.icon-vcs-update{background-position:-105px -48px;width:14px;height:14px;}
-.icon-vcs-commit{background-position:-105px -62px;width:14px;height:14px;}
-.icon-upload{background-position:-105px -76px;width:14px;height:14px;}
-.icon-update-templates{background-position:0px -99px;width:14px;height:14px;}
-.icon-rescan-files{background-position:-14px -99px;width:14px;height:14px;}
-.icon-download{background-position:-28px -99px;width:14px;height:14px;}
-.icon-delete-path{background-position:-42px -99px;width:14px;height:14px;}
-.icon-back{background-position:-56px -99px;width:14px;height:13px;}
-.icon-external-link{background-position:-70px -99px;width:12px;height:12px;}
+.icon-external-link {
+            background-image: url('../images/sprite.png');
+            background-repeat: no-repeat;
+        }
+        
+        .icon-user-website {
+            background-position: 0 0;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .icon-user-twitter {
+            background-position: -32px 0;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .icon-user-linkedin {
+            background-position: 0 -32px;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .icon-logo {
+            background-position: -32px -32px;
+            width: 32px;
+            height: 32px;
+        }
+        
+        .icon-desc {
+            background-position: -64px 0;
+            width: 21px;
+            height: 4px;
+        }
+        
+        .icon-ascdesc {
+            background-position: -64px -4px;
+            width: 21px;
+            height: 9px;
+        }
+        
+        .icon-asc {
+            background-position: -64px -13px;
+            width: 21px;
+            height: 4px;
+        }
+        
+        .icon-expand-stats {
+            background-position: -64px -17px;
+            width: 17px;
+            height: 17px;
+        }
+        
+        .icon-collapse-stats {
+            background-position: -64px -34px;
+            width: 17px;
+            height: 17px;
+        }
+        
+        .icon-yandex-translate {
+            background-position: 0 -64px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-web-translate {
+            background-position: -16px -64px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-warning {
+            background-position: -32px -64px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-timeline {
+            background-position: -48px -64px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-tick {
+            background-position: -64px -64px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-search {
+            background-position: -85px 0;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-reject {
+            background-position: -85px -16px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-raw-mode {
+            background-position: -85px -32px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-project {
+            background-position: -85px -48px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-language {
+            background-position: -85px -64px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-information {
+            background-position: 0 -80px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-google-translate {
+            background-position: -16px -80px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-folder {
+            background-position: -32px -80px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-folder-parent {
+            background-position: -48px -80px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-file {
+            background-position: -64px -80px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-error {
+            background-position: -80px -80px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-copy {
+            background-position: -101px 0;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-comment-user {
+            background-position: -101px -16px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-comment-add {
+            background-position: -101px -32px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-block {
+            background-position: -101px -48px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-block-muted {
+            background-position: -101px -64px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-arrow-up {
+            background-position: -101px -80px;
+            width: 9px;
+            height: 16px;
+        }
+        
+        .icon-arrow-down {
+            background-position: 0 -96px;
+            width: 9px;
+            height: 16px;
+        }
+        
+        .icon-apertium {
+            background-position: -9px -96px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-accept {
+            background-position: -25px -96px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .icon-upload {
+            background-position: -41px -96px;
+            width: 14px;
+            height: 14px;
+        }
+        
+        .icon-download {
+            background-position: -55px -96px;
+            width: 14px;
+            height: 14px;
+        }
+        
+        .icon-back {
+            background-position: -64px -51px;
+            width: 14px;
+            height: 13px;
+        }
+        
+        .icon-external-link {
+            background-position: -69px -96px;
+            width: 12px;
+            height: 12px;
+        }
+        
+        @media screen and (-webkit-min-device-pixel-ratio: 1.0), screen and (min--moz-device-pixel-ratio: 1.0), screen and (-o-min-device-pixel-ratio: 100/100), screen and (min-device-pixel-ratio: 1.0), screen and (min-resolution: 1.0dppx) {
+            .icon-user-website,
+    .icon-user-twitter,
+    .icon-user-linkedin,
+    .icon-logo,
+    .icon-desc,
+    .icon-ascdesc,
+    .icon-asc,
+    .icon-expand-stats,
+    .icon-collapse-stats,
+    .icon-yandex-translate,
+    .icon-web-translate,
+    .icon-warning,
+    .icon-timeline,
+    .icon-tick,
+    .icon-search,
+    .icon-reject,
+    .icon-raw-mode,
+    .icon-project,
+    .icon-language,
+    .icon-information,
+    .icon-google-translate,
+    .icon-folder,
+    .icon-folder-parent,
+    .icon-file,
+    .icon-error,
+    .icon-copy,
+    .icon-comment-user,
+    .icon-comment-add,
+    .icon-block,
+    .icon-block-muted,
+    .icon-arrow-up,
+    .icon-arrow-down,
+    .icon-apertium,
+    .icon-accept,
+    .icon-upload,
+    .icon-download,
+    .icon-back,
+    .icon-external-link {
+                background-image: url('../images/sprite.png');
+                -webkit-background-size: 117px 112px;
+                -moz-background-size: 117px 112px;
+                background-size: 117px 112px;
+            }
+        }
+        

@@ -1,37 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009-2013 Zuza Software Foundation
+# Copyright (C) Pootle contributors.
 #
-# This file is part of Pootle.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# This file is a part of the Pootle project. It is distributed under the GPL3
+# or later license. See the LICENSE file for a copy of the license and the
+# AUTHORS file for copyright and authorship information.
 
 import re
 
 from diff_match_patch import diff_match_patch
 from translate.misc.multistring import multistring
-from translate.storage.placeables import parse as parse_placeables
-from translate.storage.placeables.interfaces import BasePlaceable
+from translate.storage.placeables import general
 
 from django import template
 from django.core.exceptions import ObjectDoesNotExist
 from django.template.defaultfilters import stringfilter
-from django.template.loaders.filesystem import Loader
-from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
+
+from pootle.core.utils.templates import get_template_source
 
 from pootle_store.fields import list_empty
 from pootle_store.placeables import PLACEABLE_PARSERS, PLACEABLE_DESCRIPTIONS
@@ -40,68 +28,7 @@ from pootle_store.placeables import PLACEABLE_PARSERS, PLACEABLE_DESCRIPTIONS
 register = template.Library()
 
 
-@register.filter
-@stringfilter
-def highlight_placeables(text):
-    """Wrap placeables to easily distinguish and manipulate them."""
-    output = u""
-
-    # Get a flat list of placeables and StringElem instances.
-    flat_items = parse_placeables(text, PLACEABLE_PARSERS).flatten()
-
-    for item in flat_items:
-        if isinstance(item, BasePlaceable):
-            # It is a placeable, so highlight it.
-
-            class_name = item.__class__.__name__
-            placeable = unicode(item)  # String representation for placeable.
-
-            # CSS class used to highlight the placeable.
-            css_class = {
-                'PootleEscapePlaceable': "highlight-escape",
-                'PootleSpacesPlaceable': "translation-space",
-                'PootleTabEscapePlaceable': "highlight-escape",
-                'NewlinePlaceable': "highlight-escape",
-            }.get(class_name, "placeable")
-
-            # Some placeables require changing the representation in order to
-            # correctly display them on the translation editor.
-
-            def replace_whitespace(string):
-                fancy_space = '&nbsp;'
-                if string.startswith(' '):
-                    return fancy_space * len(string)
-                return string[0] + fancy_space * (len(string) - 1)
-
-            content = {
-                'PootleEscapePlaceable': u'\\\\',
-                'PootleTabEscapePlaceable': u'\\t',
-                'PootleSpacesPlaceable': replace_whitespace(placeable),
-                'NewlinePlaceable': {
-                        u'\r\n': u'\\r\\n<br/>\n',
-                        u'\r': u'\\r<br/>\n',
-                        u'\n': u'\\n<br/>\n',
-                    }.get(placeable),
-                'XMLEntityPlaceable': placeable.replace('&', '&amp;'),
-                'XMLTagPlaceable': placeable.replace('<', '&lt;') \
-                                            .replace('>', '&gt;'),
-            }.get(class_name, placeable)
-
-            # Provide a description for the placeable using a tooltip.
-            description = PLACEABLE_DESCRIPTIONS.get(class_name,
-                                                     _("Unknown placeable"))
-
-            output += (u'<span class="%s js-editor-copytext js-placeable" '
-                       u'title="%s">%s</span>') % (css_class, description,
-                                                   content)
-        else:
-            # It is not a placeable, so just concatenate to output string.
-            output += escape(item)
-
-    return mark_safe(output)
-
-
-IMAGE_URL_RE = re.compile("(https?://[^\s]+\.(png|jpe?g|gif))")
+IMAGE_URL_RE = re.compile("(https?://[^\s]+\.(png|jpe?g|gif))", re.IGNORECASE)
 @register.filter
 def image_urls(text):
     """Return a list of image URLs extracted from `text`."""
@@ -136,6 +63,34 @@ def fancy_escape(text):
     return ESCAPE_RE.sub(replace, text)
 
 
+WHITESPACE_RE = re.compile('^ +| +$|[\r\n\t] +| {2,}')
+def fancy_spaces(text):
+    """Highlight spaces to make them easily visible."""
+    def replace(match):
+        fancy_space = '<span class="translation-space"> </span>'
+        if match.group().startswith(' '):
+            return fancy_space * len(match.group())
+        return match.group()[0] + fancy_space * (len(match.group()) - 1)
+    return WHITESPACE_RE.sub(replace, text)
+
+
+PUNCTUATION_RE = general.PunctuationPlaceable().regex
+def fancy_punctuation_chars(text):
+    """Wrap punctuation chars found in the ``text`` around tags."""
+    def replace(match):
+        fancy_special_char = ('<span class="highlight-punctuation '
+                              'js-editor-copytext">%s</span>')
+        return fancy_special_char % match.group()
+
+    return PUNCTUATION_RE.sub(replace, text)
+
+
+@register.filter
+@stringfilter
+def fancy_highlight(text):
+    return mark_safe(fancy_punctuation_chars(fancy_spaces(fancy_escape(text))))
+
+
 def call_highlight(old, new):
     """Call diff highlighting code only if the target is set.
 
@@ -150,6 +105,10 @@ def call_highlight(old, new):
     else:
         return highlight_diffs(old, new)
 
+
+differencer = diff_match_patch()
+def highlight_diffs(old, new):
+    """Highlight the differences between old and new."""
 
 differencer = diff_match_patch()
 def highlight_diffs(old, new):
@@ -246,11 +205,9 @@ def pluralize_diff_sugg(sugg):
 
 @register.tag(name="include_raw")
 def do_include_raw(parser, token):
-    """Perform a raw template include.
-
-    This means to include the template without parsing context, just dump the
-    template in.
-
+    """
+    Performs a template include without parsing the context, just dumps
+    the template in.
     Source: http://djangosnippets.org/snippets/1684/
     """
     bits = token.split_contents()
@@ -264,7 +221,6 @@ def do_include_raw(parser, token):
         template_name[-1] == template_name[0]):
         template_name = template_name[1:-1]
 
-    template_loader = Loader()
-    source, path = template_loader.load_template_source(template_name)
+    source, path = get_template_source(template_name)
 
     return template.TextNode(source)
