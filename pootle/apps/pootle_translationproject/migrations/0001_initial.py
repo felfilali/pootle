@@ -14,9 +14,11 @@ class Migration(SchemaMigration):
             ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
             ('description_html', self.gf('django.db.models.fields.TextField')(blank=True)),
             ('real_path', self.gf('django.db.models.fields.FilePathField')(max_length=100)),
-            ('pootle_path', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, db_index=True)),
+            ('pootle_path', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
         ))
         db.send_create_signal('pootle_translationproject', ['TranslationProject'])
+        db.execute("ALTER TABLE `pootle_app_translationproject` ROW_FORMAT=DYNAMIC")
+        db.create_unique(u'pootle_app_translationproject', ['pootle_path'])
 
     def backwards(self, orm):
         # Removing unique constraint on 'TranslationProject', fields ['language', 'project']

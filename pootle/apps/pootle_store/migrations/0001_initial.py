@@ -73,12 +73,14 @@ class Migration(SchemaMigration):
             ('pending', self.gf('pootle_store.fields.TranslationStoreField')(ignore='.pending', max_length=255)),
             ('tm', self.gf('pootle_store.fields.TranslationStoreField')(ignore='.tm', max_length=255)),
             ('parent', self.gf('django.db.models.fields.related.ForeignKey')(related_name='child_stores', to=orm['pootle_app.Directory'])),
-            ('pootle_path', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, db_index=True)),
+            ('pootle_path', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
             ('sync_time', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(1, 1, 1, 0, 0))),
             ('state', self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True)),
         ))
         db.send_create_signal('pootle_store', ['Store'])
+        db.execute("ALTER TABLE `pootle_store_store` ROW_FORMAT=DYNAMIC")
+        db.create_unique(u'pootle_store_store', ['pootle_path'])
 
         # Adding unique constraint on 'Store', fields ['parent', 'name']
         db.create_unique('pootle_store_store', ['parent_id', 'name'])

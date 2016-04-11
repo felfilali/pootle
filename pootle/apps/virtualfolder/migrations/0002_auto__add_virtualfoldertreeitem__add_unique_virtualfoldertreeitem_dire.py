@@ -14,9 +14,11 @@ class Migration(SchemaMigration):
             ('directory', self.gf('django.db.models.fields.related.ForeignKey')(related_name='vf_treeitems', to=orm['pootle_app.Directory'])),
             ('vfolder', self.gf('django.db.models.fields.related.ForeignKey')(related_name='vf_treeitems', to=orm['virtualfolder.VirtualFolder'])),
             ('parent', self.gf('django.db.models.fields.related.ForeignKey')(related_name='child_vf_treeitems', null=True, to=orm['virtualfolder.VirtualFolderTreeItem'])),
-            ('pootle_path', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, db_index=True)),
+            ('pootle_path', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
         ))
         db.send_create_signal(u'virtualfolder', ['VirtualFolderTreeItem'])
+        db.execute("ALTER TABLE `virtualfolder_virtualfolder` ROW_FORMAT=DYNAMIC")
+        db.create_unique(u'virtualfolder_virtualfoldertreeitem', ['pootle_path'])
 
         # Adding M2M table for field stores on 'VirtualFolderTreeItem'
         m2m_table_name = db.shorten_name(u'virtualfolder_virtualfoldertreeitem_stores')
