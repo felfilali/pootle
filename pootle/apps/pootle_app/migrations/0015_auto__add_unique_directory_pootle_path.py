@@ -12,10 +12,13 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         # Adding unique constraint on 'Directory', fields ['pootle_path']
+        # Set table row format to DYNAMIC to change unique key length constraint from 767 bytes to 3072
+        db.execute("ALTER TABLE `pootle_app_directory` ROW_FORMAT=DYNAMIC")
         db.create_unique(u'pootle_app_directory', ['pootle_path'])
 
     def backwards(self, orm):
         # Removing unique constraint on 'Directory', fields ['pootle_path']
+        db.execute("ALTER TABLE `pootle_app_directory` ROW_FORMAT=COMPACT")
         db.delete_unique(u'pootle_app_directory', ['pootle_path'])
 
 

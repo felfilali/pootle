@@ -19,6 +19,7 @@ class Migration(SchemaMigration):
             ('description', self.gf('pootle.core.markup.fields.MarkupField')(blank=True)),
         ))
         db.send_create_signal(u'virtualfolder', ['VirtualFolder'])
+        db.execute("ALTER TABLE `virtualfolder_virtualfolder` ROW_FORMAT=DYNAMIC")
 
         # Adding unique constraint on 'VirtualFolder', fields ['name', 'location']
         db.create_unique(u'virtualfolder_virtualfolder', ['name', 'location'])

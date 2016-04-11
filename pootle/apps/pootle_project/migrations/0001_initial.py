@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
         # Adding model 'Project'
         db.create_table('pootle_app_project', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('code', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, db_index=True)),
+            ('code', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
             ('fullname', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
             ('description_html', self.gf('django.db.models.fields.TextField')(blank=True)),
@@ -27,6 +27,8 @@ class Migration(SchemaMigration):
             ('report_target', self.gf('django.db.models.fields.CharField')(max_length=512, blank=True)),
         ))
         db.send_create_signal('pootle_project', ['Project'])
+        db.execute("ALTER TABLE `pootle_app_project` ROW_FORMAT=DYNAMIC")
+        db.create_unique(u'pootle_app_project', ['code'])
 
 
     def backwards(self, orm):
