@@ -17,7 +17,7 @@ class Migration(SchemaMigration):
             ('pootle_path', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
         ))
         db.send_create_signal(u'virtualfolder', ['VirtualFolderTreeItem'])
-        db.execute("ALTER TABLE `virtualfolder_virtualfolder` ROW_FORMAT=DYNAMIC")
+        db.execute("ALTER TABLE `virtualfolder_virtualfoldertreeitem` ROW_FORMAT=DYNAMIC")
         db.create_unique(u'virtualfolder_virtualfoldertreeitem', ['pootle_path'])
 
         # Adding M2M table for field stores on 'VirtualFolderTreeItem'
