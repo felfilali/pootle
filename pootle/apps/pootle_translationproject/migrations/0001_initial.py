@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('real_path', models.FilePathField(editable=False)),
-                ('pootle_path', models.CharField(unique=True, max_length=255, editable=False, db_index=True)),
+                ('pootle_path', models.CharField(max_length=255, editable=False, db_index=True)),
                 ('creation_time', models.DateTimeField(db_index=True, auto_now_add=True, null=True)),
                 ('disabled', models.BooleanField(default=False)),
                 ('directory', models.OneToOneField(editable=False, to='pootle_app.Directory')),
@@ -34,5 +34,11 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='translationproject',
             unique_together=set([('language', 'project')]),
+        ),
+        migrations.RunSQL('ALTER TABLE `pootle_app_translationproject` ROW_FORMAT=DYNAMIC'),
+        migrations.AlterField(
+            model_name='translationproject',
+            name='pootle_path',
+            field=models.CharField(unique=True, max_length=255, editable=False, db_index=True)
         ),
     ]

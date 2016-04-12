@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='Project',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('code', models.CharField(help_text='A short code for the project. This should only contain ASCII characters, numbers, and the underscore (_) character.', unique=True, max_length=255, verbose_name='Code', db_index=True)),
+                ('code', models.CharField(help_text='A short code for the project. This should only contain ASCII characters, numbers, and the underscore (_) character.', max_length=255, verbose_name='Code', db_index=True)),
                 ('fullname', models.CharField(max_length=255, verbose_name='Full Name')),
                 ('checkstyle', models.CharField(default=b'standard', max_length=50, verbose_name='Quality Checks', choices=[(b'standard', b'standard'), (b'creativecommons', b'creativecommons'), (b'drupal', b'drupal'), (b'gnome', b'gnome'), (b'kde', b'kde'), (b'libreoffice', b'libreoffice'), (b'mozilla', b'mozilla'), (b'openoffice', b'openoffice'), (b'terminology', b'terminology'), (b'wx', b'wx')])),
                 ('localfiletype', models.CharField(default=b'po', max_length=50, verbose_name='File Type', choices=[(b'po', 'Gettext PO'), (b'xlf', 'XLIFF'), (b'xliff', 'XLIFF'), (b'ts', 'Qt ts'), (b'tmx', 'TMX'), (b'tbx', 'TBX'), (b'catkeys', 'Haiku catkeys'), (b'csv', 'Excel CSV'), (b'lang', 'Mozilla .lang')])),
@@ -36,5 +36,11 @@ class Migration(migrations.Migration):
                 'db_table': 'pootle_app_project',
             },
             bases=(models.Model, pootle.core.mixins.treeitem.CachedTreeItem, pootle_project.models.ProjectURLMixin),
+        ),
+        migrations.RunSQL('ALTER TABLE `pootle_app_project` ROW_FORMAT=DYNAMIC'),
+        migrations.AlterField(
+            model_name='project',
+            name='code',
+            field=models.CharField(help_text='A short code for the project. This should only contain ASCII characters, numbers, and the underscore (_) character.', unique=True, max_length=255, verbose_name='Code', db_index=True)
         ),
     ]
