@@ -27,7 +27,7 @@ except ImportError:
         return fake
 
 
-CANDIDATE_MARKERS = ('alpha', 'beta', 'rc', 'final')
+CANDIDATE_MARKERS = ('alpha', 'beta', 'rc', 'final', 'yelp')
 
 
 def get_version(version=None):
@@ -68,7 +68,7 @@ def get_version(version=None):
             sub = '.dev0'
 
     elif candidate != 'final':
-        mapping = {'alpha': 'a', 'beta': 'b', 'rc': 'rc'}
+        mapping = {'alpha': 'a', 'beta': 'b', 'rc': 'rc', 'yelp': '-yelp'}
         sub = mapping[candidate] + str(candidate_extra)
 
     return str(main + sub)

@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255)),
-                ('pootle_path', models.CharField(unique=True, max_length=255, db_index=True)),
+                ('pootle_path', models.CharField(max_length=255, db_index=True)),
                 ('obsolete', models.BooleanField(default=False)),
                 ('parent', models.ForeignKey(related_name='child_dirs', to='pootle_app.Directory', null=True)),
             ],
@@ -27,6 +27,12 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
             bases=(models.Model, pootle.core.mixins.treeitem.CachedTreeItem),
+        ),
+        migrations.RunSQL("ALTER TABLE `pootle_app_directory` ROW_FORMAT=DYNAMIC"),
+        migrations.AlterField(
+            model_name='directory',
+            name='pootle_path',
+            field=models.CharField(unique=True, max_length=255, db_index=True)
         ),
         migrations.CreateModel(
             name='PermissionSet',
