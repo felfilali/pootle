@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('file', pootle_store.fields.TranslationStoreField(storage=pootle.core.storage.PootleFileSystemStorage(), upload_to=b'', max_length=255, editable=False, db_index=True)),
-                ('pootle_path', models.CharField(unique=True, max_length=255, verbose_name='Path', db_index=True)),
+                ('pootle_path', models.CharField(max_length=255, verbose_name='Path', db_index=True)),
                 ('name', models.CharField(max_length=128, editable=False)),
                 ('file_mtime', models.DateTimeField(default=datetime.datetime(1, 1, 1, 0, 0, tzinfo=utc))),
                 ('state', models.IntegerField(default=0, editable=False, db_index=True)),
@@ -39,6 +39,12 @@ class Migration(migrations.Migration):
                 'ordering': ['pootle_path'],
             },
             bases=(models.Model, pootle.core.mixins.treeitem.CachedTreeItem, translate.storage.base.TranslationStore),
+        ),
+        migrations.RunSQL('ALTER TABLE `pootle_store_store` ROW_FORMAT=DYNAMIC'),
+        migrations.AlterField(
+            model_name='store',
+            name='pootle_path',
+            field=models.CharField(unique=True, max_length=255, verbose_name='Path', db_index=True)
         ),
         migrations.CreateModel(
             name='Unit',

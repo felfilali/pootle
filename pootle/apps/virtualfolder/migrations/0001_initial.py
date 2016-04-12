@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             name='VirtualFolderTreeItem',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('pootle_path', models.CharField(unique=True, max_length=255, editable=False, db_index=True)),
+                ('pootle_path', models.CharField(max_length=255, editable=False, db_index=True)),
                 ('directory', models.ForeignKey(related_name='vf_treeitems', to='pootle_app.Directory')),
                 ('parent', models.ForeignKey(related_name='child_vf_treeitems', to='virtualfolder.VirtualFolderTreeItem', null=True)),
                 ('stores', models.ManyToManyField(related_name='parent_vf_treeitems', to=b'pootle_store.Store', db_index=True)),
@@ -47,6 +47,12 @@ class Migration(migrations.Migration):
             options={
             },
             bases=(models.Model, pootle.core.mixins.treeitem.CachedTreeItem),
+        ),
+        migrations.RunSQL('ALTER TABLE `virtualfolder_virtualfoldertreeitem` ROW_FORMAT=DYNAMIC'),
+        migrations.AlterField(
+            model_name='virtualfoldertreeitem',
+            name='pootle_path',
+            field=models.CharField(unique=True, max_length=255, editable=False, db_index=True)
         ),
         migrations.AlterUniqueTogether(
             name='virtualfoldertreeitem',
