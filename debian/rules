@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+
+%:
+		dh $@ --with python-virtualenv
+
+override_dh_virtualenv:
+		dh_virtualenv --pypi-url='https://pypi.yelpcorp.com/simple' --python=/usr/bin/python2.7
