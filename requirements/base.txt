@@ -26,3 +26,6 @@ translate-toolkit>=1.13.0
 # Databases
 mysql-python
 sqlparse
+
+# Tests
+-r tests.txt
