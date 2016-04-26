@@ -1,0 +1,13 @@
+Source: python-pootle
+Section: python
+Priority: optional
+Maintainer: Yelp i18n <i18n+pootle@yelp.com>
+Build-Depends: debhelper (>= 7), python (>= 2.7), dh-virtualenv (>= 0.8)
+Standards-Version: 3.9.5
+
+Package: python-pootle
+Architecture: any
+Pre-Depends: dpkg (>= 1.16.1), python2.7, ${misc:Pre-Depends}
+Depends: ${python:Depends}, ${misc:Depends}
+Description: Pootle is an online translation and localization tool.
+ It works to lower the barrier of entry, providing tools to enable teams to work towards higher quality while welcoming newcomers.
