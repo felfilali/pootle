@@ -6,7 +6,7 @@ export DH_OPTIONS
 
 
 %:
-		dh $@ --with python-virtualenv
+		dh $@ --with python-virtualenv --no-test
 
 override_dh_virtualenv:
 		dh_virtualenv --pypi-url='https://pypi.yelpcorp.com/simple' --python=/usr/bin/python2.7
