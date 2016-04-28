@@ -8,6 +8,6 @@ Standards-Version: 3.9.5
 Package: python-pootle
 Architecture: any
 Pre-Depends: dpkg (>= 1.16.1)
-Depends: ${misc:Depends}
+Depends: python2.7, ${misc:Depends}
 Description: Pootle is an online translation and localization tool.
  It works to lower the barrier of entry, providing tools to enable teams to work towards higher quality while welcoming newcomers.
