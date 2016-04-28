@@ -1,3 +1,9 @@
+python-pootle (2.7.2-yelp5) lucid; urgency=low
+
+  * Fix quality checks
+
+ -- Desmond Chan <deschan@yelp.com>  Thurs, 28 Apr 2016 11:30:00 -0700
+
 python-pootle (2.7.2) lucid; urgency=low
 
   * Initial release
