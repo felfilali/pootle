@@ -1,3 +1,9 @@
+python-pootle (2.7.2-yelp6) lucid; urgency=low
+
+  * Remove `terminology` directory
+
+ -- Fatima Zahra Elfilali <fzz@yelp.com>  Fri, 20 May 2016 13:57:25 -0700
+
 python-pootle (2.7.2-yelp5) lucid; urgency=low
 
   * Fix quality checks
