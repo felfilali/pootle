@@ -1,8 +1,8 @@
-python-pootle (2.7.2-yelp7) lucid; urgency=low
+python-pootle (2.7.5-yelp1) lucid; urgency=low
 
   * Pulled stable/2.7.5 
 
- -- Fatima Zahra Elfilali <fzz@yelp.com>  Wed, 01 Jun 2016 10:58:55 -0700
+ -- Fatima Zahra Elfilali <fzz@yelp.com>  Wed, 01 Jun 2016 11:42:25 -0700
 
 python-pootle (2.7.2-yelp6) lucid; urgency=low
 

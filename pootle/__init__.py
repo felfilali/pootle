@@ -9,6 +9,6 @@
 
 from pootle.core.utils.version import get_version
 
-VERSION = (2, 7, 5, 'yelp', 7)
+VERSION = (2, 7, 5, 'yelp', 1)
 
 __version__ = get_version(VERSION)
